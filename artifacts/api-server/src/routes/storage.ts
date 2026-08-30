@@ -53,7 +53,10 @@ async function getSignedObjectUrl({
 }
 
 router.post("/storage/uploads/request-url", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
+  const { userId: authenticatedUserId } = getAuth(req);
+  const userId = authenticatedUserId ?? (
+    process.env.NODE_ENV === "development" ? "demo-preview-user" : null
+  );
   if (!userId) {
     res.status(401).json({ error: "Sign in is required before uploading files." });
     return;

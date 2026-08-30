@@ -10,7 +10,6 @@ import {
 } from "@workspace/api-client-react";
 import { User, Bell, Shield, LogOut, Camera, ImagePlus, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@clerk/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +34,6 @@ const emptyProfile: ProfileForm = {
 
 export default function Settings() {
   const { data: user } = useGetCurrentUser();
-  const { isSignedIn } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const updateProfile = useUpdateCurrentUser();
@@ -113,10 +111,6 @@ export default function Settings() {
   };
 
   const saveProfile = async () => {
-    if (!isSignedIn) {
-      toast({ title: "Sign in before saving profile settings.", variant: "destructive" });
-      return;
-    }
     if (!profile.displayName.trim()) {
       toast({ title: "Display name is required.", variant: "destructive" });
       return;

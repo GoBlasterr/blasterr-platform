@@ -254,7 +254,10 @@ router.get("/me", async (req, res): Promise<void> => {
 });
 
 router.patch("/me", async (req, res): Promise<void> => {
-  const { userId } = getAuth(req);
+  const { userId: authenticatedUserId } = getAuth(req);
+  const userId = authenticatedUserId ?? (
+    process.env.NODE_ENV === "development" ? "demo-preview-user" : null
+  );
   if (!userId) {
     res.status(401).json({ error: "Sign in is required to save profile settings." });
     return;
@@ -277,9 +280,11 @@ router.patch("/me", async (req, res): Promise<void> => {
       coverUrl: parsed.data.coverUrl ?? current.coverUrl,
     };
 
-    await clerkClient.users.updateUserMetadata(userId, {
-      publicMetadata: next,
-    });
+    if (authenticatedUserId) {
+      await clerkClient.users.updateUserMetadata(authenticatedUserId, {
+        publicMetadata: next,
+      });
+    }
 
     Object.assign(current, next);
     res.json(UpdateCurrentUserResponse.parse(current));
