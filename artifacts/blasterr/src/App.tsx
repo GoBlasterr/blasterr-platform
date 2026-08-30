@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 import { ClerkLoaded, ClerkLoading, ClerkProvider, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { dark } from '@clerk/themes';
@@ -59,7 +59,7 @@ function Router() {
     <Shell>
       <RoutedErrorBoundary>
         <Switch>
-          <Route path="/" component={Home} />
+          <Route path="/" component={() => <Redirect to="/home" />} />
           <Route path="/splash" component={Splash} />
           <Route path="/home" component={Home} />
           <Route path="/create" component={CreateBlast} />
