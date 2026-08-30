@@ -101,7 +101,7 @@ function StaffSignIn() {
           <button
             type="submit"
             disabled={!isLoaded || isSubmitting || !username.trim() || !password}
-            className="inline-flex h-10 w-full items-center justify-center rounded-md bg-[#e5f403] px-5 text-sm font-semibold text-black hover:bg-[#e5f403]/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 w-full items-center justify-center rounded-md bg-[#e5f403] px-5 text-sm font-semibold text-black hover:bg-[#e5f403]/90 disabled:cursor-not-allowed"
             data-testid="staff-sign-in"
           >
             {isSubmitting ? 'Signing in…' : 'Sign in'}
