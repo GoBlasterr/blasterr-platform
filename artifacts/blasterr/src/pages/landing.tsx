@@ -1,10 +1,10 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Globe, Zap, Users, Crosshair } from "lucide-react";
-import { useGetCurrentUser } from "@workspace/api-client-react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function Landing() {
-  const { data: user, isLoading } = useGetCurrentUser();
+  const { data: user, isLoading } = useCurrentUser();
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden flex flex-col">

@@ -1,10 +1,11 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
-import { ClerkProvider, useClerk } from '@clerk/react';
+import { ClerkLoaded, ClerkLoading, ClerkProvider, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { dark } from '@clerk/themes';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -138,12 +139,21 @@ function AppContent() {
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
-        <ClerkQueryClientCacheInvalidator />
-        <TooltipProvider>
-          <div className="site-stars pointer-events-none fixed inset-0 z-[2]" aria-hidden="true" />
-          <Router />
-          <Toaster />
-        </TooltipProvider>
+        <ClerkLoading>
+          <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+            <span className="text-sm font-medium">Loading BLASTERR…</span>
+          </div>
+        </ClerkLoading>
+        <ClerkLoaded>
+          <ThemeProvider>
+            <ClerkQueryClientCacheInvalidator />
+            <TooltipProvider>
+              <div className="site-stars pointer-events-none fixed inset-0 z-[2]" aria-hidden="true" />
+              <Router />
+              <Toaster />
+            </TooltipProvider>
+          </ThemeProvider>
+        </ClerkLoaded>
       </QueryClientProvider>
     </ClerkProvider>
   );

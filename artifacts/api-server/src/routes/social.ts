@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { Router, type IRouter } from "express";
 import { clerkClient, getAuth } from "@clerk/express";
 import {
@@ -66,11 +68,17 @@ const stateAbbreviations: Record<string, string> = {
 const stateNamesByAbbreviation = Object.fromEntries(
   Object.entries(stateAbbreviations).map(([name, abbreviation]) => [abbreviation.toLowerCase(), abbreviation]),
 );
+const validStateAbbreviations = new Set(Object.values(stateAbbreviations));
 
 function titleCaseLocationPart(value: string): string {
   return value
     .toLowerCase()
     .replace(/\b([a-z])/g, (letter) => letter.toUpperCase());
+}
+
+function normalizeState(value: string): string {
+  const cleaned = value.trim().toLowerCase();
+  return stateAbbreviations[cleaned] ?? stateNamesByAbbreviation[cleaned] ?? titleCaseLocationPart(value.trim());
 }
 
 function normalizeLocation(value: string): string {
@@ -102,6 +110,20 @@ function normalizeLocation(value: string): string {
   return `${titleCaseLocationPart(city)}, ${normalizedState}`;
 }
 
+function normalizeProfileLocation(city: string, state: string): {
+  city: string;
+  state: string;
+  location: string;
+} {
+  const normalizedCity = titleCaseLocationPart(city.trim().replace(/\s+/g, " "));
+  const normalizedState = normalizeState(state);
+  return {
+    city: normalizedCity,
+    state: normalizedState,
+    location: normalizedCity && normalizedState ? `${normalizedCity}, ${normalizedState}` : normalizedCity,
+  };
+}
+
 const users = [
   {
     id: "user-kinamin",
@@ -111,6 +133,8 @@ const users = [
     coverUrl: "",
     bio: "Building the next conversation layer of the internet.",
     location: "Atlanta, GA",
+    city: "Atlanta",
+    state: "GA",
     followers: 842,
     following: 318,
     blastCount: 74,
@@ -124,6 +148,8 @@ const users = [
     avatarUrl: "",
     bio: "Food, cities, and unapologetically honest takes.",
     location: "Atlanta, GA",
+    city: "Atlanta",
+    state: "GA",
     followers: 12840,
     following: 611,
     blastCount: 298,
@@ -137,6 +163,8 @@ const users = [
     avatarUrl: "",
     bio: "Sports culture without the recycled hot takes.",
     location: "Charlotte, NC",
+    city: "Charlotte",
+    state: "NC",
     followers: 6210,
     following: 452,
     blastCount: 187,
@@ -144,6 +172,87 @@ const users = [
     isFollowing: false,
   },
 ];
+
+const authenticatedProfiles = new Map<string, (typeof users)[number]>();
+const demoProfilePath = resolve(process.cwd(), "../../.local/state/blasterr-demo-profile.json");
+const demoProfileFields = [
+  "displayName",
+  "username",
+  "bio",
+  "location",
+  "city",
+  "state",
+  "avatarUrl",
+  "coverUrl",
+] as const;
+
+async function loadDemoProfile(): Promise<(typeof users)[number]> {
+  try {
+    const saved = JSON.parse(await readFile(demoProfilePath, "utf8")) as Record<string, unknown>;
+    for (const field of demoProfileFields) {
+      if (typeof saved[field] === "string") {
+        users[0][field] = saved[field];
+      }
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw error;
+    }
+  }
+
+  return users[0];
+}
+
+async function saveDemoProfile(profile: (typeof users)[number]): Promise<void> {
+  const persisted = Object.fromEntries(
+    demoProfileFields.map((field) => [field, profile[field]]),
+  );
+  await mkdir(dirname(demoProfilePath), { recursive: true });
+  await writeFile(demoProfilePath, JSON.stringify(persisted, null, 2), "utf8");
+}
+
+async function loadAuthenticatedProfile(userId: string): Promise<{
+  profile: (typeof users)[number];
+  zipCode: string;
+}> {
+  const clerkUser = await clerkClient.users.getUser(userId);
+  const metadata = clerkUser.publicMetadata as Record<string, unknown>;
+  const profile = authenticatedProfiles.get(userId) ?? { ...users[0], id: userId };
+  const profileFields = [
+    "displayName",
+    "username",
+    "bio",
+    "avatarUrl",
+    "coverUrl",
+  ] as const;
+
+  for (const field of profileFields) {
+    if (typeof metadata[field] === "string") {
+      profile[field] = metadata[field];
+    }
+  }
+
+  if (typeof metadata.city === "string" && typeof metadata.state === "string") {
+    const structuredLocation = normalizeProfileLocation(metadata.city, metadata.state);
+    profile.city = structuredLocation.city;
+    profile.state = structuredLocation.state;
+    profile.location = structuredLocation.location;
+  } else if (typeof metadata.location === "string") {
+    const legacyLocation = normalizeLocation(metadata.location);
+    const [legacyCity = "", legacyState = ""] = legacyLocation.split(",").map((part) => part.trim());
+    profile.city = legacyCity;
+    profile.state = normalizeState(legacyState);
+    profile.location = legacyLocation;
+  }
+
+  authenticatedProfiles.set(userId, profile);
+  return {
+    profile,
+    zipCode: typeof clerkUser.privateMetadata.zipCode === "string"
+      ? clerkUser.privateMetadata.zipCode
+      : "",
+  };
+}
 
 type TargetRecord = {
   id: string;
@@ -154,6 +263,10 @@ type TargetRecord = {
   blastCount: number;
   imageUrl: string;
   description: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 };
 
 const targets: TargetRecord[] = [
@@ -166,6 +279,7 @@ const targets: TargetRecord[] = [
     blastCount: 1284,
     imageUrl: "",
     description: "Late-night wings, bold sauces, and one of Atlanta's loudest food debates.",
+    coordinates: { latitude: 33.749, longitude: -84.388 },
   },
   {
     id: "target-finals",
@@ -176,6 +290,7 @@ const targets: TargetRecord[] = [
     blastCount: 9410,
     imageUrl: "",
     description: "The championship series everyone is arguing about.",
+    coordinates: { latitude: 35.2271, longitude: -80.8431 },
   },
   {
     id: "target-neon",
@@ -186,6 +301,7 @@ const targets: TargetRecord[] = [
     blastCount: 3862,
     imageUrl: "",
     description: "The surprise album reshaping this summer's sound.",
+    coordinates: { latitude: 33.771, longitude: -84.387 },
   },
   {
     id: "target-atlanta",
@@ -196,6 +312,7 @@ const targets: TargetRecord[] = [
     blastCount: 28754,
     imageUrl: "",
     description: "What the city is talking about right now.",
+    coordinates: { latitude: 33.749, longitude: -84.388 },
   },
 ];
 
@@ -287,34 +404,60 @@ const notifications = [
   { id: "notice-3", type: "trending" as const, message: "Your Blast is gaining momentum in Atlanta.", createdAt: "2026-08-28T23:58:00.000Z", read: true, actor: users[0] },
 ];
 
+function distanceInMiles(
+  latitudeA: number,
+  longitudeA: number,
+  latitudeB: number,
+  longitudeB: number,
+): number {
+  const earthRadiusMiles = 3958.8;
+  const toRadians = (degrees: number) => degrees * Math.PI / 180;
+  const latitudeDelta = toRadians(latitudeB - latitudeA);
+  const longitudeDelta = toRadians(longitudeB - longitudeA);
+  const startLatitude = toRadians(latitudeA);
+  const endLatitude = toRadians(latitudeB);
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(startLatitude) * Math.cos(endLatitude) * Math.sin(longitudeDelta / 2) ** 2;
+
+  return earthRadiusMiles * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
 router.get("/me", async (req, res): Promise<void> => {
+  res.set("Cache-Control", "private, no-store, max-age=0");
+  res.set("Vary", "Cookie, Authorization");
   const { userId } = getAuth(req);
-  if (userId) {
-    try {
-      const clerkUser = await clerkClient.users.getUser(userId);
-      const metadata = clerkUser.publicMetadata as Record<string, unknown>;
-      const profileFields = ["displayName", "username", "bio", "location", "avatarUrl", "coverUrl"] as const;
-      for (const field of profileFields) {
-        if (typeof metadata[field] === "string") {
-          users[0][field] = field === "location"
-            ? normalizeLocation(metadata[field])
-            : metadata[field];
-        }
-      }
-    } catch (error) {
-      req.log.warn({ err: error }, "Unable to load Clerk profile metadata");
+  if (!userId) {
+    if (process.env.NODE_ENV !== "development") {
+      res.status(401).json({ error: "Sign in is required to view profile settings." });
+      return;
     }
+
+    try {
+      const profile = await loadDemoProfile();
+      res.json(GetCurrentUserResponse.parse({ ...profile, zipCode: "" }));
+    } catch (error) {
+      req.log.error({ err: error }, "Unable to load development preview profile");
+      res.status(500).json({ error: "Profile settings could not be loaded. Please try again." });
+    }
+    return;
   }
 
-  res.json(GetCurrentUserResponse.parse(users[0]));
+  try {
+    const { profile, zipCode } = await loadAuthenticatedProfile(userId);
+    res.json(GetCurrentUserResponse.parse({ ...profile, zipCode }));
+  } catch (error) {
+    req.log.error({ err: error }, "Unable to load profile settings");
+    res.status(500).json({ error: "Profile settings could not be loaded. Please try again." });
+  }
 });
 
 router.patch("/me", async (req, res): Promise<void> => {
-  const { userId: authenticatedUserId } = getAuth(req);
-  const userId = authenticatedUserId ?? (
-    process.env.NODE_ENV === "development" ? "demo-preview-user" : null
-  );
-  if (!userId) {
+  res.set("Cache-Control", "private, no-store, max-age=0");
+  res.set("Vary", "Cookie, Authorization");
+  const { userId } = getAuth(req);
+  const isDevelopmentPreview = !userId && process.env.NODE_ENV === "development";
+  if (!userId && !isDevelopmentPreview) {
     res.status(401).json({ error: "Sign in is required to save profile settings." });
     return;
   }
@@ -326,26 +469,44 @@ router.patch("/me", async (req, res): Promise<void> => {
   }
 
   try {
-    const current = users[0];
+    const { profile: current, zipCode: storedZipCode } = userId
+      ? await loadAuthenticatedProfile(userId)
+      : { profile: await loadDemoProfile(), zipCode: "" };
+    const normalizedProfileLocation = normalizeProfileLocation(
+      parsed.data.city ?? current.city,
+      parsed.data.state ?? current.state,
+    );
+    if (!normalizedProfileLocation.city || !validStateAbbreviations.has(normalizedProfileLocation.state)) {
+      res.status(400).json({ error: "Enter a valid city and U.S. state." });
+      return;
+    }
     const next = {
       displayName: parsed.data.displayName ?? current.displayName,
       username: parsed.data.username ?? current.username,
       bio: parsed.data.bio ?? current.bio,
-      location: parsed.data.location === undefined
-        ? current.location
-        : normalizeLocation(parsed.data.location),
+      city: normalizedProfileLocation.city,
+      state: normalizedProfileLocation.state,
+      location: parsed.data.city !== undefined || parsed.data.state !== undefined
+        ? normalizedProfileLocation.location
+        : parsed.data.location === undefined
+          ? current.location
+          : normalizeLocation(parsed.data.location),
       avatarUrl: parsed.data.avatarUrl ?? current.avatarUrl,
       coverUrl: parsed.data.coverUrl ?? current.coverUrl,
     };
-
-    if (authenticatedUserId) {
-      await clerkClient.users.updateUserMetadata(authenticatedUserId, {
-        publicMetadata: next,
-      });
-    }
+    const zipCode = userId ? parsed.data.zipCode ?? storedZipCode : "";
 
     Object.assign(current, next);
-    res.json(UpdateCurrentUserResponse.parse(current));
+    if (userId) {
+      await clerkClient.users.updateUserMetadata(userId, {
+        publicMetadata: next,
+        privateMetadata: { zipCode },
+      });
+      authenticatedProfiles.set(userId, current);
+    } else {
+      await saveDemoProfile(current);
+    }
+    res.json(UpdateCurrentUserResponse.parse({ ...current, zipCode }));
   } catch (error) {
     req.log.error({ err: error }, "Unable to save profile settings");
     res.status(500).json({ error: "Profile settings could not be saved. Please try again." });
@@ -358,7 +519,40 @@ router.get("/feed", (req, res): void => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const page = parsed.data.page;
+  const { page, tab, latitude, longitude, radius } = parsed.data;
+  if (tab === "nearby") {
+    if (latitude === undefined || longitude === undefined) {
+      res.json(GetFeedResponse.parse({
+        items: [],
+        page,
+        hasMore: false,
+        radiusMiles: radius,
+        locationRequired: true,
+      }));
+      return;
+    }
+
+    const nearbyBlasts = blasts.filter((blast) => {
+      const coordinates = blast.target.coordinates;
+      if (!coordinates) return false;
+      return distanceInMiles(
+        latitude,
+        longitude,
+        coordinates.latitude,
+        coordinates.longitude,
+      ) <= radius;
+    });
+
+    res.json(GetFeedResponse.parse({
+      items: nearbyBlasts,
+      page,
+      hasMore: false,
+      radiusMiles: radius,
+      locationRequired: false,
+    }));
+    return;
+  }
+
   res.json(GetFeedResponse.parse({ items: blasts, page, hasMore: false }));
 });
 
@@ -446,18 +640,37 @@ router.get("/targets/:slug", (req, res): void => {
   }));
 });
 
-router.get("/users/:username", (req, res): void => {
+router.get("/users/:username", async (req, res): Promise<void> => {
   const parsed = GetUserProfileParams.safeParse(req.params);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const user = users.find((item) => item.username === parsed.data.username);
+  const { userId } = getAuth(req);
+  let requestProfile: (typeof users)[number] | undefined;
+  try {
+    if (userId) {
+      const authenticatedProfile = await loadAuthenticatedProfile(userId);
+      if (authenticatedProfile.profile.username === parsed.data.username) {
+        requestProfile = authenticatedProfile.profile;
+      }
+    } else if (process.env.NODE_ENV === "development") {
+      const demoProfile = await loadDemoProfile();
+      if (demoProfile.username === parsed.data.username) {
+        requestProfile = demoProfile;
+      }
+    }
+  } catch (error) {
+    req.log.warn({ err: error }, "Unable to hydrate profile before public profile response");
+  }
+
+  const user = requestProfile ?? [...authenticatedProfiles.values(), ...users]
+    .find((item) => item.username === parsed.data.username);
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
   }
-  const profileBlasts = blasts.filter((blast) => blast.author.id === user.id);
+  const profileBlasts = blasts.filter((blast) => blast.author.username === user.username);
   res.json(GetUserProfileResponse.parse({ ...user, coverUrl: user.coverUrl || "", blasts: profileBlasts, media: profileBlasts.filter((blast) => blast.mediaUrl) }));
 });
 

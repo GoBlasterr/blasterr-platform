@@ -6,7 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { FeedTabParameter } from './feedTabParameter';
+import type { LatitudeParameter } from './latitudeParameter';
+import type { LongitudeParameter } from './longitudeParameter';
 import type { PageParameter } from './pageParameter';
+import type { RadiusParameter } from './radiusParameter';
 
 export type GetFeedParams = {
 tab?: FeedTabParameter;
@@ -14,4 +17,19 @@ tab?: FeedTabParameter;
  * @minimum 1
  */
 page?: PageParameter;
+/**
+ * @minimum -90
+ * @maximum 90
+ */
+latitude?: LatitudeParameter;
+/**
+ * @minimum -180
+ * @maximum 180
+ */
+longitude?: LongitudeParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+radius?: RadiusParameter;
 };

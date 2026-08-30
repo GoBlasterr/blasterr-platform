@@ -26,13 +26,17 @@ export const GetCurrentUserResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
   "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
-})
+}).and(zod.object({
+  "zipCode": zod.string().optional()
+}))
 
 
 /**
@@ -45,6 +49,11 @@ export const updateCurrentUserBodyBioMax = 280;
 
 export const updateCurrentUserBodyLocationMax = 120;
 
+export const updateCurrentUserBodyCityMax = 100;
+
+export const updateCurrentUserBodyStateMax = 50;
+
+export const updateCurrentUserBodyZipCodeRegExp = new RegExp('^(?:[0-9]{5}(?:-[0-9]{4})?)?$');
 export const updateCurrentUserBodyAvatarUrlMax = 500;
 
 export const updateCurrentUserBodyCoverUrlMax = 500;
@@ -56,6 +65,9 @@ export const UpdateCurrentUserBody = zod.object({
   "username": zod.string().regex(updateCurrentUserBodyUsernameRegExp).optional(),
   "bio": zod.string().max(updateCurrentUserBodyBioMax).optional(),
   "location": zod.string().max(updateCurrentUserBodyLocationMax).optional(),
+  "city": zod.string().min(1).max(updateCurrentUserBodyCityMax).optional(),
+  "state": zod.string().min(1).max(updateCurrentUserBodyStateMax).optional(),
+  "zipCode": zod.string().regex(updateCurrentUserBodyZipCodeRegExp).optional(),
   "avatarUrl": zod.string().max(updateCurrentUserBodyAvatarUrlMax).optional(),
   "coverUrl": zod.string().max(updateCurrentUserBodyCoverUrlMax).optional()
 })
@@ -67,13 +79,17 @@ export const UpdateCurrentUserResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
   "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
-})
+}).and(zod.object({
+  "zipCode": zod.string().optional()
+}))
 
 
 /**
@@ -82,11 +98,23 @@ export const UpdateCurrentUserResponse = zod.object({
 export const getFeedQueryTabDefault = `for-you`;
 export const getFeedQueryPageDefault = 1;
 
+export const getFeedQueryLatitudeMin = -90;
+export const getFeedQueryLatitudeMax = 90;
+
+export const getFeedQueryLongitudeMin = -180;
+export const getFeedQueryLongitudeMax = 180;
+
+export const getFeedQueryRadiusDefault = 20;
+export const getFeedQueryRadiusMax = 100;
+
 
 
 export const GetFeedQueryParams = zod.object({
   "tab": zod.enum(['for-you', 'following', 'trending', 'nearby']).default(getFeedQueryTabDefault),
-  "page": zod.coerce.number().min(1).default(getFeedQueryPageDefault)
+  "page": zod.coerce.number().min(1).default(getFeedQueryPageDefault),
+  "latitude": zod.coerce.number().min(getFeedQueryLatitudeMin).max(getFeedQueryLatitudeMax).optional(),
+  "longitude": zod.coerce.number().min(getFeedQueryLongitudeMin).max(getFeedQueryLongitudeMax).optional(),
+  "radius": zod.coerce.number().min(1).max(getFeedQueryRadiusMax).default(getFeedQueryRadiusDefault)
 })
 
 export const GetFeedResponse = zod.object({
@@ -101,6 +129,8 @@ export const GetFeedResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -137,7 +167,9 @@ export const GetFeedResponse = zod.object({
   "originalBlastId": zod.string().nullish()
 })),
   "page": zod.number(),
-  "hasMore": zod.boolean()
+  "hasMore": zod.boolean(),
+  "radiusMiles": zod.number().optional(),
+  "locationRequired": zod.boolean().optional()
 })
 
 
@@ -156,6 +188,8 @@ export const GetTrendingResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -223,6 +257,8 @@ export const SearchResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -241,6 +277,8 @@ export const SearchResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -369,6 +407,8 @@ export const GetTargetResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -427,6 +467,8 @@ export const GetUserProfileResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -446,6 +488,8 @@ export const GetUserProfileResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -492,6 +536,8 @@ export const GetUserProfileResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -569,6 +615,8 @@ export const CreateBlastResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -633,6 +681,8 @@ export const UpdateBlastResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -728,6 +778,8 @@ export const CreateCommentResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -770,6 +822,8 @@ export const CreateBlastBackResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -835,6 +889,8 @@ export const GetNotificationsResponseItem = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),
@@ -860,6 +916,8 @@ export const GetBookmarksResponseItem = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
   "coverUrl": zod.string().optional(),
   "followers": zod.number(),
   "following": zod.number(),

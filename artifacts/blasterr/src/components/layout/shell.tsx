@@ -8,15 +8,13 @@ import {
   Bell, 
   Bookmark, 
   Settings, 
-  ShieldAlert,
-  PenSquare,
   User,
   LogOut,
   LogIn
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useGetCurrentUser } from "@workspace/api-client-react";
 import { useClerk } from "@clerk/react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -27,7 +25,7 @@ interface ShellProps {
 export function Shell({ children }: ShellProps) {
   const [location] = useLocation();
   const { signOut } = useClerk();
-  const { data: user } = useGetCurrentUser();
+  const { data: user } = useCurrentUser();
 
   const navItems = [
     { icon: Home, label: "Home", href: "/home" },
@@ -72,25 +70,12 @@ export function Shell({ children }: ShellProps) {
                 </Link>
               );
             })}
-            
-            {user && (
-              <Link href="/admin" className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group mt-4 ${location === '/admin' ? 'bg-destructive/20 text-destructive border border-destructive/30' : 'hover:bg-destructive/10 text-destructive/70 hover:text-destructive'}`}>
-                <ShieldAlert className="w-6 h-6" />
-                <span className="font-medium text-lg">Command Center</span>
-              </Link>
-            )}
           </nav>
         </div>
 
         <div className="flex flex-col gap-4">
           {user ? (
             <>
-              <Link href="/create" className="w-full">
-                <Button size="lg" className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-display font-bold text-xl shadow-[0_0_20px_rgba(229,244,3,0.4)] transition-all hover:shadow-[0_0_30px_rgba(229,244,3,0.6)] hover:scale-[1.02]">
-                  <PenSquare className="w-5 h-5 mr-2" />
-                  BLAST
-                </Button>
-              </Link>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 mt-4">
                 {user.avatarUrl ? (
                   <img src={user.avatarUrl} alt={user.username} className="w-10 h-10 rounded-full border border-primary/50" />
@@ -156,13 +141,6 @@ export function Shell({ children }: ShellProps) {
             <item.icon className="w-6 h-6" />
           </Link>
         ))}
-        {user && (
-          <Link href="/create" className="absolute -top-6 left-1/2 -translate-x-1/2">
-            <Button size="icon" className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-[0_0_20px_rgba(229,244,3,0.4)]">
-              <PenSquare className="w-6 h-6" />
-            </Button>
-          </Link>
-        )}
       </nav>
     </div>
   );

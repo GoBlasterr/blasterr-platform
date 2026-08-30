@@ -4,21 +4,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
-  getGetCurrentUserQueryKey,
-  useGetCurrentUser,
   useUpdateCurrentUser,
 } from "@workspace/api-client-react";
-import { User, Bell, Shield, LogOut, Camera, ImagePlus, Loader2 } from "lucide-react";
+import { User, Bell, Shield, LogOut, Camera, ImagePlus, Loader2, Sun } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/theme-provider";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 type ProfileForm = {
   displayName: string;
   username: string;
   bio: string;
-  location: string;
+  city: string;
+  state: string;
+  zipCode: string;
   avatarUrl: string;
   coverUrl: string;
 };
@@ -27,18 +29,23 @@ const emptyProfile: ProfileForm = {
   displayName: "",
   username: "",
   bio: "",
-  location: "",
+  city: "",
+  state: "",
+  zipCode: "",
   avatarUrl: "",
   coverUrl: "",
 };
 
 export default function Settings() {
-  const { data: user } = useGetCurrentUser();
+  const currentUserQuery = useCurrentUser();
+  const { data: user } = currentUserQuery;
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const updateProfile = useUpdateCurrentUser();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const hydratedUserIdRef = useRef<string | null>(null);
   const [profile, setProfile] = useState<ProfileForm>(emptyProfile);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -47,12 +54,15 @@ export default function Settings() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || hydratedUserIdRef.current === user.id) return;
+    hydratedUserIdRef.current = user.id;
     setProfile({
       displayName: user.displayName,
       username: user.username,
       bio: user.bio,
-      location: user.location,
+      city: user.city,
+      state: user.state,
+      zipCode: user.zipCode ?? "",
       avatarUrl: user.avatarUrl,
       coverUrl: user.coverUrl ?? "",
     });
@@ -119,6 +129,18 @@ export default function Settings() {
       toast({ title: "Username must be 3–30 letters, numbers, or underscores.", variant: "destructive" });
       return;
     }
+    if (!profile.city.trim()) {
+      toast({ title: "City is required.", variant: "destructive" });
+      return;
+    }
+    if (!profile.state.trim()) {
+      toast({ title: "State is required.", variant: "destructive" });
+      return;
+    }
+    if (profile.zipCode.trim() && !/^\d{5}(?:-\d{4})?$/.test(profile.zipCode.trim())) {
+      toast({ title: "Enter a valid 5-digit ZIP Code or ZIP+4.", variant: "destructive" });
+      return;
+    }
 
     setIsSaving(true);
     try {
@@ -132,7 +154,9 @@ export default function Settings() {
           displayName: profile.displayName.trim(),
           username: profile.username.trim(),
           bio: profile.bio.trim(),
-          location: profile.location.trim(),
+          city: profile.city.trim(),
+          state: profile.state.trim(),
+          zipCode: profile.zipCode.trim(),
           avatarUrl,
           coverUrl,
         },
@@ -142,7 +166,9 @@ export default function Settings() {
         displayName: updated.displayName,
         username: updated.username,
         bio: updated.bio,
-        location: updated.location,
+        city: updated.city,
+        state: updated.state,
+        zipCode: updated.zipCode ?? "",
         avatarUrl: updated.avatarUrl,
         coverUrl: updated.coverUrl ?? "",
       });
@@ -150,7 +176,7 @@ export default function Settings() {
       setBannerFile(null);
       setAvatarPreview(updated.avatarUrl);
       setBannerPreview(updated.coverUrl ?? "");
-      queryClient.setQueryData(getGetCurrentUserQueryKey(), updated);
+      queryClient.setQueryData(currentUserQuery.queryKey, updated);
       await queryClient.invalidateQueries({
         predicate: ({ queryKey }) =>
           typeof queryKey[0] === "string" && queryKey[0].startsWith("/api/users/"),
@@ -172,7 +198,7 @@ export default function Settings() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="sticky top-0 z-20 glass-panel border-b border-white/10 p-4 md:px-6">
+      <div className="sticky top-0 z-20 glass-panel border-b border-white/10 p-4 pb-6 md:px-6 md:pb-7">
         <h2 className="font-display font-bold text-2xl text-white">System Settings</h2>
       </div>
 
@@ -285,13 +311,79 @@ export default function Settings() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-muted-foreground uppercase text-xs tracking-wider">Location</Label>
-              <Input
-                value={profile.location}
-                onChange={(event) => setField("location", event.target.value)}
-                maxLength={120}
-                className="bg-card border-white/10 h-12 rounded-xl max-w-sm"
+            <div className="space-y-3">
+              <div>
+                <h4 className="text-sm font-semibold text-white">Location</h4>
+                <p className="text-xs text-muted-foreground">
+                  Your city and state appear on your profile. Your ZIP Code stays private.
+                </p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_140px]">
+                <div className="space-y-2">
+                  <Label htmlFor="profile-city" className="text-muted-foreground uppercase text-xs tracking-wider">
+                    City
+                  </Label>
+                  <Input
+                    id="profile-city"
+                    value={profile.city}
+                    onChange={(event) => setField("city", event.target.value)}
+                    maxLength={100}
+                    autoComplete="address-level2"
+                    placeholder="Atlanta"
+                    className="bg-card border-white/10 h-12 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="profile-state" className="text-muted-foreground uppercase text-xs tracking-wider">
+                    State
+                  </Label>
+                  <Input
+                    id="profile-state"
+                    value={profile.state}
+                    onChange={(event) => setField("state", event.target.value)}
+                    maxLength={50}
+                    autoComplete="address-level1"
+                    placeholder="GA"
+                    className="bg-card border-white/10 h-12 rounded-xl"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2 max-w-[220px]">
+                <Label htmlFor="profile-zip" className="text-muted-foreground uppercase text-xs tracking-wider">
+                  ZIP Code <span className="normal-case tracking-normal">(private)</span>
+                </Label>
+                <Input
+                  id="profile-zip"
+                  value={profile.zipCode}
+                  onChange={(event) => setField("zipCode", event.target.value)}
+                  maxLength={10}
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  placeholder="30303"
+                  className="bg-card border-white/10 h-12 rounded-xl"
+                />
+                <p className="text-xs text-muted-foreground">5 digits or ZIP+4, such as 30303-1234.</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-card p-4">
+              <div className="flex items-start gap-3">
+                <Sun className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                <div>
+                  <Label htmlFor="light-mode" className="text-sm font-semibold text-white">
+                    Light mode
+                  </Label>
+                  <p id="light-mode-description" className="mt-1 text-xs text-muted-foreground">
+                    Use a white background with high-contrast text across BLASTERR.
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="light-mode"
+                checked={theme === "light"}
+                onCheckedChange={(checked) => setTheme(checked ? "light" : "dark")}
+                aria-label="Use light mode"
+                aria-describedby="light-mode-description"
               />
             </div>
 

@@ -18,6 +18,18 @@ export interface UserUpdate {
   bio?: string;
   /** @maxLength 120 */
   location?: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  city?: string;
+  /**
+     * @minLength 1
+     * @maxLength 50
+     */
+  state?: string;
+  /** @pattern ^(?:[0-9]{5}(?:-[0-9]{4})?)?$ */
+  zipCode?: string;
   /** @maxLength 500 */
   avatarUrl?: string;
   /** @maxLength 500 */

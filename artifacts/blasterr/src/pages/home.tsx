@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   useGetFeed,
-  useGetCurrentUser,
   getGetFeedQueryKey
 } from "@workspace/api-client-react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Home as HomeIcon, PenSquare } from "lucide-react";
@@ -16,7 +16,7 @@ export default function Home() {
 
   // Type assertion since the OpenAPI schema type isn't matching perfectly in this mockup context
   const { data: feedData, isLoading } = useGetFeed({ tab: activeTab as any, page: 1 });
-  const { data: user } = useGetCurrentUser();
+  const { data: user } = useCurrentUser();
   const welcomeName = user?.displayName?.trim() || user?.username || "User";
 
   return (

@@ -16,6 +16,8 @@ export interface User {
   avatarUrl: string;
   bio: string;
   location: string;
+  city: string;
+  state: string;
   coverUrl?: string;
   followers: number;
   following: number;
@@ -23,6 +25,10 @@ export interface User {
   joinedAt: string;
   isFollowing?: boolean;
 }
+
+export type CurrentUser = User & {
+  zipCode?: string;
+};
 
 export interface UserUpdate {
   /**
@@ -36,6 +42,18 @@ export interface UserUpdate {
   bio?: string;
   /** @maxLength 120 */
   location?: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  city?: string;
+  /**
+     * @minLength 1
+     * @maxLength 50
+     */
+  state?: string;
+  /** @pattern ^(?:[0-9]{5}(?:-[0-9]{4})?)?$ */
+  zipCode?: string;
   /** @maxLength 500 */
   avatarUrl?: string;
   /** @maxLength 500 */
@@ -159,6 +177,8 @@ export interface FeedResponse {
   items: Blast[];
   page: number;
   hasMore: boolean;
+  radiusMiles?: number;
+  locationRequired?: boolean;
 }
 
 export interface TrendingResponse {
@@ -357,12 +377,29 @@ export type LatitudeParameter = number;
 
 export type LongitudeParameter = number;
 
+export type RadiusParameter = number;
+
 export type GetFeedParams = {
 tab?: FeedTabParameter;
 /**
  * @minimum 1
  */
 page?: PageParameter;
+/**
+ * @minimum -90
+ * @maximum 90
+ */
+latitude?: LatitudeParameter;
+/**
+ * @minimum -180
+ * @maximum 180
+ */
+longitude?: LongitudeParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+radius?: RadiusParameter;
 };
 
 export type SearchParams = {

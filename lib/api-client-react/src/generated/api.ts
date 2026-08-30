@@ -29,6 +29,7 @@ import type {
   BookmarkState,
   Comment,
   CommentInput,
+  CurrentUser,
   FeedResponse,
   FollowState,
   GetFeedParams,
@@ -46,7 +47,6 @@ import type {
   TargetDetail,
   TargetInput,
   TrendingResponse,
-  User,
   UserUpdate
 } from './api.schemas';
 
@@ -165,9 +165,9 @@ export const getGetCurrentUserUrl = () => {
 /**
  * @summary Get the current signed-in profile
  */
-export const getCurrentUser = async ( options?: Parameters<typeof customFetch>[1]): Promise<User> => {
+export const getCurrentUser = async ( options?: Parameters<typeof customFetch>[1]): Promise<CurrentUser> => {
 
-  return customFetch<User>(getGetCurrentUserUrl(),
+  return customFetch<CurrentUser>(getGetCurrentUserUrl(),
   {
     ...options,
     method: 'GET'
@@ -242,9 +242,9 @@ export const getUpdateCurrentUserUrl = () => {
 /**
  * @summary Update the current signed-in profile
  */
-export const updateCurrentUser = async (userUpdate: UserUpdate, options?: Parameters<typeof customFetch>[1]): Promise<User> => {
+export const updateCurrentUser = async (userUpdate: UserUpdate, options?: Parameters<typeof customFetch>[1]): Promise<CurrentUser> => {
 
-  return customFetch<User>(getUpdateCurrentUserUrl(),
+  return customFetch<CurrentUser>(getUpdateCurrentUserUrl(),
   {
     ...options,
     method: 'PATCH',

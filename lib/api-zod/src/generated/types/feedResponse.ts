@@ -11,4 +11,6 @@ export interface FeedResponse {
   items: Blast[];
   page: number;
   hasMore: boolean;
+  radiusMiles?: number;
+  locationRequired?: boolean;
 }

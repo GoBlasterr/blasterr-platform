@@ -194,7 +194,7 @@ export function BlastCard({ blast, showTarget = true }: { blast: any, showTarget
           )}
 
           {/* Actions */}
-          <div className="mt-4 flex items-center justify-between text-muted-foreground max-w-md">
+          <div className="mt-4 flex max-w-md flex-wrap items-center gap-x-1 gap-y-2 text-muted-foreground sm:flex-nowrap sm:justify-between">
             
             {/* Reactions group */}
             <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 border border-white/5" onClick={e => e.stopPropagation()}>
