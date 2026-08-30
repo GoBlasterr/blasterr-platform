@@ -56,7 +56,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <aside className="w-64 bg-card border-r flex flex-col h-[100dvh] overflow-y-auto">
-      <div className="px-5 py-4 border-b flex items-center shrink-0 bg-black">
+      <div className="px-5 py-4 border-b flex items-center shrink-0">
         <img
           src={`${import.meta.env.BASE_URL}blasterr-logo.png`}
           alt="Blasterr"
