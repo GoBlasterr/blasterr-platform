@@ -136,27 +136,26 @@ export function BlastCard({ blast, showTarget = true }: { blast: any, showTarget
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
-            <div className="flex flex-wrap items-center gap-1.5 text-sm">
-              <span 
-                className="font-bold text-white hover:underline truncate"
-                onClick={(e) => { e.stopPropagation(); setLocation(`/profile/${blast.author.username}`); }}
-              >
-                {blast.author.displayName}
-              </span>
-              <span className="text-muted-foreground truncate">@{blast.author.username}</span>
-              <span className="text-muted-foreground">·</span>
-              <span className="text-muted-foreground">{timeAgo}</span>
-              
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 text-sm">
+                <span 
+                  className="font-bold text-white hover:underline truncate"
+                  onClick={(e) => { e.stopPropagation(); setLocation(`/profile/${blast.author.username}`); }}
+                >
+                  {blast.author.displayName}
+                </span>
+                <span className="text-muted-foreground truncate">@{blast.author.username}</span>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-muted-foreground">{timeAgo}</span>
+              </div>
+
               {showTarget && blast.target && (
-                <>
-                  <span className="text-muted-foreground">·</span>
-                  <span 
-                    className="text-primary hover:underline font-medium text-xs border border-primary/20 bg-primary/5 px-2 py-0.5 rounded-full"
-                    onClick={(e) => { e.stopPropagation(); setLocation(`/target/${blast.target.slug}`); }}
-                  >
-                    Target: {blast.target.name}
-                  </span>
-                </>
+                <span 
+                  className="mt-2 inline-flex max-w-full text-primary hover:underline font-medium text-xs border border-primary/20 bg-primary/5 px-2 py-0.5 rounded-full truncate"
+                  onClick={(e) => { e.stopPropagation(); setLocation(`/target/${blast.target.slug}`); }}
+                >
+                  Target: {blast.target.name}
+                </span>
               )}
             </div>
 
