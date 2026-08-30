@@ -185,7 +185,7 @@ router.get("/users", async (req, res): Promise<void> => {
   res.json(GetAdminContentResponse.parse({ items: filtered, total: filtered.length }));
 });
 
-router.patch("/content/:id", (req, res): void => {
+router.patch("/content/:id", async (req, res): Promise<void> => {
   const params = UpdateAdminFeatureParams.safeParse(req.params);
   const body = UpdateAdminFeatureBody.safeParse(req.body);
   if (!params.success || !body.success) {

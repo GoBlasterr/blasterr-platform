@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ClerkLoaded, ClerkLoading, ClerkProvider, Show, SignInButton, useAuth } from '@clerk/react';
+import { ClerkLoaded, ClerkLoading, ClerkProvider, Show, useAuth } from '@clerk/react';
+import { useSignIn } from '@clerk/react/legacy';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { setAuthTokenGetter } from '@workspace/api-client-react';
 
 import App from './App';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { Input } from '@/components/ui/input';
 
 import './index.css';
 
@@ -24,6 +26,88 @@ function AdminAuthTransport() {
   }, [getToken]);
 
   return null;
+}
+
+function StaffSignIn() {
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!isLoaded || !username.trim() || !password || isSubmitting) return;
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const firstFactor = await signIn.create({ identifier: username.trim() });
+      if (firstFactor.status !== 'needs_first_factor') {
+        throw new Error('This account is not configured for password sign-in.');
+      }
+
+      const result = await signIn.attemptFirstFactor({
+        strategy: 'password',
+        password,
+      });
+      if (result.status !== 'complete' || !result.createdSessionId) {
+        throw new Error('Additional verification is required. Contact a BLASTERR administrator.');
+      }
+      await setActive({ session: result.createdSessionId });
+    } catch (cause: any) {
+      setError(cause?.errors?.[0]?.longMessage || cause?.message || 'Unable to sign in with those credentials.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+      <section className="w-full max-w-md rounded-xl border bg-card p-8 shadow-2xl">
+        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-[0.22em] text-primary">Restricted control center</p>
+        <h1 className="text-center text-3xl font-bold">BLASTERR ADMIN</h1>
+        <p className="mt-3 text-center text-sm text-muted-foreground">Sign in with your authorized staff credentials.</p>
+        <form className="mt-8 space-y-5" onSubmit={submit}>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="staff-username">Username</label>
+            <Input
+              id="staff-username"
+              name="username"
+              autoComplete="username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Enter username"
+              required
+              data-testid="staff-username"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="staff-password">Password</label>
+            <Input
+              id="staff-password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter password"
+              required
+              data-testid="staff-password"
+            />
+          </div>
+          {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+          <button
+            type="submit"
+            disabled={!isLoaded || isSubmitting || !username.trim() || !password}
+            className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            data-testid="staff-sign-in"
+          >
+            {isSubmitting ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
+      </section>
+    </main>
+  );
 }
 
 createRoot(document.getElementById('root')!, {
@@ -49,16 +133,7 @@ createRoot(document.getElementById('root')!, {
         </ErrorBoundary>
       </Show>
       <Show when="signed-out">
-        <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
-          <section className="w-full max-w-md rounded-xl border bg-card p-8 text-center shadow-2xl">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary">Restricted control center</p>
-            <h1 className="text-3xl font-bold">BLASTERR ADMIN</h1>
-            <p className="mt-3 text-sm text-muted-foreground">Sign in with an authorized staff account to manage advertising and moderation.</p>
-            <SignInButton mode="modal">
-              <button className="mt-6 inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground">Staff sign in</button>
-            </SignInButton>
-          </section>
-        </main>
+        <StaffSignIn />
       </Show>
     </ClerkLoaded>
   </ClerkProvider>,
