@@ -37,11 +37,11 @@ export function Shell({ children }: ShellProps) {
   ];
 
   if (user) {
+    navItems.splice(1, 0, { icon: User, label: "Profile", href: `/profile/${user.username}` });
     navItems.push(
       { icon: Bell, label: "Notifications", href: "/notifications" },
       { icon: Bookmark, label: "Bookmarks", href: "/bookmarks" },
       { icon: Film, label: "My Clips", href: "/clips" },
-      { icon: User, label: "Profile", href: `/profile/${user.username}` },
       { icon: Settings, label: "Settings", href: "/settings" }
     );
   }
