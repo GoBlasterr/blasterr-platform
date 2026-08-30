@@ -3,6 +3,8 @@ import { useLocation } from "wouter";
 import { ArrowRight, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const INTRO_PLAYBACK_RATE = 2.5;
+
 export default function Splash() {
   const [, setLocation] = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -13,6 +15,7 @@ export default function Splash() {
     const video = videoRef.current;
     if (!video) return;
 
+    video.playbackRate = INTRO_PLAYBACK_RATE;
     video.muted = false;
     void video.play()
       .then(() => {
@@ -28,6 +31,7 @@ export default function Splash() {
     const video = videoRef.current;
     if (!video) return;
 
+    video.playbackRate = INTRO_PLAYBACK_RATE;
     if (video.readyState >= 2) {
       attemptPlayback();
     }
