@@ -58,7 +58,7 @@ export function Shell({ children }: ShellProps) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-72 flex-col justify-between p-6 border-r border-white/5 glass-panel sticky top-0 h-screen">
         <div>
-          <Link href="/" className="flex items-center gap-3 mb-10 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
+          <Link href="/" className="flex items-center justify-center gap-3 mb-10 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
             <img src="/sidebar-logo.png" alt="BLASTERR" className="h-16 w-auto object-contain object-left" />
           </Link>
 
