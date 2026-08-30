@@ -26,7 +26,7 @@ export default function Trending() {
             >
               Top Blasts
               {activeTab === "blasts" && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(204,255,0,0.5)]" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(229,244,3,0.5)]" />
               )}
             </TabsTrigger>
             <TabsTrigger 
@@ -35,7 +35,7 @@ export default function Trending() {
             >
               Hot Targets
               {activeTab === "targets" && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(204,255,0,0.5)]" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(229,244,3,0.5)]" />
               )}
             </TabsTrigger>
           </TabsList>

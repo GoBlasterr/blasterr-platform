@@ -78,7 +78,7 @@ export default function CreateBlast() {
         <Button 
           onClick={form.handleSubmit(onSubmit)} 
           disabled={!form.formState.isValid || createMutation.isPending}
-          className="rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 px-6 shadow-[0_0_15px_rgba(204,255,0,0.3)] disabled:opacity-50"
+          className="rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 px-6 shadow-[0_0_15px_rgba(229,244,3,0.3)] disabled:opacity-50"
         >
           {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fire"}
         </Button>

@@ -114,7 +114,7 @@ function AppContent() {
           logoImageUrl: `${window.location.origin}${basePath}/logo.png`,
         },
         variables: {
-          colorPrimary: '#ccff00',
+          colorPrimary: '#e5f403',
           colorForeground: '#f7f8f2',
           colorMutedForeground: '#9da38f',
           colorBackground: '#11130f',

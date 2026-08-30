@@ -123,14 +123,14 @@ export default function Profile() {
               className="rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 relative text-muted-foreground hover:text-white data-[state=active]:text-white font-bold text-[15px]"
             >
               Blasts
-              {activeTab === "blasts" && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(204,255,0,0.5)]" />}
+              {activeTab === "blasts" && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(229,244,3,0.5)]" />}
             </TabsTrigger>
             <TabsTrigger 
               value="media" 
               className="rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 relative text-muted-foreground hover:text-white data-[state=active]:text-white font-bold text-[15px]"
             >
               Media
-              {activeTab === "media" && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(204,255,0,0.5)]" />}
+              {activeTab === "media" && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(229,244,3,0.5)]" />}
             </TabsTrigger>
           </TabsList>
         </div>

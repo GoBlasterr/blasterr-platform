@@ -64,8 +64,8 @@
 
 :root {
   /* Default to Dark Mode since it's a cosmic/neon theme */
-  --button-outline: rgba(255, 255, 255, 0.1);
-  --badge-outline: rgba(255, 255, 255, 0.05);
+  --button-outline: rgba(229, 244, 3, 0.16);
+  --badge-outline: rgba(229, 244, 3, 0.1);
   --opaque-button-border-intensity: 9;
   --elevate-1: rgba(255, 255, 255, 0.04);
   --elevate-2: rgba(255, 255, 255, 0.09);
@@ -84,18 +84,18 @@
   --sidebar: 240 10% 5%;
   --sidebar-foreground: 0 0% 98%;
   --sidebar-border: 240 10% 12%;
-  --sidebar-primary: 74 100% 50%;
+  --sidebar-primary: 64 98% 48%;
   --sidebar-primary-foreground: 240 10% 4%;
   --sidebar-accent: 240 10% 12%;
   --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 74 100% 50%;
+  --sidebar-ring: 64 98% 48%;
 
   --popover: 240 10% 6%;
   --popover-foreground: 0 0% 98%;
   --popover-border: 240 10% 14%;
 
   /* Neon Lime Green (Blasterr Logo) */
-  --primary: 74 100% 50%;
+  --primary: 64 98% 48%;
   --primary-foreground: 240 10% 4%;
 
   --secondary: 240 10% 14%;
@@ -104,14 +104,14 @@
   --muted: 240 10% 12%;
   --muted-foreground: 240 5% 65%;
 
-  --accent: 74 100% 50%;
+  --accent: 64 98% 48%;
   --accent-foreground: 240 10% 4%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
   --input: 240 10% 16%;
-  --ring: 74 100% 50%;
+  --ring: 64 98% 48%;
   
   --app-font-sans: 'DM Sans', sans-serif;
   --app-font-display: 'Outfit', sans-serif;
@@ -155,26 +155,26 @@
   --sidebar: 240 10% 5%;
   --sidebar-foreground: 0 0% 98%;
   --sidebar-border: 240 10% 12%;
-  --sidebar-primary: 74 100% 50%;
+  --sidebar-primary: 64 98% 48%;
   --sidebar-primary-foreground: 240 10% 4%;
   --sidebar-accent: 240 10% 12%;
   --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 74 100% 50%;
+  --sidebar-ring: 64 98% 48%;
   --popover: 240 10% 6%;
   --popover-foreground: 0 0% 98%;
   --popover-border: 240 10% 14%;
-  --primary: 74 100% 50%;
+  --primary: 64 98% 48%;
   --primary-foreground: 240 10% 4%;
   --secondary: 240 10% 14%;
   --secondary-foreground: 0 0% 98%;
   --muted: 240 10% 12%;
   --muted-foreground: 240 5% 65%;
-  --accent: 74 100% 50%;
+  --accent: 64 98% 48%;
   --accent-foreground: 240 10% 4%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
   --input: 240 10% 16%;
-  --ring: 74 100% 50%;
+  --ring: 64 98% 48%;
 }
 
 @layer base {
@@ -185,8 +185,8 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     background-image: 
-      radial-gradient(circle at 15% 50%, rgba(204, 255, 0, 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 85% 30%, rgba(204, 255, 0, 0.04) 0%, transparent 50%);
+      radial-gradient(circle at 15% 50%, rgba(229, 244, 3, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 85% 30%, rgba(229, 244, 3, 0.04) 0%, transparent 50%);
     background-attachment: fixed;
   }
 
@@ -201,12 +201,12 @@
 }
 
 .neon-glow {
-  text-shadow: 0 0 10px rgba(204, 255, 0, 0.5);
+  text-shadow: 0 0 10px rgba(229, 244, 3, 0.5);
 }
 
 .neon-border {
-  box-shadow: 0 0 10px rgba(204, 255, 0, 0.2), inset 0 0 5px rgba(204, 255, 0, 0.1);
-  border-color: rgba(204, 255, 0, 0.3);
+  box-shadow: 0 0 10px rgba(229, 244, 3, 0.2), inset 0 0 5px rgba(229, 244, 3, 0.1);
+  border-color: rgba(229, 244, 3, 0.3);
 }
 
 .animate-float {
@@ -222,7 +222,7 @@
 @layer utilities {
   .cosmic-noise {
     background-image:
-      radial-gradient(circle at 18% 22%, rgb(204 255 0 / 0.08) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 18% 22%, rgb(229 244 3 / 0.08) 0 1px, transparent 1.5px),
       radial-gradient(circle at 72% 64%, rgb(255 255 255 / 0.12) 0 1px, transparent 1.5px);
     background-size: 87px 87px, 133px 133px;
   }

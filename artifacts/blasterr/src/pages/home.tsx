@@ -35,7 +35,7 @@ export default function Home() {
             >
               For You
               {activeTab === "for-you" && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(204,255,0,0.5)]" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(229,244,3,0.5)]" />
               )}
             </TabsTrigger>
             <TabsTrigger 
@@ -44,7 +44,7 @@ export default function Home() {
             >
               Following
               {activeTab === "following" && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(204,255,0,0.5)]" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(229,244,3,0.5)]" />
               )}
             </TabsTrigger>
           </TabsList>

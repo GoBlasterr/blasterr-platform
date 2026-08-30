@@ -33,7 +33,7 @@ export default function Landing() {
                 Sign In
               </Link>
               <Link href="/sign-up">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 shadow-[0_0_15px_rgba(204,255,0,0.3)]">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 shadow-[0_0_15px_rgba(229,244,3,0.3)]">
                   Join Now
                 </Button>
               </Link>
@@ -60,7 +60,7 @@ export default function Landing() {
 
         <div className="flex flex-col sm:flex-row gap-4 w-full justify-center max-w-md">
           <Link href={user ? "/home" : "/sign-up"} className="w-full">
-            <Button size="lg" className="w-full h-16 rounded-full text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_rgba(204,255,0,0.4)] transition-transform hover:scale-105">
+            <Button size="lg" className="w-full h-16 rounded-full text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_rgba(229,244,3,0.4)] transition-transform hover:scale-105">
               Launch Comm Link <ArrowRight className="ml-2 w-6 h-6" />
             </Button>
           </Link>
