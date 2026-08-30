@@ -5,7 +5,8 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { ReactionInputType } from './reactionInputType';
 
-export interface HealthStatus {
-  status: string;
+export interface ReactionInput {
+  type: ReactionInputType;
 }

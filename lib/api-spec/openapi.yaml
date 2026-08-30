@@ -1,22 +1,26 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: BLASTERR social platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: feed
+  - name: blasts
+  - name: targets
+  - name: people
+  - name: discovery
+  - name: notifications
+  - name: admin
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +28,609 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /me:
+    get:
+      operationId: getCurrentUser
+      tags: [people]
+      summary: Get the current signed-in profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /feed:
+    get:
+      operationId: getFeed
+      tags: [feed]
+      summary: Get a ranked feed of Blasts
+      parameters:
+        - $ref: "#/components/parameters/FeedTab"
+        - $ref: "#/components/parameters/Page"
+      responses:
+        "200":
+          description: Feed page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedResponse"
+  /trending:
+    get:
+      operationId: getTrending
+      tags: [feed]
+      summary: Get trending Blasts and Targets
+      responses:
+        "200":
+          description: Trending content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrendingResponse"
+  /search:
+    get:
+      operationId: search
+      tags: [discovery]
+      summary: Search people, Blasts, and Targets
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [all, people, blasts, targets]
+            default: all
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+  /targets:
+    get:
+      operationId: listTargets
+      tags: [targets]
+      summary: List or search Targets
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [person, business, place, product, entertainment, sports, gaming, other]
+      responses:
+        "200":
+          description: Targets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Target"
+  /targets/{slug}:
+    get:
+      operationId: getTarget
+      tags: [targets]
+      summary: Get a Target and its Blasts
+      parameters:
+        - $ref: "#/components/parameters/TargetSlug"
+      responses:
+        "200":
+          description: Target detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetDetail"
+        "404":
+          description: Target not found
+  /users/{username}:
+    get:
+      operationId: getUserProfile
+      tags: [people]
+      summary: Get a user profile
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "404":
+          description: User not found
+  /users/{username}/follow:
+    post:
+      operationId: toggleFollow
+      tags: [people]
+      summary: Follow or unfollow a user
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "200":
+          description: Updated follow state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowState"
+  /blasts:
+    post:
+      operationId: createBlast
+      tags: [blasts]
+      summary: Publish a new Blast
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlastInput"
+      responses:
+        "201":
+          description: Published Blast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blast"
+  /blasts/{id}:
+    patch:
+      operationId: updateBlast
+      tags: [blasts]
+      summary: Edit an owned Blast
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlastUpdate"
+      responses:
+        "200":
+          description: Updated Blast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blast"
+    delete:
+      operationId: deleteBlast
+      tags: [blasts]
+      summary: Delete an owned Blast
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      responses:
+        "204":
+          description: Deleted
+  /blasts/{id}/reactions:
+    post:
+      operationId: reactToBlast
+      tags: [blasts]
+      summary: Set or remove a reaction
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReactionInput"
+      responses:
+        "200":
+          description: Updated reactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReactionSummary"
+  /blasts/{id}/comments:
+    post:
+      operationId: createComment
+      tags: [blasts]
+      summary: Comment on a Blast
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: New comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+  /blasts/{id}/back:
+    post:
+      operationId: createBlastBack
+      tags: [blasts]
+      summary: Respond to a Blast
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlastInput"
+      responses:
+        "201":
+          description: Blast Back
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blast"
+  /blasts/{id}/bookmark:
+    post:
+      operationId: toggleBookmark
+      tags: [blasts]
+      summary: Save or unsave a Blast
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      responses:
+        "200":
+          description: Updated bookmark state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookmarkState"
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get notifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+  /bookmarks:
+    get:
+      operationId: getBookmarks
+      tags: [blasts]
+      summary: Get saved Blasts
+      responses:
+        "200":
+          description: Saved Blasts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Blast"
+  /reports:
+    post:
+      operationId: createReport
+      tags: [blasts]
+      summary: Report content or a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportInput"
+      responses:
+        "201":
+          description: Report submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+  /blocks:
+    post:
+      operationId: toggleBlock
+      tags: [people]
+      summary: Block or unblock a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockInput"
+      responses:
+        "200":
+          description: Updated block state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlockState"
+  /admin/overview:
+    get:
+      operationId: getAdminOverview
+      tags: [admin]
+      summary: Get admin command center metrics
+      responses:
+        "200":
+          description: Admin overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOverview"
 components:
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    FeedTab:
+      name: tab
+      in: query
+      schema:
+        type: string
+        enum: [for-you, following, trending, nearby]
+        default: for-you
+    BlastId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    TargetSlug:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+    Username:
+      name: username
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
-
+    User:
+      type: object
+      required: [id, username, displayName, avatarUrl, bio, location, followers, following, blastCount, joinedAt]
+      properties:
+        id: { type: string }
+        username: { type: string }
+        displayName: { type: string }
+        avatarUrl: { type: string }
+        bio: { type: string }
+        location: { type: string }
+        followers: { type: integer }
+        following: { type: integer }
+        blastCount: { type: integer }
+        joinedAt: { type: string }
+        isFollowing: { type: boolean }
+    Profile:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          required: [blasts, media]
+          properties:
+            coverUrl: { type: string }
+            blasts:
+              type: array
+              items: { $ref: "#/components/schemas/Blast" }
+            media:
+              type: array
+              items: { $ref: "#/components/schemas/Blast" }
+    Target:
+      type: object
+      required: [id, name, slug, type, location, blastCount, imageUrl, description]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        type:
+          type: string
+          enum: [person, business, place, product, entertainment, sports, gaming, other]
+        location: { type: string }
+        blastCount: { type: integer }
+        imageUrl: { type: string }
+        description: { type: string }
+    Blast:
+      type: object
+      required: [id, content, createdAt, author, target, location, mediaUrl, reactions, commentCount, shareCount, viewCount, isBookmarked]
+      properties:
+        id: { type: string }
+        content: { type: string }
+        createdAt: { type: string }
+        author: { $ref: "#/components/schemas/User" }
+        target: { $ref: "#/components/schemas/Target" }
+        location: { type: string }
+        mediaUrl: { type: string }
+        mediaType:
+          type: [string, "null"]
+          enum: [image, video, null]
+        reactions: { $ref: "#/components/schemas/ReactionSummary" }
+        commentCount: { type: integer }
+        shareCount: { type: integer }
+        viewCount: { type: integer }
+        isBookmarked: { type: boolean }
+        isBlastBack: { type: boolean }
+        originalBlastId:
+          type: [string, "null"]
+    FeedResponse:
+      type: object
+      required: [items, page, hasMore]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Blast" }
+        page: { type: integer }
+        hasMore: { type: boolean }
+    TrendingResponse:
+      type: object
+      required: [blasts, targets]
+      properties:
+        blasts:
+          type: array
+          items: { $ref: "#/components/schemas/Blast" }
+        targets:
+          type: array
+          items: { $ref: "#/components/schemas/Target" }
+    TargetDetail:
+      type: object
+      required: [target, blasts, stats]
+      properties:
+        target: { $ref: "#/components/schemas/Target" }
+        blasts:
+          type: array
+          items: { $ref: "#/components/schemas/Blast" }
+        stats: { $ref: "#/components/schemas/TargetStats" }
+    TargetStats:
+      type: object
+      required: [positiveReactions, negativeReactions, engagement, activity]
+      properties:
+        positiveReactions: { type: integer }
+        negativeReactions: { type: integer }
+        engagement: { type: integer }
+        activity: { type: integer }
+    SearchResponse:
+      type: object
+      required: [people, blasts, targets]
+      properties:
+        people:
+          type: array
+          items: { $ref: "#/components/schemas/User" }
+        blasts:
+          type: array
+          items: { $ref: "#/components/schemas/Blast" }
+        targets:
+          type: array
+          items: { $ref: "#/components/schemas/Target" }
+    BlastInput:
+      type: object
+      required: [content, targetId]
+      properties:
+        content: { type: string, minLength: 1, maxLength: 1000 }
+        targetId: { type: string }
+        location: { type: string }
+        mediaUrl: { type: string }
+        mediaType:
+          type: string
+          enum: [image, video]
+    BlastUpdate:
+      type: object
+      properties:
+        content: { type: string, minLength: 1, maxLength: 1000 }
+        location: { type: string }
+    ReactionInput:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [blast, facts, cap, funny, watching]
+    ReactionSummary:
+      type: object
+      required: [blast, facts, cap, funny, watching, currentUserReaction]
+      properties:
+        blast: { type: integer }
+        facts: { type: integer }
+        cap: { type: integer }
+        funny: { type: integer }
+        watching: { type: integer }
+        currentUserReaction:
+          type: [string, "null"]
+          enum: [blast, facts, cap, funny, watching, null]
+    CommentInput:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string, minLength: 1, maxLength: 500 }
+        parentCommentId: { type: string }
+    Comment:
+      type: object
+      required: [id, content, createdAt, author, likes, replyCount]
+      properties:
+        id: { type: string }
+        content: { type: string }
+        createdAt: { type: string }
+        author: { $ref: "#/components/schemas/User" }
+        likes: { type: integer }
+        replyCount: { type: integer }
+    FollowState:
+      type: object
+      required: [isFollowing, followerCount]
+      properties:
+        isFollowing: { type: boolean }
+        followerCount: { type: integer }
+    BookmarkState:
+      type: object
+      required: [isBookmarked]
+      properties:
+        isBookmarked: { type: boolean }
+    Notification:
+      type: object
+      required: [id, type, message, createdAt, read, actor]
+      properties:
+        id: { type: string }
+        type:
+          type: string
+          enum: [follow, reaction, comment, reply, blast-back, mention, trending, target]
+        message: { type: string }
+        createdAt: { type: string }
+        read: { type: boolean }
+        actor: { $ref: "#/components/schemas/User" }
+    ReportInput:
+      type: object
+      required: [targetType, targetId, reason]
+      properties:
+        targetType:
+          type: string
+          enum: [blast, comment, user]
+        targetId: { type: string }
+        reason:
+          type: string
+          enum: [spam, harassment, threats, hate, nudity, violence, scam, personal-information, impersonation, other]
+        description: { type: string, maxLength: 1000 }
+    Report:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string }
+        status: { type: string }
+    BlockInput:
+      type: object
+      required: [userId]
+      properties:
+        userId: { type: string }
+    BlockState:
+      type: object
+      required: [isBlocked]
+      properties:
+        isBlocked: { type: boolean }
+    AdminOverview:
+      type: object
+      required: [usersOnline, blastsToday, trendingCount, newUsers, engagement, chart]
+      properties:
+        usersOnline: { type: integer }
+        blastsToday: { type: integer }
+        trendingCount: { type: integer }
+        newUsers: { type: integer }
+        engagement: { type: number }
+        chart:
+          type: array
+          items:
+            type: object
+            required: [label, users, blasts, engagement]
+            properties:
+              label: { type: string }
+              users: { type: integer }
+              blasts: { type: integer }
+              engagement: { type: integer }

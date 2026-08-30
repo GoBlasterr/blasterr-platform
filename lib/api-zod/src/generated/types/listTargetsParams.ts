@@ -5,7 +5,9 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { ListTargetsType } from './listTargetsType';
 
-export interface HealthStatus {
-  status: string;
-}
+export type ListTargetsParams = {
+q?: string;
+type?: ListTargetsType;
+};

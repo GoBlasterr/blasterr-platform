@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "BLASTERR"
+description = "A futuristic social platform where people publish Blasts about any person, place, business, product, event, or idea, and discover the conversations happening around each Target."
+version = "1.0.0"
+id = "artifacts/blasterr"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23451
+
+[services.development]
+run = "pnpm --filter @workspace/blasterr run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/blasterr", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/blasterr/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23451"
+BASE_PATH = "/"

@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
-}
+export type AdminOverviewChartItem = {
+  label: string;
+  users: number;
+  blasts: number;
+  engagement: number;
+};

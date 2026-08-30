@@ -6,6 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
+export interface CommentInput {
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  content: string;
+  parentCommentId?: string;
 }

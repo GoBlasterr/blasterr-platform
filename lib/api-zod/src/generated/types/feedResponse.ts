@@ -5,7 +5,10 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { Blast } from './blast';
 
-export interface HealthStatus {
-  status: string;
+export interface FeedResponse {
+  items: Blast[];
+  page: number;
+  hasMore: boolean;
 }

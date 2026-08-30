@@ -5,7 +5,12 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { SearchType } from './searchType';
 
-export interface HealthStatus {
-  status: string;
-}
+export type SearchParams = {
+/**
+ * @minLength 1
+ */
+q: string;
+type?: SearchType;
+};

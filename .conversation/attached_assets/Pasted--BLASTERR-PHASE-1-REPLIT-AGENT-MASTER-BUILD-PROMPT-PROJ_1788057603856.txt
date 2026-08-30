@@ -1,0 +1,1521 @@
+# BLASTERR — PHASE 1 REPLIT AGENT MASTER BUILD PROMPT
+
+## PROJECT NAME
+
+**BLASTERR**
+
+Build a modern, futuristic social media platform called **BLASTERR**.
+
+BLASTERR is a social platform where users create profiles and publish content called **BLASTS**. A Blast can be about a person, business, place, product, celebrity, athlete, streamer, restaurant, event, city, or virtually anything.
+
+The central action of the platform is:
+
+> **BLAST IT**
+
+Users come to BLASTERR to say what they think, praise something, criticize something, share an opinion, tell a story, post receipts, start a debate, or simply talk their shit.
+
+The platform should feel like a completely new social-media experience rather than a clone of Facebook, Instagram, X, Reddit, or TikTok.
+
+---
+
+# IMPORTANT — BRANDING
+
+There is an attached BLASTERR logo.
+
+**Use the attached logo as the source of truth for the platform's color palette.**
+
+Do NOT arbitrarily choose a new brand palette.
+
+Extract/approximate the dominant colors from the attached BLASTERR logo and use those colors consistently throughout the application.
+
+The logo should be prominently incorporated into:
+
+* Login/signup screens
+* Main navigation
+* Dashboard
+* Mobile navigation
+* Loading screen
+* Empty states
+* Browser/app branding where appropriate
+
+The UI should complement the logo rather than compete with it.
+
+---
+
+# 1. OVERALL VISUAL DIRECTION
+
+The entire BLASTERR platform should have a:
+
+## OUTER SPACE / FUTURISTIC / DIGITAL UNIVERSE aesthetic
+
+Think:
+
+* Deep outer space
+* Stars
+* Nebulas
+* Distant galaxies
+* Subtle planets
+* Cosmic dust
+* Futuristic technology
+* Holographic interfaces
+* Glass panels
+* Neon accents
+* Subtle glowing borders
+* High-end sci-fi command center
+* Premium social network
+* Modern 2026/next-generation technology
+
+The design should feel like:
+
+> **A futuristic social network operating from inside a digital universe.**
+
+Do NOT make it look like a children's space game.
+
+Do NOT overuse cartoon planets, rockets, aliens, or cheesy sci-fi graphics.
+
+The space theme should be sophisticated, premium, cinematic, and subtle.
+
+---
+
+# 2. BACKGROUND
+
+Use a dark outer-space background throughout the platform.
+
+The background can include:
+
+* Very subtle stars
+* Nebula clouds
+* Galaxy textures
+* Small distant stars
+* Extremely subtle cosmic gradients
+* Occasional planetary silhouettes
+* Atmospheric glow
+
+The background must NOT interfere with readability.
+
+Use layered dark translucent overlays behind content.
+
+The interface should look beautiful even when the user has dozens of posts on the screen.
+
+Use a combination of:
+
+* Dark backgrounds
+* Glassmorphism
+* Slight transparency
+* Blur
+* Soft glow
+* Thin borders
+* Subtle shadows
+
+Avoid excessive visual effects.
+
+Performance is important.
+
+Use optimized CSS gradients and lightweight background effects wherever possible instead of huge image files.
+
+---
+
+# 3. DESIGN LANGUAGE
+
+Create a premium futuristic UI.
+
+Use:
+
+* Rounded cards
+* Modern typography
+* Thin borders
+* Glass panels
+* Subtle neon glow
+* Smooth hover effects
+* Micro animations
+* Animated loading states
+* Elegant transitions
+* Modern icons
+
+The interface should feel:
+
+**Fast + clean + futuristic + social + premium.**
+
+Avoid clutter.
+
+Every screen should have clear hierarchy.
+
+---
+
+# 4. RESPONSIVE DESIGN
+
+The application must be:
+
+## MOBILE FIRST
+
+It must work beautifully on:
+
+* Desktop
+* Laptop
+* Tablet
+* iPhone
+* Android phones
+
+Do not simply shrink the desktop design.
+
+Create proper responsive layouts.
+
+Desktop should feel like a futuristic command center.
+
+Mobile should feel like a premium social-media app.
+
+---
+
+# 5. TECHNOLOGY STACK
+
+Use a modern production-ready stack.
+
+Preferred:
+
+### Frontend
+
+* Next.js
+* TypeScript
+* React
+
+### Styling
+
+* Tailwind CSS
+* shadcn/ui where useful
+* Lucide icons or another modern icon library
+
+### Backend
+
+* Next.js server/API architecture
+
+### Database
+
+* PostgreSQL
+
+Use the database architecture in a way that can later scale.
+
+### Authentication
+
+Use a secure authentication solution available through the Replit environment.
+
+Users should be able to:
+
+* Register
+* Login
+* Logout
+* Maintain sessions
+* Edit profile
+* Reset password where supported
+
+### Media
+
+Design the application so media storage can later use dedicated object storage/CDN.
+
+Do NOT architect the application around storing large media files directly inside the application database.
+
+---
+
+# 6. CORE PHASE 1 FEATURES
+
+Build the following functional MVP.
+
+## A. LANDING PAGE
+
+Create a beautiful BLASTERR landing page.
+
+Hero section:
+
+# BLASTERR
+
+### **SAY IT. BLAST IT.**
+
+Supporting message:
+
+> **The place to talk about people, places, businesses, things and everything in between.**
+
+Primary CTA:
+
+### 🔥 START BLASTING
+
+Secondary CTA:
+
+### EXPLORE BLASTS
+
+The landing page should immediately communicate what BLASTERR is.
+
+Use the outer-space aesthetic.
+
+Include subtle animated cosmic background effects.
+
+---
+
+# 7. AUTHENTICATION
+
+Create:
+
+### Sign Up
+
+Fields:
+
+* First name
+* Last name
+* Username
+* Email
+* Password
+* Date of birth where required
+* Optional location
+
+Allow profile image upload after registration.
+
+Username must be unique.
+
+Email must be unique.
+
+Add appropriate validation.
+
+---
+
+### Login
+
+Fields:
+
+* Email/username
+* Password
+
+Include:
+
+* Remember session
+* Forgot password
+* Create account
+
+---
+
+# 8. USER PROFILE
+
+Every user receives a profile.
+
+Profile should contain:
+
+* Profile photo
+* Username
+* Display name
+* Bio
+* Location
+* Join date
+* Followers
+* Following
+* Total Blasts
+* Profile header/banner
+* Follow button
+* Edit profile button for owner
+
+Profile tabs:
+
+### BLASTS
+
+Posts created by the user.
+
+### BLAST BACKS
+
+Responses created by the user.
+
+### MEDIA
+
+Media attached to the user's Blasts.
+
+For Phase 1, BLAST BACKS can be implemented as a reply/response relationship, but architect it so it can later become a major BLASTERR feature.
+
+---
+
+# 9. MAIN DASHBOARD
+
+After login, users should enter the main BLASTERR dashboard.
+
+The dashboard should look like a:
+
+# FUTURISTIC SOCIAL COMMAND CENTER
+
+Desktop layout:
+
+### LEFT SIDEBAR
+
+BLASTERR logo
+
+Navigation:
+
+🏠 Home
+
+🔥 Trending
+
+📍 Nearby
+
+👥 Following
+
+🎯 Targets
+
+🔔 Notifications
+
+🔖 Bookmarks
+
+👤 Profile
+
+⚙ Settings
+
+At the bottom:
+
+### 🔥 CREATE BLAST
+
+Make this button highly visible.
+
+---
+
+# 10. MAIN FEED
+
+The central area contains the user's feed.
+
+At the top:
+
+### 🔥 TRENDING BLASTS
+
+Then feed content.
+
+Create feed tabs:
+
+### FOR YOU
+
+### FOLLOWING
+
+### TRENDING
+
+### NEARBY
+
+For Phase 1, the algorithm does not need to be highly sophisticated.
+
+Build a basic ranking system using:
+
+* Recency
+* Engagement
+* Follows
+* Trending score
+
+Structure the code so the ranking algorithm can be upgraded later.
+
+---
+
+# 11. BLAST CARD
+
+Every Blast should appear inside a visually beautiful card.
+
+Example:
+
+---
+
+🔥 **@username**
+
+2h ago
+
+### "This restaurant might have the best wings in the city."
+
+📍 Atlanta, GA
+
+[IMAGE]
+
+🔥 245
+
+💬 128
+
+😂 67
+
+👀 42
+
+**BLAST BACK**
+
+---
+
+Every Blast should include:
+
+* User avatar
+* Username
+* Timestamp
+* Content
+* Target
+* Location when available
+* Image/video preview when available
+* Reaction counts
+* Comment count
+* Share
+* Bookmark
+* Report
+* Blast Back
+
+Use a three-dot menu for secondary actions.
+
+---
+
+# 12. CREATE BLAST
+
+This is the most important feature in Phase 1.
+
+Create a highly polished:
+
+# 🔥 CREATE A BLAST
+
+composer.
+
+At the top:
+
+### WHO / WHAT ARE YOU BLASTING?
+
+Search field:
+
+> Search people, businesses, places or things...
+
+Allow users to select a target.
+
+Target categories:
+
+👤 Person
+
+🏢 Business
+
+📍 Place
+
+📦 Thing
+
+🎵 Entertainment
+
+🏆 Sports
+
+🎮 Gaming
+
+🌎 Other
+
+For Phase 1, these can be represented through a flexible target database.
+
+---
+
+## Blast composer
+
+Text area:
+
+> What's your Blast?
+
+Allow:
+
+* Text
+* Image
+* Short video placeholder/infrastructure
+* Location
+* Target
+* Poll placeholder if architecture allows
+
+Primary button:
+
+# 🔥 BLAST IT
+
+Add character limits and validation.
+
+---
+
+# 13. TARGET SYSTEM
+
+This is VERY IMPORTANT.
+
+Do NOT treat Blasts as completely standalone posts.
+
+Every Blast should have the ability to reference a:
+
+# TARGET
+
+A Target represents the subject of a Blast.
+
+Examples:
+
+* Person
+* Business
+* Place
+* Product
+* Celebrity
+* Athlete
+* Streamer
+* Restaurant
+* Event
+* City
+* Organization
+* Thing
+
+Example:
+
+User:
+
+@John
+
+Blast:
+
+> "This restaurant has the best wings."
+
+Target:
+
+**Joe's BBQ**
+
+This architecture will allow BLASTERR to eventually create dedicated pages showing all Blasts about that Target.
+
+---
+
+# 14. TARGET PAGES
+
+Create basic Target pages in Phase 1.
+
+Example:
+
+# JOE'S BBQ
+
+Atlanta, GA
+
+### 🔥 1,284 BLASTS
+
+Tabs:
+
+### TOP
+
+### LATEST
+
+### ABOUT
+
+Display Blasts associated with the Target.
+
+Show basic statistics:
+
+* Total Blasts
+* Positive reactions
+* Negative reactions
+* Total engagement
+* Trending activity
+
+Do not build an advanced reputation score yet.
+
+Prepare the architecture for it.
+
+---
+
+# 15. COMMENTS
+
+Users can comment on Blasts.
+
+Comments should support:
+
+* Text
+* Like/reaction
+* Reply
+* Delete own comment
+* Report
+* Block user
+
+Nested replies can be limited initially.
+
+---
+
+# 16. BLAST BACK
+
+Create a branded response action called:
+
+# 🔥 BLAST BACK
+
+A user can respond directly to another Blast.
+
+Example:
+
+Original Blast:
+
+> "This restaurant is terrible."
+
+Response:
+
+> 🔥 BLAST BACK
+>
+> "I went yesterday and had a completely different experience."
+
+A Blast Back must maintain a relationship to the original Blast.
+
+This is important for future debate functionality.
+
+---
+
+# 17. REACTIONS
+
+Do not only use a generic Like button.
+
+Use branded reactions.
+
+Initial reactions:
+
+🔥 BLAST
+
+💯 FACTS
+
+🧢 CAP
+
+😂 FUNNY
+
+👀 WATCHING
+
+For Phase 1, users should be able to select one reaction per Blast.
+
+Store reactions in the database.
+
+Allow reaction counts.
+
+---
+
+# 18. FOLLOWING SYSTEM
+
+Users can:
+
+* Follow users
+* Unfollow users
+* View followers
+* View following
+* Receive notifications for follows
+
+The Following feed should show Blasts from followed accounts.
+
+---
+
+# 19. SEARCH
+
+Create global search.
+
+Search should return:
+
+### PEOPLE
+
+### BLASTS
+
+### TARGETS
+
+### BUSINESSES
+
+### PLACES
+
+### TOPICS
+
+Use PostgreSQL search initially.
+
+Architect it so a dedicated search engine can be added later.
+
+---
+
+# 20. TRENDING
+
+Create:
+
+# 🔥 TRENDING BLASTS
+
+Use a basic trending algorithm.
+
+Factors:
+
+* Views
+* Reactions
+* Comments
+* Shares
+* Recency
+* Growth rate
+
+Show:
+
+### Trending Blasts
+
+### Trending Targets
+
+### Trending Topics
+
+Example:
+
+🔥 "Best BBQ in Atlanta"
+
+🔥 "NBA Trade Debate"
+
+🔥 "This new restaurant..."
+
+---
+
+# 21. NEARBY
+
+Create a Nearby section.
+
+Users can optionally provide a general location.
+
+Show:
+
+### 📍 BLASTS NEAR YOU
+
+Use broad location data rather than exposing precise user locations.
+
+Never publicly expose a user's exact location.
+
+Allow users to disable location functionality.
+
+---
+
+# 22. NOTIFICATIONS
+
+Create notifications for:
+
+* New follower
+* Reaction
+* Comment
+* Comment reply
+* Blast Back
+* Mention
+* Trending Blast
+* Target activity
+
+Display unread notification count.
+
+---
+
+# 23. BOOKMARKS
+
+Users can bookmark Blasts.
+
+Create:
+
+### SAVED BLASTS
+
+inside the user account.
+
+---
+
+# 24. USER SAFETY / MODERATION
+
+This must be built into Phase 1.
+
+Users must be able to:
+
+* Report Blast
+* Report comment
+* Report user
+* Block user
+* Mute user
+
+Report categories:
+
+* Spam
+* Harassment
+* Threats
+* Hate
+* Nudity/sexual content
+* Violence
+* Scam/fraud
+* Personal information
+* Impersonation
+* Other
+
+Create an admin moderation interface.
+
+---
+
+# 25. ADMIN DASHBOARD
+
+Create a separate protected:
+
+# BLASTERR ADMIN COMMAND CENTER
+
+It should have a futuristic dashboard design.
+
+Show:
+
+### SYSTEM OVERVIEW
+
+* Total users
+* New users
+* Active users
+* Total Blasts
+* Blasts today
+* Comments
+* Reactions
+* Reports
+* Trending Targets
+
+Charts:
+
+* User growth
+* Blast creation
+* Engagement
+* Reports
+* Daily active users
+
+Admin sections:
+
+### USERS
+
+Search/manage users.
+
+### BLASTS
+
+Search/view/remove Blasts.
+
+### REPORTS
+
+Review reported content.
+
+### TARGETS
+
+Manage Target records.
+
+### ANALYTICS
+
+View platform statistics.
+
+### MODERATION
+
+Moderation queue.
+
+### SETTINGS
+
+Basic platform settings.
+
+Make this dashboard feel like a futuristic mission-control center.
+
+---
+
+# 26. DASHBOARD DESIGN
+
+The main dashboard should NOT look like a generic SaaS dashboard.
+
+Create something visually distinctive.
+
+Think:
+
+## "SOCIAL MEDIA COMMAND CENTER IN SPACE"
+
+Use:
+
+* Dark glass panels
+* Cosmic background
+* Neon highlights based on the BLASTERR logo
+* Holographic-style cards
+* Subtle glowing edges
+* Animated charts
+* Smooth transitions
+* Modern typography
+* Large data numbers
+* Clean spacing
+
+Example dashboard widgets:
+
+### USERS ONLINE
+
+2,543
+
+### BLASTS TODAY
+
+12,842
+
+### TRENDING
+
+78
+
+### NEW USERS
+
+1,231
+
+### ENGAGEMENT
+
++24%
+
+---
+
+# 27. MOBILE NAVIGATION
+
+On mobile, use a bottom navigation bar.
+
+Suggested:
+
+🏠 Home
+
+🔥 Trending
+
+➕
+
+🔥 Blast
+
+🔔 Notifications
+
+👤 Profile
+
+The central Blast button should be visually prominent.
+
+---
+
+# 28. MOBILE CREATE BLAST
+
+The mobile Blast composer should feel like the primary action of the entire application.
+
+Large:
+
+# 🔥 BLAST IT
+
+button.
+
+Make uploading photos extremely easy.
+
+Use a clean mobile-first composer.
+
+---
+
+# 29. DATABASE ARCHITECTURE
+
+Create a clean relational database.
+
+At minimum create models/tables for:
+
+### users
+
+* id
+* username
+* display_name
+* email
+* password/auth reference
+* bio
+* profile_image
+* cover_image
+* location
+* created_at
+* updated_at
+* status
+
+### profiles
+
+if needed separately from authentication.
+
+### blasts
+
+* id
+* user_id
+* target_id
+* content
+* media_url
+* media_type
+* location
+* created_at
+* updated_at
+* visibility
+* status
+
+### targets
+
+* id
+* name
+* slug
+* type
+* description
+* image
+* location
+* created_at
+
+### comments
+
+* id
+* blast_id
+* user_id
+* parent_comment_id
+* content
+* created_at
+
+### reactions
+
+* id
+* blast_id
+* user_id
+* reaction_type
+* created_at
+
+### follows
+
+* follower_id
+* following_id
+* created_at
+
+### bookmarks
+
+* user_id
+* blast_id
+* created_at
+
+### notifications
+
+* id
+* user_id
+* actor_id
+* type
+* reference_id
+* read
+* created_at
+
+### reports
+
+* id
+* reporter_id
+* target_type
+* target_id
+* reason
+* description
+* status
+* created_at
+
+### blocks
+
+* blocker_id
+* blocked_id
+* created_at
+
+Structure everything so future functionality can be added without rewriting the database.
+
+---
+
+# 30. FUTURE-READY ARCHITECTURE
+
+DO NOT build these advanced features yet, but make the architecture capable of supporting them later:
+
+### BLAST SCORE
+
+A score measuring conversation/activity around a Target.
+
+### BLAST BATTLES
+
+Two opposing Blasts/users debate a subject.
+
+### RECEIPTS
+
+Users attach screenshots, documents, photos, videos or evidence to a Blast.
+
+### BLAST LIVE
+
+Live audio/video conversations around a Blast.
+
+### AI BLAST
+
+AI-assisted content creation.
+
+### AI CONVERSATION SUMMARIES
+
+AI summarizes what people are saying about a Target.
+
+### BUSINESS ACCOUNTS
+
+Businesses claim Target pages.
+
+### BUSINESS REPUTATION DASHBOARD
+
+Businesses see what people are saying about them.
+
+### PROMOTED BLASTS
+
+Paid advertising.
+
+### BLASTERR PRO
+
+Premium subscriptions.
+
+### CREATOR MONETIZATION
+
+Tips, subscriptions and creator revenue.
+
+### BLAST COINS
+
+Virtual currency.
+
+Do not fully implement these in Phase 1 unless necessary for the underlying architecture.
+
+---
+
+# 31. PERFORMANCE
+
+Performance is extremely important.
+
+Optimize for:
+
+* Fast page loading
+* Lazy-loaded media
+* Optimized images
+* Pagination/infinite scroll
+* Database indexes
+* Efficient queries
+* Caching where appropriate
+* Responsive images
+* Minimal unnecessary API requests
+
+Do not load hundreds of Blasts at once.
+
+Use pagination or infinite scrolling.
+
+---
+
+# 32. SECURITY
+
+Implement basic production security practices.
+
+Include:
+
+* Server-side validation
+* Authentication checks
+* Authorization
+* Protected admin routes
+* Rate limiting where practical
+* Input sanitization
+* Secure database queries
+* File upload validation
+* Content-type validation
+* Protection against unauthorized user actions
+* Protection against basic spam/bot abuse
+
+Never expose private user data through public API responses.
+
+---
+
+# 33. SEED DATA
+
+Create realistic demo data so the application does not look empty during development.
+
+Create sample users.
+
+Create sample Targets.
+
+Create sample Blasts involving:
+
+* Restaurants
+* Sports
+* Music
+* Celebrities
+* Businesses
+* Cities
+* Products
+* Entertainment
+
+Make the content realistic and varied.
+
+Use fictional users/businesses where appropriate.
+
+---
+
+# 34. BRAND VOICE
+
+BLASTERR should have a confident, energetic personality.
+
+Use language such as:
+
+### 🔥 BLAST IT
+
+### 💥 BLAST BACK
+
+### 🔥 WHAT'S GETTING BLASTED?
+
+### 👀 WHAT'S EVERYBODY TALKING ABOUT?
+
+### 🧾 DROP THE RECEIPTS
+
+### 🔥 TRENDING BLASTS
+
+### 📍 BLASTS NEAR YOU
+
+### 🎯 TRENDING TARGETS
+
+Avoid corporate/boring terminology when branded terminology can be used.
+
+However, keep important administrative and safety terminology clear.
+
+---
+
+# 35. UX PRINCIPLE
+
+The user should understand the platform within seconds.
+
+The primary question throughout the experience should be:
+
+# "WHAT ARE YOU BLASTING?"
+
+The entire platform should revolve around that behavior.
+
+---
+
+# 36. IMPORTANT PRODUCT PRINCIPLE
+
+BLASTERR IS NOT JUST ANOTHER FEED.
+
+The long-term concept is:
+
+> **Every person, place, business, product, event, celebrity, athlete, streamer, restaurant and thing can become the subject of a conversation.**
+
+A Blast attaches a conversation to that Target.
+
+This is why the Target system must be designed carefully from the beginning.
+
+---
+
+# 37. WHAT NOT TO DO
+
+Do NOT:
+
+* Copy Instagram
+* Copy Facebook
+* Copy X
+* Copy Reddit
+* Create a generic social feed
+* Use a generic SaaS template
+* Make the space theme cheesy
+* Overload the interface with animations
+* Use huge distracting planets
+* Make everything glow excessively
+* Sacrifice performance for visual effects
+* Hardcode sample data into components
+* Build the database around mock data
+* Create inaccessible buttons
+* Leave major buttons non-functional
+
+Every visible primary action should work.
+
+---
+
+# 38. ACCESSIBILITY
+
+Ensure:
+
+* Good contrast
+* Keyboard navigation
+* Proper button labels
+* Accessible forms
+* Screen-reader-friendly elements
+* Focus states
+* Responsive typography
+
+Do not rely solely on color to communicate information.
+
+---
+
+# 39. COMPONENT ARCHITECTURE
+
+Create reusable components.
+
+Examples:
+
+* BlastCard
+* BlastComposer
+* TargetCard
+* TargetHeader
+* UserAvatar
+* UserProfileCard
+* ReactionBar
+* CommentSection
+* BlastBack
+* Sidebar
+* MobileNavigation
+* NotificationItem
+* TrendingCard
+* SearchResults
+* AdminStatCard
+* AdminChart
+* ReportModal
+* ConfirmationModal
+
+Keep components modular.
+
+Avoid one giant page component.
+
+---
+
+# 40. FINAL DELIVERABLE
+
+Build a fully functional Phase 1 BLASTERR MVP.
+
+The final application should include:
+
+✅ Landing page
+
+✅ Authentication
+
+✅ User registration
+
+✅ User profiles
+
+✅ Create Blast
+
+✅ Edit/delete own Blast
+
+✅ Feed
+
+✅ Following
+
+✅ Trending
+
+✅ Nearby
+
+✅ Target system
+
+✅ Target pages
+
+✅ Comments
+
+✅ Blast Back
+
+✅ Reactions
+
+✅ Follow system
+
+✅ Search
+
+✅ Notifications
+
+✅ Bookmarks
+
+✅ Reporting
+
+✅ Blocking
+
+✅ Admin dashboard
+
+✅ Responsive mobile design
+
+✅ Futuristic outer-space visual identity
+
+✅ Attached BLASTERR logo integration
+
+✅ Logo-derived color palette
+
+✅ PostgreSQL database
+
+✅ Seed/demo data
+
+✅ Secure authentication
+
+✅ Production-minded architecture
+
+---
+
+# 41. DEVELOPMENT PROCESS
+
+Do NOT attempt to generate the entire application blindly in one step.
+
+Work systematically.
+
+### STEP 1
+
+Set up the project architecture.
+
+### STEP 2
+
+Set up database and authentication.
+
+### STEP 3
+
+Build the visual design system.
+
+### STEP 4
+
+Build landing/authentication.
+
+### STEP 5
+
+Build profiles.
+
+### STEP 6
+
+Build Target architecture.
+
+### STEP 7
+
+Build Blast creation.
+
+### STEP 8
+
+Build Blast feed.
+
+### STEP 9
+
+Build comments/reactions/Blast Back.
+
+### STEP 10
+
+Build following/search/trending.
+
+### STEP 11
+
+Build notifications/bookmarks.
+
+### STEP 12
+
+Build moderation/admin.
+
+### STEP 13
+
+Test every major workflow.
+
+### STEP 14
+
+Fix bugs and responsiveness.
+
+### STEP 15
+
+Polish animations, spacing, typography and visual consistency.
+
+---
+
+# 42. QUALITY STANDARD
+
+Do not stop after creating static screens.
+
+The application must actually work.
+
+I want to be able to:
+
+1. Create an account.
+2. Log in.
+3. Create a profile.
+4. Follow another user.
+5. Search for a Target.
+6. Create a Blast about that Target.
+7. See the Blast in the feed.
+8. React to it.
+9. Comment on it.
+10. Blast Back.
+11. Bookmark it.
+12. Share it.
+13. Receive notifications.
+14. View the Target page.
+15. Report content.
+16. Block another user.
+17. View the content in the admin dashboard.
+18. Manage reported content as an administrator.
+
+Test these workflows before considering Phase 1 complete.
+
+---
+
+# 43. DESIGN GOAL
+
+When someone opens BLASTERR for the first time, the reaction should be:
+
+> **"Damn. This doesn't look like another social-media app."**
+
+It should feel futuristic, premium, addictive, and visually memorable.
+
+The BLASTERR brand should feel like it belongs to a new generation of social platforms.
+
+---
+
+# 44. START BUILDING
+
+Start by inspecting the attached BLASTERR logo and establishing the design system from it.
+
+Then create the project architecture and database schema.
+
+Build Phase 1 incrementally.
+
+Do not skip functionality in favor of visual mockups.
+
+The final result should be a working social-media MVP that can be demonstrated to real users.
+
+# BLASTERR
+
+### **SAY IT. BLAST IT.**
