@@ -196,14 +196,14 @@ export default function Settings() {
                 {bannerPreview ? (
                   <img src={bannerPreview} alt="Profile banner preview" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                    Add a banner image
+                  <div className="flex h-full flex-col items-center justify-center gap-1 text-center">
+                    <span className="text-sm text-muted-foreground">Add a banner image</span>
+                    <span className="text-xs text-muted-foreground">
+                      Recommended banner size: <span className="text-white">1500 × 500 px</span>
+                    </span>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Recommended banner size: <span className="text-white">1500 × 500 px</span>
-              </p>
               <div className="flex flex-wrap items-center gap-3">
                 <Button
                   type="button"
