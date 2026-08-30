@@ -1,0 +1,1828 @@
+# BLASTERR ADMIN — COMPLETE ADVERTISING SYSTEM
+
+## REPLIT AGENT BUILD PROMPT
+
+Build and integrate a complete **Advertising Management System** into the existing **BLASTERR ADMIN** application.
+
+This is intended to become the central advertising command center for the existing BLASTERR social platform.
+
+IMPORTANT:
+
+**Do not rebuild BLASTERR.**
+
+**Do not create a separate social platform.**
+
+**Do not replace the existing BLASTERR database, authentication, users, Blasts, or backend architecture.**
+
+First inspect the existing BLASTERR ADMIN project and determine how it connects to the existing BLASTERR platform.
+
+The advertising system must be designed so that:
+
+**BLASTERR users see advertisements inside BLASTERR.**
+
+**Advertisers can eventually create and manage advertising campaigns.**
+
+**BLASTERR ADMIN controls, reviews, approves, pauses, manages, and analyzes advertising.**
+
+The architecture must be scalable enough to support a large advertising marketplace.
+
+---
+
+# 1. ADD ADVERTISING TO THE BLASTERR ADMIN SIDEBAR
+
+Add a major navigation category:
+
+# 💰 ADVERTISING
+
+Under it create:
+
+* Advertising Overview
+* Advertisers
+* Campaigns
+* Ad Groups
+* Advertisements
+* Ad Creatives
+* Ad Approvals
+* Live Ads
+* Scheduled Ads
+* Paused Ads
+* Rejected Ads
+* Boosted Blasts
+* Sponsored Blasts
+* Sponsored Trends
+* Sponsored Hashtags
+* Featured Promotions
+* Targeting
+* Budgets
+* Billing
+* Transactions
+* Revenue
+* Analytics
+* Ad Reports
+* Fraud & Abuse
+* Ad Settings
+
+Make Advertising a first-class section of BLASTERR ADMIN.
+
+---
+
+# 2. ADVERTISING OVERVIEW
+
+Create an Advertising Dashboard.
+
+Top statistics:
+
+### TOTAL AD REVENUE
+
+$0.00
+
+### TODAY'S REVENUE
+
+$0.00
+
+### ACTIVE CAMPAIGNS
+
+0
+
+### ACTIVE ADVERTISERS
+
+0
+
+### IMPRESSIONS
+
+0
+
+### CLICKS
+
+0
+
+### CTR
+
+0%
+
+### AD SPEND
+
+$0.00
+
+### PENDING APPROVALS
+
+0
+
+### REPORTED ADS
+
+0
+
+Use real data when the backend is connected.
+
+Do NOT fabricate production statistics.
+
+If the advertising backend does not yet contain data, display:
+
+**No advertising data yet**
+
+rather than fake numbers.
+
+---
+
+# 3. REVENUE CHART
+
+Create an interactive advertising revenue chart.
+
+Allow:
+
+* Today
+* 7 Days
+* 30 Days
+* 90 Days
+* 12 Months
+* Custom
+
+Display:
+
+* Revenue
+* Ad spend
+* Impressions
+* Clicks
+
+---
+
+# 4. CAMPAIGN ACTIVITY
+
+Create a recent campaign activity feed.
+
+Examples:
+
+Advertiser created campaign.
+
+Campaign submitted for approval.
+
+Campaign approved.
+
+Campaign rejected.
+
+Campaign paused.
+
+Campaign completed.
+
+Budget reached.
+
+Ad reported.
+
+Refund issued.
+
+---
+
+# 5. ADVERTISERS
+
+Create an advertiser management system.
+
+Admins can:
+
+* View advertisers
+* Search advertisers
+* Filter advertisers
+* View advertiser details
+* Suspend advertisers
+* Reactivate advertisers
+* Verify advertisers
+* Review advertiser history
+* View campaigns
+* View spending
+* View payments
+* View reports
+* View violations
+* Add internal notes
+
+Advertiser statuses:
+
+* Active
+* Pending Verification
+* Suspended
+* Banned
+* Pending Review
+
+---
+
+# 6. ADVERTISER DETAIL PAGE
+
+Create a detailed advertiser profile.
+
+Display:
+
+### BUSINESS INFORMATION
+
+* Business name
+* Contact name
+* Email
+* Website
+* Business category
+* Location
+* Account creation date
+* Verification status
+
+### ADVERTISING
+
+* Total campaigns
+* Active campaigns
+* Completed campaigns
+* Total spend
+* Impressions
+* Clicks
+* CTR
+* Conversions
+
+### BILLING
+
+* Payment history
+* Refunds
+* Failed payments
+* Current balance where applicable
+
+### MODERATION
+
+* Reported advertisements
+* Rejected advertisements
+* Policy violations
+* Previous suspensions
+
+### ADMIN ACTIONS
+
+* Verify advertiser
+* Suspend advertiser
+* Reactivate advertiser
+* Ban advertiser
+* Add note
+
+---
+
+# 7. CAMPAIGNS
+
+Create a campaign management system.
+
+Admins can:
+
+* Create campaign
+* View campaign
+* Edit campaign
+* Approve campaign
+* Reject campaign
+* Pause campaign
+* Resume campaign
+* End campaign
+* Duplicate campaign
+* Archive campaign
+
+Campaign fields:
+
+* Campaign name
+* Advertiser
+* Objective
+* Budget
+* Daily budget
+* Start date
+* End date
+* Target audience
+* Geographic targeting
+* Creative
+* Landing page
+* Campaign status
+
+Campaign statuses:
+
+* Draft
+* Pending Approval
+* Approved
+* Active
+* Paused
+* Rejected
+* Completed
+* Cancelled
+
+---
+
+# 8. CAMPAIGN OBJECTIVES
+
+Support advertising objectives such as:
+
+* Brand Awareness
+* Website Traffic
+* Engagement
+* Video Views
+* App Promotion
+* Lead Generation
+* Product Sales
+* Event Promotion
+* Local Business Promotion
+* Creator Promotion
+
+Design the architecture so additional objectives can be added later.
+
+---
+
+# 9. AD GROUPS
+
+Create an Ad Group system similar to major advertising platforms.
+
+Campaign:
+
+**Summer Campaign**
+
+↓
+
+Ad Group:
+
+**18–34 Sports Fans**
+
+↓
+
+Ads:
+
+* Video Ad #1
+* Video Ad #2
+* Sponsored Blast #1
+
+Allow targeting and budget controls at campaign or ad-group level where appropriate.
+
+---
+
+# 10. ADVERTISEMENTS
+
+Create an advertisement management system.
+
+Each advertisement should contain:
+
+* Advertiser
+* Campaign
+* Ad Group
+* Ad type
+* Creative
+* Headline
+* Description
+* CTA
+* Destination URL
+* Targeting
+* Start date
+* End date
+* Budget
+* Status
+
+CTA options:
+
+* Learn More
+* Shop Now
+* Sign Up
+* Download
+* Book Now
+* Contact Us
+* Visit Website
+* Get Offer
+* Watch Now
+* Custom
+
+---
+
+# 11. AD CREATIVE MANAGEMENT
+
+Create an Ad Creative library.
+
+Support:
+
+* Images
+* Vertical videos
+* Horizontal videos
+* Square videos
+* GIFs where supported
+* Text
+* Logos
+
+Display:
+
+* Creative preview
+* Dimensions
+* File type
+* File size
+* Upload date
+* Advertiser
+* Campaign
+* Approval status
+
+Include:
+
+**Preview Advertisement**
+
+function.
+
+---
+
+# 12. AD TYPES
+
+Build the advertising architecture to support multiple ad formats.
+
+## A. SPONSORED BLAST
+
+Native advertisement that appears inside the BLASTERR feed.
+
+Example:
+
+**Sponsored**
+
+@BrandName
+
+"The new collection just dropped."
+
+[IMAGE/VIDEO]
+
+**SHOP NOW**
+
+---
+
+## B. BOOSTED BLAST
+
+Allow users/businesses to pay to increase distribution of an existing Blast.
+
+Admin controls:
+
+* Eligibility
+* Minimum budget
+* Maximum budget
+* Duration
+* Targeting
+* Approval requirements
+
+---
+
+## C. VIDEO ADS
+
+Support vertical video advertisements.
+
+Designed for future placement:
+
+* Feed
+* Clips
+* Video experiences
+
+---
+
+## D. BANNER ADS
+
+Support optional display advertisements.
+
+Possible locations:
+
+* Feed
+* Search
+* Explore
+* Desktop sidebar
+* Profile
+
+Make placements configurable.
+
+---
+
+## E. SPONSORED TREND
+
+Allow advertisers to sponsor a trending topic.
+
+Clearly label sponsored trends.
+
+---
+
+## F. SPONSORED HASHTAG
+
+Allow brands to sponsor hashtag campaigns.
+
+---
+
+## G. FEATURED CREATOR
+
+Create a future advertising product allowing brands to promote creator campaigns.
+
+---
+
+## H. LOCAL BUSINESS PROMOTION
+
+Allow local businesses to target users geographically.
+
+---
+
+# 13. AD PLACEMENTS
+
+Create a Placement Management system.
+
+Possible placements:
+
+* Home Feed
+* Following Feed
+* Explore
+* Search
+* Trending
+* Profile
+* Video Feed
+* Blast Clips
+* Hashtag Pages
+
+Admins should be able to enable/disable placements.
+
+Example:
+
+**HOME FEED ADS**
+
+ON
+
+**VIDEO ADS**
+
+OFF
+
+**SEARCH ADS**
+
+ON
+
+---
+
+# 14. AD FREQUENCY CONTROLS
+
+Create frequency controls.
+
+Examples:
+
+Maximum ads per feed session.
+
+Maximum impressions per user per day.
+
+Minimum distance between advertisements.
+
+Maximum number of advertisements per page.
+
+Do not overwhelm users with advertising.
+
+All limits should be configurable by Admin.
+
+---
+
+# 15. TARGETING SYSTEM
+
+Create a flexible targeting architecture.
+
+Support:
+
+### GEOGRAPHIC
+
+* Country
+* State
+* City
+* ZIP/postal code
+* Radius where technically/legal supported
+
+### DEMOGRAPHIC
+
+Where legally and technically appropriate:
+
+* Age range
+* Gender
+
+### INTERESTS
+
+Create configurable interest categories.
+
+Examples:
+
+* Sports
+* Gaming
+* Music
+* Fashion
+* Food
+* Business
+* Technology
+* Entertainment
+* Fitness
+* Travel
+* Cars
+* Finance
+
+### BEHAVIOR
+
+Where permitted and properly consented:
+
+* Engagement
+* Content interactions
+* Platform activity
+
+### DEVICE
+
+Where appropriate:
+
+* Mobile
+* Desktop
+* Tablet
+
+Build targeting modularly so additional targeting options can be added later.
+
+IMPORTANT:
+
+Follow applicable privacy, advertising, and data protection laws.
+
+Do not build prohibited discriminatory targeting.
+
+---
+
+# 16. AUDIENCE BUILDER
+
+Create an Audience Builder interface.
+
+Advertisers/admins should eventually be able to define:
+
+**Audience Name**
+
+**Location**
+
+**Age**
+
+**Interests**
+
+**Device**
+
+**Behavior**
+
+Display:
+
+### ESTIMATED AUDIENCE
+
+Example:
+
+**1.2M – 1.8M**
+
+If actual audience estimation is not yet available, display:
+
+**Audience estimation unavailable**
+
+Do not invent numbers.
+
+---
+
+# 17. BUDGET MANAGEMENT
+
+Support:
+
+* Lifetime budget
+* Daily budget
+* Campaign budget
+* Ad group budget
+
+Display:
+
+Budget:
+
+$1,000
+
+Spent:
+
+$427
+
+Remaining:
+
+$573
+
+Create automatic budget controls.
+
+Do not allow campaigns to spend beyond authorized limits.
+
+---
+
+# 18. AD PRICING ARCHITECTURE
+
+Design the system so BLASTERR can eventually support multiple pricing models.
+
+Support architecture for:
+
+### CPM
+
+Cost per 1,000 impressions
+
+### CPC
+
+Cost per click
+
+### CPV
+
+Cost per video view
+
+### CPA
+
+Cost per acquisition
+
+### FIXED PRICE
+
+Flat campaign fee
+
+Do not assume a final pricing model.
+
+Make pricing configurable through Admin Settings.
+
+---
+
+# 19. AD APPROVAL SYSTEM
+
+Create a dedicated:
+
+# AD APPROVAL QUEUE
+
+Every advertisement can go through moderation before going live.
+
+Display:
+
+* Advertiser
+* Campaign
+* Creative
+* Ad copy
+* Destination URL
+* Targeting
+* Budget
+* Submission date
+
+Actions:
+
+**APPROVE**
+
+**REJECT**
+
+**REQUEST CHANGES**
+
+**PAUSE**
+
+Require rejection reasons.
+
+Example:
+
+Rejection reason:
+
+* Prohibited content
+* Misleading claim
+* Destination problem
+* Copyright concern
+* Offensive content
+* Spam
+* Targeting violation
+* Other
+
+---
+
+# 20. AD PREVIEW
+
+Create an interactive advertisement preview.
+
+Allow admin to preview how an advertisement appears in:
+
+* Mobile Feed
+* Desktop Feed
+* Video Feed
+* Search
+* Trending
+* Sponsored Blast
+
+This should help admins approve ads visually.
+
+---
+
+# 21. SPONSORED BLAST EXPERIENCE
+
+Design the advertising system so a sponsored Blast feels native to BLASTERR but is clearly labeled.
+
+Example:
+
+---
+
+**Sponsored**
+
+**Brand Name**
+
+Headline/text
+
+[MEDIA]
+
+❤️ Like
+💬 Comment
+↻ Reblast
+
+**SHOP NOW**
+
+---
+
+Always clearly identify paid content.
+
+Do not disguise paid advertisements as organic content.
+
+---
+
+# 22. BOOST A BLAST
+
+Build the backend architecture for:
+
+# 🚀 BOOST THIS BLAST
+
+A user/business can select:
+
+### BUDGET
+
+$10
+$25
+$50
+$100
+Custom
+
+### DURATION
+
+1 Day
+3 Days
+7 Days
+Custom
+
+### AUDIENCE
+
+Automatic
+Custom Audience
+
+### LOCATION
+
+Optional
+
+### OBJECTIVE
+
+More Views
+More Engagement
+More Website Visits
+
+Display campaign summary before payment.
+
+---
+
+# 23. BOOST APPROVAL
+
+Depending on BLASTERR's moderation rules, boosted Blasts should pass through an advertising review process.
+
+A Blast being allowed organically does NOT automatically mean it qualifies for paid promotion.
+
+Create a separate:
+
+**Boost Review**
+
+status.
+
+---
+
+# 24. SPONSORED TRENDING
+
+Create admin controls for Sponsored Trends.
+
+Admin can:
+
+* Approve sponsored trend
+* Reject
+* Pause
+* Schedule
+* Set campaign dates
+* Set placement
+* View performance
+
+Clearly label:
+
+**Sponsored**
+
+---
+
+# 25. SPONSORED HASHTAGS
+
+Create:
+
+**Sponsored Hashtag Campaign**
+
+Fields:
+
+* Hashtag
+* Advertiser
+* Creative
+* Start date
+* End date
+* Budget
+* Target audience
+* Destination
+
+---
+
+# 26. BILLING
+
+Create an advertising billing system.
+
+Display:
+
+* Current balance
+* Spending
+* Charges
+* Refunds
+* Payment failures
+* Payment history
+
+Do not store raw credit card information.
+
+Use a secure payment provider and tokenized payment methods.
+
+---
+
+# 27. TRANSACTIONS
+
+Create transaction management.
+
+Fields:
+
+* Transaction ID
+* Advertiser
+* Campaign
+* Amount
+* Type
+* Status
+* Date
+
+Types:
+
+* Payment
+* Refund
+* Credit
+* Adjustment
+
+Statuses:
+
+* Successful
+* Pending
+* Failed
+* Refunded
+
+---
+
+# 28. REFUNDS
+
+Create a refund management system.
+
+Admins can request/refund eligible advertising charges.
+
+Require:
+
+* Refund amount
+* Reason
+* Admin confirmation
+
+Every refund must be recorded in the audit log.
+
+---
+
+# 29. AD REVENUE
+
+Create a revenue dashboard.
+
+Metrics:
+
+* Gross advertising revenue
+* Refunds
+* Net advertising revenue
+* Revenue by campaign
+* Revenue by advertiser
+* Revenue by ad format
+* Revenue by placement
+* Revenue by date
+
+---
+
+# 30. AD ANALYTICS
+
+Create comprehensive advertising analytics.
+
+### IMPRESSIONS
+
+### REACH
+
+### CLICKS
+
+### CTR
+
+### VIDEO VIEWS
+
+### VIDEO COMPLETION RATE
+
+### ENGAGEMENTS
+
+### CONVERSIONS
+
+### SPEND
+
+### REVENUE
+
+### CPM
+
+### CPC
+
+### CPV
+
+### CPA
+
+Only display metrics that the current backend can actually calculate.
+
+---
+
+# 31. CAMPAIGN ANALYTICS
+
+Each campaign should have its own analytics page.
+
+Example:
+
+CAMPAIGN:
+
+**Summer Launch**
+
+Spend:
+
+$4,250
+
+Impressions:
+
+125,000
+
+Clicks:
+
+7,250
+
+CTR:
+
+5.8%
+
+Video Views:
+
+38,000
+
+Conversions:
+
+1,200
+
+Create charts for:
+
+* Performance over time
+* Spend
+* Impressions
+* Clicks
+* Conversions
+
+---
+
+# 32. AD REPORTING
+
+Create:
+
+# AD REPORTS
+
+Users should eventually be able to report advertisements.
+
+Categories:
+
+* Scam
+* Spam
+* Offensive
+* Misleading
+* Inappropriate
+* Fraud
+* Copyright
+* Other
+
+Admins can:
+
+* Review
+* Dismiss
+* Remove ad
+* Suspend campaign
+* Suspend advertiser
+* Escalate
+
+---
+
+# 33. FRAUD & ABUSE
+
+Create a dedicated:
+
+# FRAUD & ABUSE
+
+section.
+
+Monitor suspicious patterns such as:
+
+* Abnormally high click activity
+* Repeated rapid clicks
+* Bot-like behavior
+* Suspicious campaigns
+* Payment abuse
+* Repeated advertiser violations
+
+Do not automatically accuse users of fraud based solely on unusual activity.
+
+Instead:
+
+**Flag for Review**
+
+Create a risk score architecture that can later incorporate more sophisticated detection.
+
+---
+
+# 34. AD FREQUENCY / USER EXPERIENCE
+
+Create Admin controls for:
+
+* Maximum ads per session
+* Maximum ads per hour
+* Maximum ads per day
+* Minimum content between ads
+
+The goal is to monetize BLASTERR without making the platform feel overloaded with advertisements.
+
+---
+
+# 35. AD BLOCKLIST / CATEGORY CONTROLS
+
+Allow Admin to block entire advertising categories if desired.
+
+Examples:
+
+* Gambling
+* Adult content
+* Weapons
+* Tobacco/nicotine
+* Political advertising
+* Financial products
+* Medical products
+
+Make these configurable according to BLASTERR's policies and applicable law.
+
+---
+
+# 36. ADVERTISER VERIFICATION
+
+Create an advertiser verification system.
+
+Potential verification levels:
+
+### UNVERIFIED
+
+### VERIFIED BUSINESS
+
+### TRUSTED ADVERTISER
+
+Allow Admin to configure verification requirements.
+
+---
+
+# 37. LANDING PAGE VALIDATION
+
+Advertisements containing destination URLs should be checked for:
+
+* Valid URL
+* HTTPS
+* Reachability
+* Redirect problems
+
+Where technically feasible, flag suspicious destinations for review.
+
+Do not automatically guarantee that a destination is safe.
+
+---
+
+# 38. CAMPAIGN SCHEDULING
+
+Support:
+
+* Start date
+* End date
+* Start time
+* End time
+* Time zone
+
+Campaign automatically becomes:
+
+**Scheduled → Active → Completed**
+
+unless manually paused.
+
+---
+
+# 39. PAUSE / RESUME
+
+Admins must be able to instantly:
+
+**PAUSE CAMPAIGN**
+
+and:
+
+**RESUME CAMPAIGN**
+
+When paused, the ad delivery system must stop serving the campaign.
+
+---
+
+# 40. EMERGENCY AD SHUTDOWN
+
+Create an emergency administrative control:
+
+# 🛑 PAUSE ALL ADVERTISING
+
+Require strong confirmation.
+
+When activated:
+
+All advertising delivery stops.
+
+Display the reason and timestamp.
+
+Only authorized administrators can activate/deactivate this feature.
+
+---
+
+# 41. FEATURE FLAGS
+
+Add advertising feature flags to the existing BLASTERR Admin feature-control system.
+
+Examples:
+
+ADVERTISEMENT_SYSTEM
+
+ON/OFF
+
+SPONSORED_BLASTS
+
+ON/OFF
+
+BOOST_BLAST
+
+ON/OFF
+
+VIDEO_ADS
+
+ON/OFF
+
+BANNER_ADS
+
+ON/OFF
+
+SPONSORED_TRENDS
+
+ON/OFF
+
+SPONSORED_HASHTAGS
+
+ON/OFF
+
+ADVERTISER_SELF_SERVICE
+
+ON/OFF
+
+---
+
+# 42. DATABASE ARCHITECTURE
+
+Inspect the existing BLASTERR database before creating anything.
+
+Do NOT duplicate existing users or content.
+
+Create only the tables/models necessary for advertising.
+
+Potential architecture:
+
+advertisers
+
+advertiser_profiles
+
+ad_campaigns
+
+ad_groups
+
+advertisements
+
+ad_creatives
+
+ad_placements
+
+ad_targeting
+
+ad_audiences
+
+ad_budgets
+
+ad_transactions
+
+ad_payments
+
+ad_refunds
+
+ad_impressions
+
+ad_clicks
+
+ad_conversions
+
+ad_reports
+
+ad_approvals
+
+ad_moderation_actions
+
+ad_schedule
+
+ad_feature_flags
+
+ad_pricing
+
+ad_settings
+
+ad_fraud_flags
+
+Use the existing project's database conventions and naming conventions.
+
+Do not blindly create all of these if equivalent structures already exist.
+
+---
+
+# 43. AD DELIVERY ENGINE
+
+Create a backend advertising service responsible for selecting eligible advertisements.
+
+The ad delivery system should consider:
+
+* Campaign status
+* Approval status
+* Schedule
+* Budget
+* Placement
+* Targeting
+* Frequency limits
+* User eligibility
+* Advertiser status
+
+The browser must NOT decide which advertisement is eligible.
+
+Eligibility must be enforced server-side.
+
+---
+
+# 44. AD TRACKING
+
+Create infrastructure for:
+
+* Impression tracking
+* Click tracking
+* Video view tracking
+* Conversion tracking
+
+Track only information that is necessary and legally permitted.
+
+Use privacy-conscious identifiers and appropriate consent mechanisms.
+
+Do not collect unnecessary personal information.
+
+---
+
+# 45. PRIVACY
+
+Advertising must be designed with privacy in mind.
+
+Build architecture that can support:
+
+* User consent
+* Opt-out controls where required
+* Privacy settings
+* Data minimization
+* Data retention policies
+* User data deletion
+* Advertising preference controls
+
+Do not expose personally identifiable information to advertisers.
+
+Advertisers should receive aggregated campaign analytics rather than private user information.
+
+---
+
+# 46. ADMIN PERMISSIONS
+
+Integrate Advertising with the existing Admin Roles & Permissions system.
+
+Create permissions such as:
+
+advertising.view
+
+advertising.create
+
+advertising.edit
+
+advertising.approve
+
+advertising.reject
+
+advertising.pause
+
+advertising.delete
+
+advertising.refund
+
+advertising.analytics
+
+advertising.billing
+
+advertising.settings
+
+advertising.pricing
+
+advertising.manage_advertisers
+
+advertising.manage_targeting
+
+advertising.manage_placements
+
+advertising.emergency_shutdown
+
+Only authorized administrators should have these permissions.
+
+---
+
+# 47. AUDIT LOGGING
+
+Every important advertising action must be recorded.
+
+Examples:
+
+Admin approved advertisement.
+
+Admin rejected advertisement.
+
+Admin paused campaign.
+
+Admin changed campaign budget.
+
+Admin issued refund.
+
+Admin suspended advertiser.
+
+Admin changed advertising settings.
+
+Admin activated emergency shutdown.
+
+Store:
+
+* Admin ID
+* Action
+* Target
+* Timestamp
+* Reason
+* Relevant metadata
+
+Audit logs must not be editable by ordinary admins.
+
+---
+
+# 48. ADMIN NOTIFICATIONS
+
+Add notifications for:
+
+* New ad awaiting approval
+* Reported advertisement
+* Campaign budget exceeded
+* Payment failure
+* Suspicious campaign
+* Advertiser violation
+* Emergency advertising shutdown
+
+---
+
+# 49. EXPORTS
+
+Allow authorized admins to export advertising reports.
+
+Formats:
+
+* CSV
+* PDF where appropriate
+
+Examples:
+
+Campaign performance
+
+Revenue
+
+Transactions
+
+Advertisers
+
+Ad reports
+
+---
+
+# 50. SEARCH & FILTERING
+
+Advertising tables should support:
+
+* Search
+* Sort
+* Pagination
+* Date filters
+* Status filters
+* Advertiser filters
+* Campaign filters
+* Ad type filters
+
+Do not load huge datasets into the browser.
+
+Use server-side querying and pagination.
+
+---
+
+# 51. PERFORMANCE
+
+Design for potentially:
+
+* Millions of users
+* Millions of Blasts
+* Thousands of advertisers
+* Millions of impressions
+* Millions of clicks
+* Large analytics datasets
+
+Use:
+
+* Database indexes
+* Pagination
+* Aggregated analytics
+* Background jobs where appropriate
+* Caching where appropriate
+* Efficient queries
+
+Do not calculate massive analytics datasets synchronously on every dashboard request.
+
+---
+
+# 52. SECURITY
+
+Advertising controls are financially sensitive.
+
+Implement:
+
+* Server-side authorization
+* Role-based permissions
+* Secure sessions
+* Rate limiting
+* Input validation
+* CSRF protection where applicable
+* Secure payment integration
+* Audit logging
+* Protection against unauthorized campaign modification
+
+Never expose:
+
+* Database credentials
+* Payment secrets
+* API secrets
+* Internal admin tokens
+
+to the frontend.
+
+---
+
+# 53. PAYMENT PROVIDER ARCHITECTURE
+
+Do not build a fake payment processor.
+
+Prepare the architecture for integration with a legitimate payment provider.
+
+The system should be able to receive:
+
+* Payment success
+* Payment failure
+* Refund
+* Chargeback
+* Subscription/payment events where applicable
+
+Use webhooks where appropriate.
+
+Never store raw card numbers or CVV information.
+
+---
+
+# 54. ADVERTISER SELF-SERVICE — FUTURE READY
+
+Even if the advertiser portal is not being built inside this project yet, design the backend so it can support a future:
+
+# BLASTERR ADS MANAGER
+
+where businesses can:
+
+1. Create advertiser account
+2. Create campaign
+3. Upload creative
+4. Select audience
+5. Set budget
+6. Submit advertisement
+7. Pay
+8. Wait for approval
+9. Campaign goes live
+10. Monitor performance
+
+BLASTERR ADMIN remains the authority over the entire system.
+
+---
+
+# 55. AD POLICY CENTER
+
+Create an Admin section where BLASTERR advertising policies can be configured/documented.
+
+Include:
+
+* Allowed content
+* Prohibited content
+* Restricted categories
+* Creative requirements
+* Landing page requirements
+* Targeting restrictions
+* Appeal process
+
+Make policy violations easy for moderators to identify.
+
+---
+
+# 56. ADMIN DESIGN
+
+Advertising should visually match BLASTERR ADMIN.
+
+Use:
+
+* Dark interface
+* Black/charcoal background
+* White typography
+* BLASTERR neon accents
+* Modern cards
+* Clean data tables
+* Professional charts
+* Responsive layout
+* Smooth transitions
+
+Do not make it look like a generic template.
+
+Advertising should feel like a professional product comparable in organization to a modern advertising management platform.
+
+---
+
+# 57. IMPORTANT DEVELOPMENT PROCESS
+
+Before implementing:
+
+### STEP 1
+
+Inspect the existing BLASTERR ADMIN application.
+
+### STEP 2
+
+Inspect how it connects to BLASTERR.
+
+### STEP 3
+
+Identify:
+
+* Existing database
+* Existing API
+* Existing authentication
+* Existing users
+* Existing Blasts
+* Existing media
+* Existing moderation
+* Existing analytics
+* Existing payment architecture
+
+### STEP 4
+
+Design the advertising integration around the existing architecture.
+
+### STEP 5
+
+Create database migrations/models.
+
+### STEP 6
+
+Create secure backend APIs.
+
+### STEP 7
+
+Create the Admin Advertising interface.
+
+### STEP 8
+
+Create the ad delivery infrastructure.
+
+### STEP 9
+
+Connect advertising placements to BLASTERR.
+
+### STEP 10
+
+Test every major administrative action.
+
+---
+
+# 58. DO NOT BREAK EXISTING BLASTERR
+
+This is critical.
+
+Do not:
+
+* Replace existing authentication
+* Replace existing database
+* Delete existing users
+* Modify existing Blasts unnecessarily
+* Break the feed
+* Break comments
+* Break media uploads
+* Break existing moderation
+* Break existing APIs
+
+Advertising should be implemented as an additional modular system.
+
+---
+
+# 59. DEVELOPMENT MODE
+
+If the actual BLASTERR backend is not currently connected or does not yet support a required advertising function:
+
+Create the UI and backend architecture but clearly label unavailable functionality as:
+
+**BACKEND INTEGRATION REQUIRED**
+
+Do NOT present fake campaign revenue, impressions, clicks, or advertiser data as real.
+
+Use mock data only when explicitly running development/demo mode.
+
+---
+
+# 60. FINAL GOAL
+
+The completed BLASTERR ADMIN Advertising system should eventually give BLASTERR complete control over its own advertising ecosystem.
+
+The architecture should support this flow:
+
+**ADVERTISER**
+
+↓
+
+Creates Campaign
+
+↓
+
+Uploads Advertisement
+
+↓
+
+Selects Audience
+
+↓
+
+Sets Budget
+
+↓
+
+Pays
+
+↓
+
+**BLASTERR AD REVIEW**
+
+↓
+
+Approved
+
+↓
+
+**AD DELIVERY ENGINE**
+
+↓
+
+Advertisement appears in eligible BLASTERR placements
+
+↓
+
+Impressions / clicks / views tracked
+
+↓
+
+Advertiser sees performance
+
+↓
+
+BLASTERR generates advertising revenue
+
+↓
+
+**BLASTERR ADMIN**
+
+controls the entire system.
+
+The system must be modular, secure, scalable, privacy-conscious, and production-ready.
+
+Do not build merely a visual advertising dashboard.
+
+Build the underlying architecture necessary for BLASTERR to become a real advertising platform.
