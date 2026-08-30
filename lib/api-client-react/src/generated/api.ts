@@ -41,7 +41,7 @@ import type {
   Report,
   ReportInput,
   SearchParams,
-  SearchResponse,
+  SearchResults,
   Target,
   TargetDetail,
   TrendingResponse,
@@ -408,9 +408,9 @@ export const getSearchUrl = (params: SearchParams,) => {
 /**
  * @summary Search people, Blasts, and Targets
  */
-export const search = async (params: SearchParams, options?: Parameters<typeof customFetch>[1]): Promise<SearchResponse> => {
+export const search = async (params: SearchParams, options?: Parameters<typeof customFetch>[1]): Promise<SearchResults> => {
 
-  return customFetch<SearchResponse>(getSearchUrl(params),
+  return customFetch<SearchResults>(getSearchUrl(params),
   {
     ...options,
     method: 'GET'

@@ -133,7 +133,7 @@ export interface TargetDetail {
   stats: TargetStats;
 }
 
-export interface SearchResponse {
+export interface SearchResults {
   people: User[];
   blasts: Blast[];
   targets: Target[];

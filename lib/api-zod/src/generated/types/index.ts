@@ -38,7 +38,7 @@ export * from './reportInput';
 export * from './reportInputReason';
 export * from './reportInputTargetType';
 export * from './searchParams';
-export * from './searchResponse';
+export * from './searchResults';
 export * from './searchType';
 export * from './target';
 export * from './targetDetail';

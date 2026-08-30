@@ -9,7 +9,7 @@ import type { Blast } from './blast';
 import type { Target } from './target';
 import type { User } from './user';
 
-export interface SearchResponse {
+export interface SearchResults {
   people: User[];
   blasts: Blast[];
   targets: Target[];

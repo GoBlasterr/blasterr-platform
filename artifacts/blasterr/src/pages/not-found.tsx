@@ -1,23 +1,25 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              404 Page Not Found
-            </h1>
-          </div>
-
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
-          </p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-destructive/10 rounded-full blur-[100px]"></div>
+      
+      <div className="font-display font-black text-9xl text-white/5 relative z-10 mb-4 tracking-tighter">
+        404
+      </div>
+      <div className="relative z-10 max-w-md">
+        <h1 className="font-display font-bold text-3xl text-white mb-4">Signal Lost</h1>
+        <p className="text-muted-foreground mb-8 text-lg">
+          The target sector you're looking for doesn't exist in this universe. It may have been destroyed or relocated.
+        </p>
+        <Link href="/home">
+          <Button className="rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 px-8 h-12">
+            Return to Base
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

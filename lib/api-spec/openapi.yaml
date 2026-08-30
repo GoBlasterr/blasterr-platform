@@ -91,7 +91,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SearchResponse"
+                $ref: "#/components/schemas/SearchResults"
   /targets:
     get:
       operationId: listTargets
@@ -365,7 +365,7 @@ components:
       name: page
       in: query
       schema:
-        type: integer
+        type: number
         minimum: 1
         default: 1
     FeedTab:
@@ -410,9 +410,9 @@ components:
         avatarUrl: { type: string }
         bio: { type: string }
         location: { type: string }
-        followers: { type: integer }
-        following: { type: integer }
-        blastCount: { type: integer }
+        followers: { type: number }
+        following: { type: number }
+        blastCount: { type: number }
         joinedAt: { type: string }
         isFollowing: { type: boolean }
     Profile:
@@ -439,7 +439,7 @@ components:
           type: string
           enum: [person, business, place, product, entertainment, sports, gaming, other]
         location: { type: string }
-        blastCount: { type: integer }
+        blastCount: { type: number }
         imageUrl: { type: string }
         description: { type: string }
     Blast:
@@ -457,9 +457,9 @@ components:
           type: [string, "null"]
           enum: [image, video, null]
         reactions: { $ref: "#/components/schemas/ReactionSummary" }
-        commentCount: { type: integer }
-        shareCount: { type: integer }
-        viewCount: { type: integer }
+        commentCount: { type: number }
+        shareCount: { type: number }
+        viewCount: { type: number }
         isBookmarked: { type: boolean }
         isBlastBack: { type: boolean }
         originalBlastId:
@@ -471,7 +471,7 @@ components:
         items:
           type: array
           items: { $ref: "#/components/schemas/Blast" }
-        page: { type: integer }
+        page: { type: number }
         hasMore: { type: boolean }
     TrendingResponse:
       type: object
@@ -496,11 +496,11 @@ components:
       type: object
       required: [positiveReactions, negativeReactions, engagement, activity]
       properties:
-        positiveReactions: { type: integer }
-        negativeReactions: { type: integer }
-        engagement: { type: integer }
-        activity: { type: integer }
-    SearchResponse:
+        positiveReactions: { type: number }
+        negativeReactions: { type: number }
+        engagement: { type: number }
+        activity: { type: number }
+    SearchResults:
       type: object
       required: [people, blasts, targets]
       properties:
@@ -540,11 +540,11 @@ components:
       type: object
       required: [blast, facts, cap, funny, watching, currentUserReaction]
       properties:
-        blast: { type: integer }
-        facts: { type: integer }
-        cap: { type: integer }
-        funny: { type: integer }
-        watching: { type: integer }
+        blast: { type: number }
+        facts: { type: number }
+        cap: { type: number }
+        funny: { type: number }
+        watching: { type: number }
         currentUserReaction:
           type: [string, "null"]
           enum: [blast, facts, cap, funny, watching, null]
@@ -562,14 +562,14 @@ components:
         content: { type: string }
         createdAt: { type: string }
         author: { $ref: "#/components/schemas/User" }
-        likes: { type: integer }
-        replyCount: { type: integer }
+        likes: { type: number }
+        replyCount: { type: number }
     FollowState:
       type: object
       required: [isFollowing, followerCount]
       properties:
         isFollowing: { type: boolean }
-        followerCount: { type: integer }
+        followerCount: { type: number }
     BookmarkState:
       type: object
       required: [isBookmarked]
@@ -619,10 +619,10 @@ components:
       type: object
       required: [usersOnline, blastsToday, trendingCount, newUsers, engagement, chart]
       properties:
-        usersOnline: { type: integer }
-        blastsToday: { type: integer }
-        trendingCount: { type: integer }
-        newUsers: { type: integer }
+        usersOnline: { type: number }
+        blastsToday: { type: number }
+        trendingCount: { type: number }
+        newUsers: { type: number }
         engagement: { type: number }
         chart:
           type: array
@@ -631,6 +631,6 @@ components:
             required: [label, users, blasts, engagement]
             properties:
               label: { type: string }
-              users: { type: integer }
-              blasts: { type: integer }
-              engagement: { type: integer }
+              users: { type: number }
+              blasts: { type: number }
+              engagement: { type: number }

@@ -1,45 +1,49 @@
-# [Project name]
+# BLASTERR
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+BLASTERR is a futuristic social platform where users publish Blasts about a person, place, business, product, event, or idea and discover the conversation around each Target.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/api-server run dev` — run the shared API server
+- `pnpm --filter @workspace/blasterr run dev` — run the BLASTERR web app
+- `pnpm run typecheck` — full workspace typecheck
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas
+- `pnpm --filter @workspace/db run push` — push development schema changes
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- React 19 + Vite + TypeScript + Tailwind CSS
+- Express 5 API with an OpenAPI-first contract and generated React Query hooks
+- PostgreSQL + Drizzle ORM
+- Replit-managed Clerk authentication
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- Web app: `artifacts/blasterr`
+- API routes: `artifacts/api-server/src/routes`
+- API contract: `lib/api-spec/openapi.yaml`
+- Database schema: `lib/db/src/schema`
+- Brand theme: `artifacts/blasterr/src/index.css`
+- Official logo: `artifacts/blasterr/public/logo.png`
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- A Blast belongs to a Target; Targets are first-class records rather than plain text tags.
+- Blast Back records preserve their relationship to the original Blast.
+- Media columns store URLs/metadata only; large file bytes do not belong in PostgreSQL.
+- The current API provides a development dataset behind the real generated contract while the relational schema is ready for persistent production handlers.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Public landing and branded Clerk sign-in/sign-up
+- Feed, discovery, Trending, Nearby, global search
+- Target pages and user profiles
+- Create/edit/delete Blasts, reactions, bookmarks, follows, and Blast Back
+- Notifications, safety/reporting foundations, and an admin command center
+- Responsive desktop command-center layout and mobile bottom navigation
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Re-run codegen after every OpenAPI change.
+- Use generated client hooks from `@workspace/api-client-react`; do not hand-write API request types.
+- Keep Clerk proxy middleware before body parsers and API routes.

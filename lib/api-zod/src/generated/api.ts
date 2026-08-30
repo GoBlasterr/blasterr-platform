@@ -26,9 +26,9 @@ export const GetCurrentUserResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 })
@@ -44,7 +44,7 @@ export const getFeedQueryPageDefault = 1;
 
 export const GetFeedQueryParams = zod.object({
   "tab": zod.enum(['for-you', 'following', 'trending', 'nearby']).default(getFeedQueryTabDefault),
-  "page": zod.coerce.number().int().min(1).default(getFeedQueryPageDefault)
+  "page": zod.coerce.number().min(1).default(getFeedQueryPageDefault)
 })
 
 export const GetFeedResponse = zod.object({
@@ -59,9 +59,9 @@ export const GetFeedResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -71,7 +71,7 @@ export const GetFeedResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -79,21 +79,21 @@ export const GetFeedResponse = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
 })),
-  "page": zod.int(),
+  "page": zod.number(),
   "hasMore": zod.boolean()
 })
 
@@ -113,9 +113,9 @@ export const GetTrendingResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -125,7 +125,7 @@ export const GetTrendingResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -133,16 +133,16 @@ export const GetTrendingResponse = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
@@ -153,7 +153,7 @@ export const GetTrendingResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }))
@@ -179,9 +179,9 @@ export const SearchResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 })),
@@ -196,9 +196,9 @@ export const SearchResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -208,7 +208,7 @@ export const SearchResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -216,16 +216,16 @@ export const SearchResponse = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
@@ -236,7 +236,7 @@ export const SearchResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }))
@@ -257,7 +257,7 @@ export const ListTargetsResponseItem = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 })
@@ -278,7 +278,7 @@ export const GetTargetResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -293,9 +293,9 @@ export const GetTargetResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -305,7 +305,7 @@ export const GetTargetResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -313,25 +313,25 @@ export const GetTargetResponse = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
 })),
   "stats": zod.object({
-  "positiveReactions": zod.int(),
-  "negativeReactions": zod.int(),
-  "engagement": zod.int(),
-  "activity": zod.int()
+  "positiveReactions": zod.number(),
+  "negativeReactions": zod.number(),
+  "engagement": zod.number(),
+  "activity": zod.number()
 })
 })
 
@@ -350,9 +350,9 @@ export const GetUserProfileResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }).and(zod.object({
@@ -368,9 +368,9 @@ export const GetUserProfileResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -380,7 +380,7 @@ export const GetUserProfileResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -388,16 +388,16 @@ export const GetUserProfileResponse = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
@@ -413,9 +413,9 @@ export const GetUserProfileResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -425,7 +425,7 @@ export const GetUserProfileResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -433,16 +433,16 @@ export const GetUserProfileResponse = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
@@ -459,7 +459,7 @@ export const ToggleFollowParams = zod.object({
 
 export const ToggleFollowResponse = zod.object({
   "isFollowing": zod.boolean(),
-  "followerCount": zod.int()
+  "followerCount": zod.number()
 })
 
 
@@ -489,9 +489,9 @@ export const CreateBlastResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -501,7 +501,7 @@ export const CreateBlastResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -509,16 +509,16 @@ export const CreateBlastResponse = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
@@ -552,9 +552,9 @@ export const UpdateBlastResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -564,7 +564,7 @@ export const UpdateBlastResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -572,16 +572,16 @@ export const UpdateBlastResponse = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
@@ -610,11 +610,11 @@ export const ReactToBlastBody = zod.object({
 })
 
 export const ReactToBlastResponse = zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 })
 
@@ -646,14 +646,14 @@ export const CreateCommentResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
-  "likes": zod.int(),
-  "replyCount": zod.int()
+  "likes": zod.number(),
+  "replyCount": zod.number()
 })
 
 
@@ -687,9 +687,9 @@ export const CreateBlastBackResponse = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -699,7 +699,7 @@ export const CreateBlastBackResponse = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -707,16 +707,16 @@ export const CreateBlastBackResponse = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
@@ -751,9 +751,9 @@ export const GetNotificationsResponseItem = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 })
@@ -775,9 +775,9 @@ export const GetBookmarksResponseItem = zod.object({
   "avatarUrl": zod.string(),
   "bio": zod.string(),
   "location": zod.string(),
-  "followers": zod.int(),
-  "following": zod.int(),
-  "blastCount": zod.int(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }),
@@ -787,7 +787,7 @@ export const GetBookmarksResponseItem = zod.object({
   "slug": zod.string(),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string(),
-  "blastCount": zod.int(),
+  "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string()
 }),
@@ -795,16 +795,16 @@ export const GetBookmarksResponseItem = zod.object({
   "mediaUrl": zod.string(),
   "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
   "reactions": zod.object({
-  "blast": zod.int(),
-  "facts": zod.int(),
-  "cap": zod.int(),
-  "funny": zod.int(),
-  "watching": zod.int(),
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
-  "commentCount": zod.int(),
-  "shareCount": zod.int(),
-  "viewCount": zod.int(),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
   "isBlastBack": zod.boolean().optional(),
   "originalBlastId": zod.string().nullish()
@@ -848,16 +848,16 @@ export const ToggleBlockResponse = zod.object({
  * @summary Get admin command center metrics
  */
 export const GetAdminOverviewResponse = zod.object({
-  "usersOnline": zod.int(),
-  "blastsToday": zod.int(),
-  "trendingCount": zod.int(),
-  "newUsers": zod.int(),
+  "usersOnline": zod.number(),
+  "blastsToday": zod.number(),
+  "trendingCount": zod.number(),
+  "newUsers": zod.number(),
   "engagement": zod.number(),
   "chart": zod.array(zod.object({
   "label": zod.string(),
-  "users": zod.int(),
-  "blasts": zod.int(),
-  "engagement": zod.int()
+  "users": zod.number(),
+  "blasts": zod.number(),
+  "engagement": zod.number()
 }))
 })
 
