@@ -329,6 +329,93 @@
     radial-gradient(circle at 172px 88px, rgb(255 255 255 / 0.28) 0 0.8px, transparent 1.3px);
   background-size: 137px 137px, 173px 173px, 223px 223px, 251px 251px, 307px 307px, 359px 359px;
   opacity: 0.72;
+  isolation: isolate;
+  will-change: background-position, opacity;
+  animation:
+    starfield-drift 52s linear infinite,
+    starfield-twinkle 9s ease-in-out infinite;
+}
+
+.site-stars::before,
+.site-stars::after {
+  content: "";
+  position: absolute;
+  left: -14rem;
+  width: 12rem;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.08) 20%, rgb(255 255 255 / 0.95) 76%, rgb(229 244 3 / 0.9));
+  box-shadow: 0 0 10px rgb(229 244 3 / 0.72), 0 0 22px rgb(255 255 255 / 0.3);
+  opacity: 0;
+  transform-origin: right center;
+  will-change: transform, opacity;
+  animation: shooting-star 16s linear infinite;
+}
+
+.site-stars::before {
+  top: 20%;
+  animation-delay: 4s;
+}
+
+.site-stars::after {
+  top: 58%;
+  width: 9rem;
+  animation-delay: 11s;
+  animation-duration: 19s;
+}
+
+@keyframes starfield-drift {
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+  }
+  50% {
+    background-position: -30px 16px, 34px -24px, -48px 30px, 26px -38px, -62px -18px, 46px 52px;
+  }
+  100% {
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+  }
+}
+
+@keyframes starfield-twinkle {
+  0%, 100% {
+    opacity: 0.62;
+  }
+  45% {
+    opacity: 0.78;
+  }
+  60% {
+    opacity: 0.68;
+  }
+}
+
+@keyframes shooting-star {
+  0%, 73% {
+    opacity: 0;
+    transform: translate3d(-5vw, -8vh, 0) rotate(-25deg) scaleX(0.35);
+  }
+  75% {
+    opacity: 0.88;
+    transform: translate3d(5vw, 3vh, 0) rotate(-25deg) scaleX(0.7);
+  }
+  83% {
+    opacity: 0;
+    transform: translate3d(118vw, 72vh, 0) rotate(-25deg) scaleX(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(118vw, 72vh, 0) rotate(-25deg) scaleX(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-stars {
+    animation: none;
+  }
+
+  .site-stars::before,
+  .site-stars::after {
+    animation: none;
+  }
 }
 
   input[type='search']::-webkit-search-cancel-button { @apply hidden; }
