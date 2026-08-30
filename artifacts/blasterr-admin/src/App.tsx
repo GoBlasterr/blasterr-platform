@@ -1,11 +1,13 @@
-import { type ReactNode } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SignIn, SignUp, useAuth, useClerk, useUser } from '@clerk/react';
+import { useAuth, useClerk, useUser } from '@clerk/react';
+import { useSignIn } from '@clerk/react/legacy';
 import { getGetAdminOverviewQueryKey, useGetAdminOverview } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import NotFound from '@/pages/not-found';
 import OverviewPage from '@/pages/overview';
 import MediaPage from '@/pages/media';
@@ -114,25 +116,96 @@ function AdminRouter() {
 }
 
 function SignInPage() {
-  return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-8">
-      <SignIn
-        routing="path"
-        path={`${basePath}/sign-in`}
-        signUpUrl={`${basePath}/sign-up`}
-      />
-    </main>
-  );
-}
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-function SignUpPage() {
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!isLoaded || !username.trim() || !password || isSubmitting) return;
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const firstFactor = await signIn.create({ identifier: username.trim() });
+      if (firstFactor.status !== 'needs_first_factor') {
+        throw new Error('This account is not configured for password sign-in.');
+      }
+      const result = await signIn.attemptFirstFactor({
+        strategy: 'password',
+        password,
+      });
+      if (result.status !== 'complete' || !result.createdSessionId) {
+        throw new Error('Additional verification is required. Contact a BLASTERR administrator.');
+      }
+      await setActive({ session: result.createdSessionId });
+    } catch (cause: any) {
+      setError(cause?.errors?.[0]?.longMessage || cause?.message || 'Unable to sign in with those credentials.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-8">
-      <SignUp
-        routing="path"
-        path={`${basePath}/sign-up`}
-        signInUrl={`${basePath}/sign-in`}
-      />
+    <main className="flex min-h-[100dvh] items-center justify-center bg-black px-4 py-12 text-white">
+      <div className="flex w-full max-w-md flex-col items-center gap-10">
+        <img
+          src={`${import.meta.env.BASE_URL}blasterr-logo.png`}
+          alt="BLASTERR"
+          className="h-auto w-[min(20rem,62vw)] object-contain"
+          data-testid="img-sign-in-blasterr-logo"
+        />
+        <section className="w-full rounded-sm border border-white/20 bg-black p-8 text-white shadow-2xl">
+          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.22em] text-[#e5f403]">
+            Restricted control center
+          </p>
+          <h1 className="text-center font-mono text-3xl font-bold tracking-tight text-white">Staff sign in</h1>
+          <p className="mt-4 text-center text-sm leading-6 text-white">
+            Use your authorized BLASTERR staff credentials.
+          </p>
+          <form className="mt-8 space-y-5" onSubmit={submit}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white" htmlFor="staff-username">Username</label>
+              <Input
+                id="staff-username"
+                name="username"
+                autoComplete="username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Enter username"
+                className="border-white/30 bg-black text-white placeholder:text-white/60 focus-visible:ring-[#e5f403]"
+                required
+                data-testid="staff-username"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white" htmlFor="staff-password">Password</label>
+              <Input
+                id="staff-password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter password"
+                className="border-white/30 bg-black text-white placeholder:text-white/60 focus-visible:ring-[#e5f403]"
+                required
+                data-testid="staff-password"
+              />
+            </div>
+            {error && <p className="text-sm text-red-400" role="alert">{error}</p>}
+            <button
+              type="submit"
+              disabled={!isLoaded || isSubmitting || !username.trim() || !password}
+              className="inline-flex h-10 w-full items-center justify-center rounded-sm bg-[#e5f403] px-5 text-sm font-semibold text-black transition-colors hover:bg-[#e5f403]/90 disabled:cursor-not-allowed"
+              data-testid="staff-sign-in"
+            >
+              {isSubmitting ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+        </section>
+      </div>
     </main>
   );
 }
@@ -144,7 +217,7 @@ function AdminLanding() {
         <img
           src={`${import.meta.env.BASE_URL}blasterr-logo.png`}
           alt="BLASTERR"
-          className="h-auto w-[min(30rem,82vw)] object-contain"
+          className="h-auto w-[min(20rem,62vw)] object-contain"
           data-testid="img-landing-blasterr-logo"
         />
         <section className="w-full rounded-sm border border-white/20 bg-black p-8 text-white shadow-2xl">
@@ -174,7 +247,7 @@ function SignedOutRouter() {
     <Switch>
       <Route path="/" component={AdminLanding} />
       <Route path="/sign-in/*?" component={SignInPage} />
-      <Route path="/sign-up/*?" component={SignUpPage} />
+      <Route path="/sign-up/*?" component={() => <Redirect to="/" />} />
       <Route component={() => <Redirect to="/" />} />
     </Switch>
   );
