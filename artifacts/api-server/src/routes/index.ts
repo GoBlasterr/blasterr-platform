@@ -4,10 +4,12 @@ import socialRouter from "./social";
 import storageRouter from "./storage";
 import clipsRouter from "./clips";
 import advertisingRouter from "./advertising";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use("/admin", adminRouter);
 router.use(socialRouter);
 router.use(storageRouter);
 router.use(clipsRouter);

@@ -868,6 +868,345 @@ export interface AdvertisingOverview {
   billingIntegrationAvailable: boolean;
 }
 
+export type AdminUserRole = typeof AdminUserRole[keyof typeof AdminUserRole];
+
+
+export const AdminUserRole = {
+  user: 'user',
+  moderator: 'moderator',
+  admin: 'admin',
+} as const;
+
+export type AdminUserStatus = typeof AdminUserStatus[keyof typeof AdminUserStatus];
+
+
+export const AdminUserStatus = {
+  active: 'active',
+  suspended: 'suspended',
+} as const;
+
+export type AdminUser = User & {
+  role: AdminUserRole;
+  status: AdminUserStatus;
+};
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
+  total: number;
+}
+
+export type AdminUserUpdateRole = typeof AdminUserUpdateRole[keyof typeof AdminUserUpdateRole];
+
+
+export const AdminUserUpdateRole = {
+  user: 'user',
+  moderator: 'moderator',
+  admin: 'admin',
+} as const;
+
+export type AdminUserUpdateStatus = typeof AdminUserUpdateStatus[keyof typeof AdminUserUpdateStatus];
+
+
+export const AdminUserUpdateStatus = {
+  active: 'active',
+  suspended: 'suspended',
+} as const;
+
+export interface AdminUserUpdate {
+  role?: AdminUserUpdateRole;
+  status?: AdminUserUpdateStatus;
+}
+
+export type AdminContentItemStatus = typeof AdminContentItemStatus[keyof typeof AdminContentItemStatus];
+
+
+export const AdminContentItemStatus = {
+  published: 'published',
+  hidden: 'hidden',
+  removed: 'removed',
+} as const;
+
+export type AdminContentItem = Blast & {
+  status: AdminContentItemStatus;
+  reportCount: number;
+};
+
+export interface AdminContentResponse {
+  items: AdminContentItem[];
+  total: number;
+}
+
+export type AdminContentUpdateStatus = typeof AdminContentUpdateStatus[keyof typeof AdminContentUpdateStatus];
+
+
+export const AdminContentUpdateStatus = {
+  published: 'published',
+  hidden: 'hidden',
+  removed: 'removed',
+} as const;
+
+export interface AdminContentUpdate {
+  status: AdminContentUpdateStatus;
+}
+
+export type AdminReportTargetType = typeof AdminReportTargetType[keyof typeof AdminReportTargetType];
+
+
+export const AdminReportTargetType = {
+  blast: 'blast',
+  comment: 'comment',
+  user: 'user',
+} as const;
+
+export type AdminReportStatus = typeof AdminReportStatus[keyof typeof AdminReportStatus];
+
+
+export const AdminReportStatus = {
+  open: 'open',
+  in_review: 'in_review',
+  resolved: 'resolved',
+  dismissed: 'dismissed',
+} as const;
+
+export interface AdminReport {
+  id: string;
+  targetType: AdminReportTargetType;
+  targetId: string;
+  reason: string;
+  description: string;
+  status: AdminReportStatus;
+  createdAt: string;
+  reporter: User;
+  note: string;
+}
+
+export interface AdminReportsResponse {
+  reports: AdminReport[];
+  total: number;
+}
+
+export type AdminReportUpdateStatus = typeof AdminReportUpdateStatus[keyof typeof AdminReportUpdateStatus];
+
+
+export const AdminReportUpdateStatus = {
+  open: 'open',
+  in_review: 'in_review',
+  resolved: 'resolved',
+  dismissed: 'dismissed',
+} as const;
+
+export interface AdminReportUpdate {
+  status: AdminReportUpdateStatus;
+  /** @maxLength 500 */
+  note?: string;
+}
+
+export interface AdminModerationResponse {
+  items: AdminReport[];
+  openCount: number;
+}
+
+export type AdminModerationActionAction = typeof AdminModerationActionAction[keyof typeof AdminModerationActionAction];
+
+
+export const AdminModerationActionAction = {
+  approve: 'approve',
+  remove: 'remove',
+  suspend: 'suspend',
+  dismiss: 'dismiss',
+} as const;
+
+export interface AdminModerationAction {
+  reportId: string;
+  action: AdminModerationActionAction;
+  /** @maxLength 500 */
+  note?: string;
+}
+
+export interface AdminActionResult {
+  success: boolean;
+  message: string;
+}
+
+export interface AdminAnalyticsPoint {
+  label: string;
+  users: number;
+  blasts: number;
+  reports: number;
+}
+
+export interface AdminAnalytics {
+  activeUsers: number;
+  totalBlasts: number;
+  openReports: number;
+  moderationRate: number;
+  chart: AdminAnalyticsPoint[];
+}
+
+export type AdminSystemCheckStatus = typeof AdminSystemCheckStatus[keyof typeof AdminSystemCheckStatus];
+
+
+export const AdminSystemCheckStatus = {
+  operational: 'operational',
+  degraded: 'degraded',
+} as const;
+
+export interface AdminSystemCheck {
+  name: string;
+  status: AdminSystemCheckStatus;
+  detail: string;
+}
+
+export type AdminSystemStatus = typeof AdminSystemStatus[keyof typeof AdminSystemStatus];
+
+
+export const AdminSystemStatus = {
+  operational: 'operational',
+  degraded: 'degraded',
+} as const;
+
+export interface AdminSystem {
+  status: AdminSystemStatus;
+  version: string;
+  uptimeSeconds: number;
+  checks: AdminSystemCheck[];
+}
+
+export interface AdminAuditEvent {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  actorId: string;
+  details: string;
+  createdAt: string;
+}
+
+export interface AdminAuditResponse {
+  events: AdminAuditEvent[];
+  total: number;
+}
+
+export interface AdminSettings {
+  maintenanceMode: boolean;
+  contentReviewMode: boolean;
+  supportEmail: string;
+}
+
+export interface AdminSettingsUpdate {
+  maintenanceMode?: boolean;
+  contentReviewMode?: boolean;
+  /** @maxLength 160 */
+  supportEmail?: string;
+}
+
+export type AdminAnnouncementAudience = typeof AdminAnnouncementAudience[keyof typeof AdminAnnouncementAudience];
+
+
+export const AdminAnnouncementAudience = {
+  all: 'all',
+  admins: 'admins',
+  moderators: 'moderators',
+} as const;
+
+export type AdminAnnouncementStatus = typeof AdminAnnouncementStatus[keyof typeof AdminAnnouncementStatus];
+
+
+export const AdminAnnouncementStatus = {
+  draft: 'draft',
+  published: 'published',
+} as const;
+
+export interface AdminAnnouncement {
+  id: string;
+  title: string;
+  message: string;
+  audience: AdminAnnouncementAudience;
+  status: AdminAnnouncementStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AdminAnnouncementsResponse = AdminAnnouncement[];
+
+export type AdminAnnouncementInputAudience = typeof AdminAnnouncementInputAudience[keyof typeof AdminAnnouncementInputAudience];
+
+
+export const AdminAnnouncementInputAudience = {
+  all: 'all',
+  admins: 'admins',
+  moderators: 'moderators',
+} as const;
+
+export type AdminAnnouncementInputStatus = typeof AdminAnnouncementInputStatus[keyof typeof AdminAnnouncementInputStatus];
+
+
+export const AdminAnnouncementInputStatus = {
+  draft: 'draft',
+  published: 'published',
+} as const;
+
+export interface AdminAnnouncementInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  message: string;
+  audience: AdminAnnouncementInputAudience;
+  status: AdminAnnouncementInputStatus;
+}
+
+export type AdminAnnouncementUpdateAudience = typeof AdminAnnouncementUpdateAudience[keyof typeof AdminAnnouncementUpdateAudience];
+
+
+export const AdminAnnouncementUpdateAudience = {
+  all: 'all',
+  admins: 'admins',
+  moderators: 'moderators',
+} as const;
+
+export type AdminAnnouncementUpdateStatus = typeof AdminAnnouncementUpdateStatus[keyof typeof AdminAnnouncementUpdateStatus];
+
+
+export const AdminAnnouncementUpdateStatus = {
+  draft: 'draft',
+  published: 'published',
+} as const;
+
+export interface AdminAnnouncementUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title?: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  message?: string;
+  audience?: AdminAnnouncementUpdateAudience;
+  status?: AdminAnnouncementUpdateStatus;
+}
+
+export interface AdminFeatureFlag {
+  key: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  updatedAt: string;
+}
+
+export type AdminFeaturesResponse = AdminFeatureFlag[];
+
+export interface AdminFeatureUpdate {
+  enabled: boolean;
+}
+
 export type PageParameter = number;
 
 export type FeedTabParameter = typeof FeedTabParameter[keyof typeof FeedTabParameter];
@@ -969,6 +1308,50 @@ export const GetMyClipsStatus = {
   SHARED: 'SHARED',
 } as const;
 
+export type GetAdminUsersParams = {
+q?: string;
+status?: GetAdminUsersStatus;
+};
+
+export type GetAdminUsersStatus = typeof GetAdminUsersStatus[keyof typeof GetAdminUsersStatus];
+
+
+export const GetAdminUsersStatus = {
+  all: 'all',
+  active: 'active',
+  suspended: 'suspended',
+} as const;
+
+export type GetAdminContentParams = {
+q?: string;
+status?: GetAdminContentStatus;
+};
+
+export type GetAdminContentStatus = typeof GetAdminContentStatus[keyof typeof GetAdminContentStatus];
+
+
+export const GetAdminContentStatus = {
+  all: 'all',
+  published: 'published',
+  hidden: 'hidden',
+  removed: 'removed',
+} as const;
+
+export type GetAdminReportsParams = {
+status?: GetAdminReportsStatus;
+};
+
+export type GetAdminReportsStatus = typeof GetAdminReportsStatus[keyof typeof GetAdminReportsStatus];
+
+
+export const GetAdminReportsStatus = {
+  all: 'all',
+  open: 'open',
+  in_review: 'in_review',
+  resolved: 'resolved',
+  dismissed: 'dismissed',
+} as const;
+
 export type ListAdminAdvertisersParams = {
 /**
  * @minimum 1
@@ -1051,4 +1434,3 @@ export type GetAdPlacement200 = {
 export type RecordAdEvent201 = {
   recorded: boolean;
 };
-

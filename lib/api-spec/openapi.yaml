@@ -467,6 +467,7 @@ paths:
       operationId: createReport
       tags: [blasts]
       summary: Report content or a user
+      security: [{ clerkSession: [] }]
       requestBody:
         required: true
         content:
@@ -480,6 +481,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Report"
+        "401":
+          description: Authentication required
   /blocks:
     post:
       operationId: toggleBlock
@@ -524,6 +527,377 @@ paths:
                 $ref: "#/components/schemas/AdminClipsOverview"
         "403":
           description: Admin access required
+  /admin/users:
+    get:
+      operationId: getAdminUsers
+      tags: [admin]
+      summary: List users for moderation
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string, enum: [all, active, suspended] }
+      responses:
+        "200":
+          description: Admin users
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminUsersResponse" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/users/{id}:
+    patch:
+      operationId: updateAdminUser
+      tags: [admin]
+      summary: Update a user's moderation status or role
+      security: [{ clerkSession: [] }]
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminUserUpdate" }
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminUser" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: User not found }
+    delete:
+      operationId: deleteAdminUser
+      tags: [admin]
+      summary: Delete a user
+      security: [{ clerkSession: [] }]
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "204": { description: User deleted }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: User not found }
+  /admin/content:
+    get:
+      operationId: getAdminContent
+      tags: [admin]
+      summary: List Blasts for moderation
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string, enum: [all, published, hidden, removed] }
+      responses:
+        "200":
+          description: Moderation content
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminContentResponse" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/content/{id}:
+    patch:
+      operationId: updateAdminContent
+      tags: [admin]
+      summary: Update a Blast moderation status
+      security: [{ clerkSession: [] }]
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminContentUpdate" }
+      responses:
+        "200":
+          description: Updated Blast
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminContentItem" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Blast not found }
+    delete:
+      operationId: deleteAdminContent
+      tags: [admin]
+      summary: Remove a Blast
+      security: [{ clerkSession: [] }]
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      responses:
+        "204": { description: Blast removed }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Blast not found }
+  /admin/reports:
+    get:
+      operationId: getAdminReports
+      tags: [admin]
+      summary: List community reports
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [all, open, in_review, resolved, dismissed] }
+      responses:
+        "200":
+          description: Reports
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminReportsResponse" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/reports/{id}:
+    patch:
+      operationId: updateAdminReport
+      tags: [admin]
+      summary: Resolve or triage a community report
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminReportUpdate" }
+      responses:
+        "200":
+          description: Updated report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminReport" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Report not found }
+  /admin/moderation:
+    get:
+      operationId: getAdminModeration
+      tags: [admin]
+      summary: Get the moderation queue
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Moderation queue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminModerationResponse" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+    post:
+      operationId: createAdminModerationAction
+      tags: [admin]
+      summary: Take a moderation action
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminModerationAction" }
+      responses:
+        "200":
+          description: Moderation action recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminActionResult" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Report not found }
+  /admin/analytics:
+    get:
+      operationId: getAdminAnalytics
+      tags: [admin]
+      summary: Get platform analytics
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Analytics
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminAnalytics" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/system:
+    get:
+      operationId: getAdminSystem
+      tags: [admin]
+      summary: Get protected system health details
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: System health
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminSystem" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/audit-log:
+    get:
+      operationId: getAdminAuditLog
+      tags: [admin]
+      summary: List moderation audit events
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Audit log
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminAuditResponse" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/settings:
+    get:
+      operationId: getAdminSettings
+      tags: [admin]
+      summary: Get moderation settings
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminSettings" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+    patch:
+      operationId: updateAdminSettings
+      tags: [admin]
+      summary: Update moderation settings
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminSettingsUpdate" }
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminSettings" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/announcements:
+    get:
+      operationId: getAdminAnnouncements
+      tags: [admin]
+      summary: List platform announcements
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Announcements
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminAnnouncementsResponse" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+    post:
+      operationId: createAdminAnnouncement
+      tags: [admin]
+      summary: Create an announcement
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminAnnouncementInput" }
+      responses:
+        "201":
+          description: Created announcement
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminAnnouncement" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/announcements/{id}:
+    patch:
+      operationId: updateAdminAnnouncement
+      tags: [admin]
+      summary: Update an announcement
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminAnnouncementUpdate" }
+      responses:
+        "200":
+          description: Updated announcement
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminAnnouncement" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Announcement not found }
+    delete:
+      operationId: deleteAdminAnnouncement
+      tags: [admin]
+      summary: Delete an announcement
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Announcement deleted }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Announcement not found }
+  /admin/features:
+    get:
+      operationId: getAdminFeatures
+      tags: [admin]
+      summary: List feature controls
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Feature controls
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminFeaturesResponse" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/features/{key}:
+    patch:
+      operationId: updateAdminFeature
+      tags: [admin]
+      summary: Toggle a feature control
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminFeatureUpdate" }
+      responses:
+        "200":
+          description: Updated feature
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminFeatureFlag" }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Feature not found }
   /admin/advertising/overview:
     get:
       operationId: getAdminAdvertisingOverview
@@ -614,6 +988,11 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AdEventInput" } } } }
       responses: { "201": { description: Event recorded, content: { application/json: { schema: { type: object, required: [recorded], properties: { recorded: { type: boolean } } } } } } }
 components:
+  securitySchemes:
+    clerkSession:
+      type: apiKey
+      in: cookie
+      name: __session
   parameters:
     Page:
       name: page
@@ -692,6 +1071,12 @@ components:
       in: path
       required: true
       schema: { type: string }
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -1231,3 +1616,193 @@ components:
         series: { type: array, items: { type: object, required: [date, impressions, clicks], properties: { date: { type: string }, impressions: { type: number }, clicks: { type: number } } } }
         activity: { type: array, items: { $ref: "#/components/schemas/AdvertisingAudit" } }
         billingIntegrationAvailable: { type: boolean }
+    AdminUser:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          required: [role, status]
+          properties:
+            role: { type: string, enum: [user, moderator, admin] }
+            status: { type: string, enum: [active, suspended] }
+    AdminUsersResponse:
+      type: object
+      required: [users, total]
+      properties:
+        users: { type: array, items: { $ref: "#/components/schemas/AdminUser" } }
+        total: { type: number }
+    AdminUserUpdate:
+      type: object
+      properties:
+        role: { type: string, enum: [user, moderator, admin] }
+        status: { type: string, enum: [active, suspended] }
+    AdminContentItem:
+      allOf:
+        - $ref: "#/components/schemas/Blast"
+        - type: object
+          required: [status, reportCount]
+          properties:
+            status: { type: string, enum: [published, hidden, removed] }
+            reportCount: { type: number }
+    AdminContentResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AdminContentItem" } }
+        total: { type: number }
+    AdminContentUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [published, hidden, removed] }
+    AdminReport:
+      type: object
+      required: [id, targetType, targetId, reason, description, status, createdAt, reporter, note]
+      properties:
+        id: { type: string }
+        targetType: { type: string, enum: [blast, comment, user] }
+        targetId: { type: string }
+        reason: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [open, in_review, resolved, dismissed] }
+        createdAt: { type: string }
+        reporter: { $ref: "#/components/schemas/User" }
+        note: { type: string }
+    AdminReportsResponse:
+      type: object
+      required: [reports, total]
+      properties:
+        reports: { type: array, items: { $ref: "#/components/schemas/AdminReport" } }
+        total: { type: number }
+    AdminReportUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [open, in_review, resolved, dismissed] }
+        note: { type: string, maxLength: 500 }
+    AdminModerationResponse:
+      type: object
+      required: [items, openCount]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AdminReport" } }
+        openCount: { type: number }
+    AdminModerationAction:
+      type: object
+      required: [reportId, action]
+      properties:
+        reportId: { type: string }
+        action: { type: string, enum: [approve, remove, suspend, dismiss] }
+        note: { type: string, maxLength: 500 }
+    AdminActionResult:
+      type: object
+      required: [success, message]
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+    AdminAnalyticsPoint:
+      type: object
+      required: [label, users, blasts, reports]
+      properties:
+        label: { type: string }
+        users: { type: number }
+        blasts: { type: number }
+        reports: { type: number }
+    AdminAnalytics:
+      type: object
+      required: [activeUsers, totalBlasts, openReports, moderationRate, chart]
+      properties:
+        activeUsers: { type: number }
+        totalBlasts: { type: number }
+        openReports: { type: number }
+        moderationRate: { type: number }
+        chart: { type: array, items: { $ref: "#/components/schemas/AdminAnalyticsPoint" } }
+    AdminSystemCheck:
+      type: object
+      required: [name, status, detail]
+      properties:
+        name: { type: string }
+        status: { type: string, enum: [operational, degraded] }
+        detail: { type: string }
+    AdminSystem:
+      type: object
+      required: [status, version, uptimeSeconds, checks]
+      properties:
+        status: { type: string, enum: [operational, degraded] }
+        version: { type: string }
+        uptimeSeconds: { type: number }
+        checks: { type: array, items: { $ref: "#/components/schemas/AdminSystemCheck" } }
+    AdminAuditEvent:
+      type: object
+      required: [id, action, entityType, entityId, actorId, details, createdAt]
+      properties:
+        id: { type: string }
+        action: { type: string }
+        entityType: { type: string }
+        entityId: { type: string }
+        actorId: { type: string }
+        details: { type: string }
+        createdAt: { type: string }
+    AdminAuditResponse:
+      type: object
+      required: [events, total]
+      properties:
+        events: { type: array, items: { $ref: "#/components/schemas/AdminAuditEvent" } }
+        total: { type: number }
+    AdminSettings:
+      type: object
+      required: [maintenanceMode, contentReviewMode, supportEmail]
+      properties:
+        maintenanceMode: { type: boolean }
+        contentReviewMode: { type: boolean }
+        supportEmail: { type: string }
+    AdminSettingsUpdate:
+      type: object
+      properties:
+        maintenanceMode: { type: boolean }
+        contentReviewMode: { type: boolean }
+        supportEmail: { type: string, maxLength: 160 }
+    AdminAnnouncement:
+      type: object
+      required: [id, title, message, audience, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        message: { type: string }
+        audience: { type: string, enum: [all, admins, moderators] }
+        status: { type: string, enum: [draft, published] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    AdminAnnouncementsResponse:
+      type: array
+      items: { $ref: "#/components/schemas/AdminAnnouncement" }
+    AdminAnnouncementInput:
+      type: object
+      required: [title, message, audience, status]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        message: { type: string, minLength: 1, maxLength: 1000 }
+        audience: { type: string, enum: [all, admins, moderators] }
+        status: { type: string, enum: [draft, published] }
+    AdminAnnouncementUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        message: { type: string, minLength: 1, maxLength: 1000 }
+        audience: { type: string, enum: [all, admins, moderators] }
+        status: { type: string, enum: [draft, published] }
+    AdminFeatureFlag:
+      type: object
+      required: [key, label, description, enabled, updatedAt]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        description: { type: string }
+        enabled: { type: boolean }
+        updatedAt: { type: string }
+    AdminFeaturesResponse:
+      type: array
+      items: { $ref: "#/components/schemas/AdminFeatureFlag" }
+    AdminFeatureUpdate:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: { type: boolean }

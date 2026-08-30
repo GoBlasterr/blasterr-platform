@@ -22,8 +22,10 @@ import {
   UpdateClipResponse,
 } from "@workspace/api-zod";
 import { renderClip } from "../lib/clip-renderer";
+import { isActiveAdmin, isSuspended } from "../lib/admin-auth";
 import { getPrivateObjectPath, getSignedObjectUrl } from "./storage";
 import { blasts, type Blast } from "./social";
+import { adminFeatureFlags } from "../lib/admin-state";
 
 const router: IRouter = Router();
 type Status = "DRAFT" | "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED" | "SHARED";
@@ -44,12 +46,12 @@ const iso = () => new Date().toISOString();
 async function viewer(req: Request): Promise<{ id: string | null; admin: boolean }> {
   const { userId } = getAuth(req);
   if (!userId) return process.env.NODE_ENV === "development"
-    ? { id: "user-kinamin", admin: req.get("x-blasterr-admin-action") === "true" }
+    ? { id: "user-kinamin", admin: false }
     : { id: null, admin: false };
   try {
     const user = await clerkClient.users.getUser(userId);
     const meta = user.publicMetadata as Record<string, unknown>;
-    return { id: userId, admin: meta.role === "admin" || meta.isAdmin === true };
+    return { id: isSuspended(meta) ? null : userId, admin: isActiveAdmin(meta) };
   } catch {
     return { id: userId, admin: false };
   }
@@ -132,6 +134,10 @@ router.get("/admin/clips", async (req, res): Promise<void> => {
 });
 
 router.post("/clips", async (req, res): Promise<void> => {
+  if (!adminFeatureFlags.find((feature) => feature.key === "clip_creation")?.enabled) {
+    res.status(403).json({ error: "Clip creation is currently disabled." });
+    return;
+  }
   const user = await viewer(req);
   if (!user.id) return void res.status(401).json({ error: "Sign in is required." });
   const body = CreateClipBody.safeParse(req.body);

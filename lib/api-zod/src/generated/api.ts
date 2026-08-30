@@ -59,7 +59,6 @@ export const updateCurrentUserBodyAvatarUrlMax = 500;
 export const updateCurrentUserBodyCoverUrlMax = 500;
 
 
-
 export const UpdateCurrentUserBody = zod.object({
   "displayName": zod.string().min(1).max(updateCurrentUserBodyDisplayNameMax).optional(),
   "username": zod.string().regex(updateCurrentUserBodyUsernameRegExp).optional(),
@@ -106,7 +105,6 @@ export const getFeedQueryLongitudeMax = 180;
 
 export const getFeedQueryRadiusDefault = 20;
 export const getFeedQueryRadiusMax = 100;
-
 
 
 export const GetFeedQueryParams = zod.object({
@@ -360,7 +358,6 @@ export const createTargetBodyDescriptionMax = 500;
 export const createTargetBodyImageUrlMax = 500;
 
 
-
 export const CreateTargetBody = zod.object({
   "name": zod.string().min(1).max(createTargetBodyNameMax),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
@@ -598,7 +595,6 @@ export const ToggleFollowResponse = zod.object({
 export const createBlastBodyContentMax = 1000;
 
 
-
 export const CreateBlastBody = zod.object({
   "content": zod.string().min(1).max(createBlastBodyContentMax),
   "targetId": zod.string(),
@@ -665,7 +661,6 @@ export const UpdateBlastParams = zod.object({
 })
 
 export const updateBlastBodyContentMax = 1000;
-
 
 
 export const UpdateBlastBody = zod.object({
@@ -843,7 +838,6 @@ export const createClipBodyDescriptionMax = 500;
 export const createClipBodyBackgroundMax = 80;
 
 export const createClipBodyCtaTextMax = 120;
-
 
 
 export const CreateClipBody = zod.object({
@@ -1059,7 +1053,6 @@ export const updateClipBodyTitleMax = 120;
 export const updateClipBodyDescriptionMax = 500;
 
 export const updateClipBodyCtaTextMax = 120;
-
 
 
 export const UpdateClipBody = zod.object({
@@ -1314,7 +1307,6 @@ export const CreateCommentParams = zod.object({
 export const createCommentBodyContentMax = 500;
 
 
-
 export const CreateCommentBody = zod.object({
   "content": zod.string().min(1).max(createCommentBodyContentMax),
   "parentCommentId": zod.string().optional()
@@ -1353,7 +1345,6 @@ export const CreateBlastBackParams = zod.object({
 })
 
 export const createBlastBackBodyContentMax = 1000;
-
 
 
 export const CreateBlastBackBody = zod.object({
@@ -1515,7 +1506,6 @@ export const GetBookmarksResponse = zod.array(GetBookmarksResponseItem)
 export const createReportBodyDescriptionMax = 1000;
 
 
-
 export const CreateReportBody = zod.object({
   "targetType": zod.enum(['blast', 'comment', 'user']),
   "targetId": zod.string(),
@@ -1658,6 +1648,544 @@ export const GetAdminClipsResponse = zod.object({
 })
 
 
+/**
+ * @summary List users for moderation
+ */
+export const GetAdminUsersQueryParams = zod.object({
+  "q": zod.coerce.string().optional(),
+  "status": zod.enum(['all', 'active', 'suspended']).optional()
+})
+
+export const GetAdminUsersResponse = zod.object({
+  "users": zod.array(zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}).and(zod.object({
+  "role": zod.enum(['user', 'moderator', 'admin']),
+  "status": zod.enum(['active', 'suspended'])
+}))),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Update a user's moderation status or role
+ */
+export const UpdateAdminUserParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateAdminUserBody = zod.object({
+  "role": zod.enum(['user', 'moderator', 'admin']).optional(),
+  "status": zod.enum(['active', 'suspended']).optional()
+})
+
+export const UpdateAdminUserResponse = zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}).and(zod.object({
+  "role": zod.enum(['user', 'moderator', 'admin']),
+  "status": zod.enum(['active', 'suspended'])
+}))
+
+
+/**
+ * @summary Delete a user
+ */
+export const DeleteAdminUserParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteAdminUserResponse = zod.void()
+
+
+/**
+ * @summary List Blasts for moderation
+ */
+export const GetAdminContentQueryParams = zod.object({
+  "q": zod.coerce.string().optional(),
+  "status": zod.enum(['all', 'published', 'hidden', 'removed']).optional()
+})
+
+export const GetAdminContentResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string(),
+  "author": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "target": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string()
+}),
+  "location": zod.string(),
+  "mediaUrl": zod.string(),
+  "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
+  "reactions": zod.object({
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
+  "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
+}),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
+  "isBookmarked": zod.boolean(),
+  "isBlastBack": zod.boolean().optional(),
+  "originalBlastId": zod.string().nullish()
+}).and(zod.object({
+  "status": zod.enum(['published', 'hidden', 'removed']),
+  "reportCount": zod.number()
+}))),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Update a Blast moderation status
+ */
+export const UpdateAdminContentParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateAdminContentBody = zod.object({
+  "status": zod.enum(['published', 'hidden', 'removed'])
+})
+
+export const UpdateAdminContentResponse = zod.object({
+  "id": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string(),
+  "author": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "target": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string()
+}),
+  "location": zod.string(),
+  "mediaUrl": zod.string(),
+  "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
+  "reactions": zod.object({
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
+  "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
+}),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
+  "isBookmarked": zod.boolean(),
+  "isBlastBack": zod.boolean().optional(),
+  "originalBlastId": zod.string().nullish()
+}).and(zod.object({
+  "status": zod.enum(['published', 'hidden', 'removed']),
+  "reportCount": zod.number()
+}))
+
+
+/**
+ * @summary Remove a Blast
+ */
+export const DeleteAdminContentParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteAdminContentResponse = zod.void()
+
+
+/**
+ * @summary List community reports
+ */
+export const GetAdminReportsQueryParams = zod.object({
+  "status": zod.enum(['all', 'open', 'in_review', 'resolved', 'dismissed']).optional()
+})
+
+export const GetAdminReportsResponse = zod.object({
+  "reports": zod.array(zod.object({
+  "id": zod.string(),
+  "targetType": zod.enum(['blast', 'comment', 'user']),
+  "targetId": zod.string(),
+  "reason": zod.string(),
+  "description": zod.string(),
+  "status": zod.enum(['open', 'in_review', 'resolved', 'dismissed']),
+  "createdAt": zod.string(),
+  "reporter": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "note": zod.string()
+})),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Resolve or triage a community report
+ */
+export const UpdateAdminReportParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminReportBodyNoteMax = 500;
+
+
+export const UpdateAdminReportBody = zod.object({
+  "status": zod.enum(['open', 'in_review', 'resolved', 'dismissed']),
+  "note": zod.string().max(updateAdminReportBodyNoteMax).optional()
+})
+
+export const UpdateAdminReportResponse = zod.object({
+  "id": zod.string(),
+  "targetType": zod.enum(['blast', 'comment', 'user']),
+  "targetId": zod.string(),
+  "reason": zod.string(),
+  "description": zod.string(),
+  "status": zod.enum(['open', 'in_review', 'resolved', 'dismissed']),
+  "createdAt": zod.string(),
+  "reporter": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "note": zod.string()
+})
+
+
+/**
+ * @summary Get the moderation queue
+ */
+export const GetAdminModerationResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "targetType": zod.enum(['blast', 'comment', 'user']),
+  "targetId": zod.string(),
+  "reason": zod.string(),
+  "description": zod.string(),
+  "status": zod.enum(['open', 'in_review', 'resolved', 'dismissed']),
+  "createdAt": zod.string(),
+  "reporter": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "note": zod.string()
+})),
+  "openCount": zod.number()
+})
+
+
+/**
+ * @summary Take a moderation action
+ */
+export const createAdminModerationActionBodyNoteMax = 500;
+
+
+export const CreateAdminModerationActionBody = zod.object({
+  "reportId": zod.string(),
+  "action": zod.enum(['approve', 'remove', 'suspend', 'dismiss']),
+  "note": zod.string().max(createAdminModerationActionBodyNoteMax).optional()
+})
+
+export const CreateAdminModerationActionResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get platform analytics
+ */
+export const GetAdminAnalyticsResponse = zod.object({
+  "activeUsers": zod.number(),
+  "totalBlasts": zod.number(),
+  "openReports": zod.number(),
+  "moderationRate": zod.number(),
+  "chart": zod.array(zod.object({
+  "label": zod.string(),
+  "users": zod.number(),
+  "blasts": zod.number(),
+  "reports": zod.number()
+}))
+})
+
+
+/**
+ * @summary Get protected system health details
+ */
+export const GetAdminSystemResponse = zod.object({
+  "status": zod.enum(['operational', 'degraded']),
+  "version": zod.string(),
+  "uptimeSeconds": zod.number(),
+  "checks": zod.array(zod.object({
+  "name": zod.string(),
+  "status": zod.enum(['operational', 'degraded']),
+  "detail": zod.string()
+}))
+})
+
+
+/**
+ * @summary List moderation audit events
+ */
+export const GetAdminAuditLogResponse = zod.object({
+  "events": zod.array(zod.object({
+  "id": zod.string(),
+  "action": zod.string(),
+  "entityType": zod.string(),
+  "entityId": zod.string(),
+  "actorId": zod.string(),
+  "details": zod.string(),
+  "createdAt": zod.string()
+})),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Get moderation settings
+ */
+export const GetAdminSettingsResponse = zod.object({
+  "maintenanceMode": zod.boolean(),
+  "contentReviewMode": zod.boolean(),
+  "supportEmail": zod.string()
+})
+
+
+/**
+ * @summary Update moderation settings
+ */
+export const updateAdminSettingsBodySupportEmailMax = 160;
+
+
+export const UpdateAdminSettingsBody = zod.object({
+  "maintenanceMode": zod.boolean().optional(),
+  "contentReviewMode": zod.boolean().optional(),
+  "supportEmail": zod.string().max(updateAdminSettingsBodySupportEmailMax).optional()
+})
+
+export const UpdateAdminSettingsResponse = zod.object({
+  "maintenanceMode": zod.boolean(),
+  "contentReviewMode": zod.boolean(),
+  "supportEmail": zod.string()
+})
+
+
+/**
+ * @summary List platform announcements
+ */
+export const GetAdminAnnouncementsResponseItem = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "audience": zod.enum(['all', 'admins', 'moderators']),
+  "status": zod.enum(['draft', 'published']),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetAdminAnnouncementsResponse = zod.array(GetAdminAnnouncementsResponseItem)
+
+
+/**
+ * @summary Create an announcement
+ */
+export const createAdminAnnouncementBodyTitleMax = 120;
+
+export const createAdminAnnouncementBodyMessageMax = 1000;
+
+
+export const CreateAdminAnnouncementBody = zod.object({
+  "title": zod.string().min(1).max(createAdminAnnouncementBodyTitleMax),
+  "message": zod.string().min(1).max(createAdminAnnouncementBodyMessageMax),
+  "audience": zod.enum(['all', 'admins', 'moderators']),
+  "status": zod.enum(['draft', 'published'])
+})
+
+export const CreateAdminAnnouncementResponse = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "audience": zod.enum(['all', 'admins', 'moderators']),
+  "status": zod.enum(['draft', 'published']),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update an announcement
+ */
+export const UpdateAdminAnnouncementParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminAnnouncementBodyTitleMax = 120;
+
+export const updateAdminAnnouncementBodyMessageMax = 1000;
+
+
+export const UpdateAdminAnnouncementBody = zod.object({
+  "title": zod.string().min(1).max(updateAdminAnnouncementBodyTitleMax).optional(),
+  "message": zod.string().min(1).max(updateAdminAnnouncementBodyMessageMax).optional(),
+  "audience": zod.enum(['all', 'admins', 'moderators']).optional(),
+  "status": zod.enum(['draft', 'published']).optional()
+})
+
+export const UpdateAdminAnnouncementResponse = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "audience": zod.enum(['all', 'admins', 'moderators']),
+  "status": zod.enum(['draft', 'published']),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete an announcement
+ */
+export const DeleteAdminAnnouncementParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteAdminAnnouncementResponse = zod.void()
+
+
+/**
+ * @summary List feature controls
+ */
+export const GetAdminFeaturesResponseItem = zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "description": zod.string(),
+  "enabled": zod.boolean(),
+  "updatedAt": zod.string()
+})
+export const GetAdminFeaturesResponse = zod.array(GetAdminFeaturesResponseItem)
+
+
+/**
+ * @summary Toggle a feature control
+ */
+export const UpdateAdminFeatureParams = zod.object({
+  "key": zod.coerce.string()
+})
+
+export const UpdateAdminFeatureBody = zod.object({
+  "enabled": zod.boolean()
+})
+
+export const UpdateAdminFeatureResponse = zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "description": zod.string(),
+  "enabled": zod.boolean(),
+  "updatedAt": zod.string()
+})
+
+
 export const GetAdminAdvertisingOverviewResponse = zod.object({
   "advertiserCount": zod.number(),
   "campaignCount": zod.number(),
@@ -1685,7 +2213,6 @@ export const listAdminAdvertisersQueryPageDefault = 1;
 
 export const listAdminAdvertisersQueryLimitDefault = 25;
 export const listAdminAdvertisersQueryLimitMax = 100;
-
 
 
 export const ListAdminAdvertisersQueryParams = zod.object({
@@ -1719,7 +2246,6 @@ export const createAdminAdvertiserBodyOwnerClerkIdMax = 200;
 export const createAdminAdvertiserBodyContactEmailMax = 320;
 
 
-
 export const CreateAdminAdvertiserBody = zod.object({
   "name": zod.string().min(1).max(createAdminAdvertiserBodyNameMax),
   "ownerClerkId": zod.string().max(createAdminAdvertiserBodyOwnerClerkIdMax).optional(),
@@ -1744,7 +2270,6 @@ export const UpdateAdminAdvertiserStatusParams = zod.object({
 export const updateAdminAdvertiserStatusBodyReasonMax = 1000;
 
 
-
 export const UpdateAdminAdvertiserStatusBody = zod.object({
   "status": zod.string(),
   "reason": zod.string().min(1).max(updateAdminAdvertiserStatusBodyReasonMax).optional()
@@ -1765,7 +2290,6 @@ export const listAdminCampaignsQueryPageDefault = 1;
 
 export const listAdminCampaignsQueryLimitDefault = 25;
 export const listAdminCampaignsQueryLimitMax = 100;
-
 
 
 export const ListAdminCampaignsQueryParams = zod.object({
@@ -1805,7 +2329,6 @@ export const createAdminCampaignBodyDailyBudgetMin = 0;
 export const createAdminCampaignBodyTotalBudgetMin = 0;
 
 
-
 export const CreateAdminCampaignBody = zod.object({
   "advertiserId": zod.string(),
   "name": zod.string().min(1).max(createAdminCampaignBodyNameMax),
@@ -1841,7 +2364,6 @@ export const UpdateAdminCampaignStatusParams = zod.object({
 export const updateAdminCampaignStatusBodyReasonMax = 1000;
 
 
-
 export const UpdateAdminCampaignStatusBody = zod.object({
   "status": zod.string(),
   "reason": zod.string().min(1).max(updateAdminCampaignStatusBodyReasonMax).optional()
@@ -1867,7 +2389,6 @@ export const listAdminAdvertisementsQueryPageDefault = 1;
 
 export const listAdminAdvertisementsQueryLimitDefault = 25;
 export const listAdminAdvertisementsQueryLimitMax = 100;
-
 
 
 export const ListAdminAdvertisementsQueryParams = zod.object({
@@ -1911,7 +2432,6 @@ export const createAdminAdvertisementBodyMediaUrlMax = 2000;
 export const createAdminAdvertisementBodyDestinationUrlMax = 2000;
 
 
-
 export const CreateAdminAdvertisementBody = zod.object({
   "campaignId": zod.string(),
   "adGroupId": zod.string().optional(),
@@ -1946,7 +2466,6 @@ export const ReviewAdminAdvertisementParams = zod.object({
 })
 
 export const reviewAdminAdvertisementBodyReasonMax = 1000;
-
 
 
 export const ReviewAdminAdvertisementBody = zod.object({
@@ -1985,7 +2504,6 @@ export const GetAdminAdvertisingSettingsResponse = zod.object({
 export const updateAdminAdvertisingSettingsBodyReasonMax = 1000;
 
 
-
 export const UpdateAdminAdvertisingSettingsBody = zod.object({
   "enabled": zod.boolean().optional(),
   "emergencyShutdown": zod.boolean().optional(),
@@ -2012,7 +2530,6 @@ export const listAdminAdvertisingAuditQueryLimitDefault = 25;
 export const listAdminAdvertisingAuditQueryLimitMax = 100;
 
 
-
 export const ListAdminAdvertisingAuditQueryParams = zod.object({
   "page": zod.coerce.number().min(1).default(listAdminAdvertisingAuditQueryPageDefault),
   "limit": zod.coerce.number().min(1).max(listAdminAdvertisingAuditQueryLimitMax).default(listAdminAdvertisingAuditQueryLimitDefault)
@@ -2037,7 +2554,6 @@ export const ListAdminAdvertisingAuditResponse = zod.object({
 
 export const getAdPlacementQuerySessionIdMin = 12;
 export const getAdPlacementQuerySessionIdMax = 200;
-
 
 
 export const GetAdPlacementQueryParams = zod.object({
@@ -2068,7 +2584,6 @@ export const recordAdEventBodyDeliveryTokenMin = 20;
 export const recordAdEventBodyDeliveryTokenMax = 2000;
 
 
-
 export const RecordAdEventBody = zod.object({
   "advertisementId": zod.string(),
   "eventType": zod.enum(['impression', 'click', 'video_view']),
@@ -2080,5 +2595,3 @@ export const RecordAdEventBody = zod.object({
 export const RecordAdEventResponse = zod.object({
   "recorded": zod.boolean()
 })
-
-

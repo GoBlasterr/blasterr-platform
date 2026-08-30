@@ -27,6 +27,16 @@ import PausedAdsPage from '@/pages/advertising/paused';
 import RejectedAdsPage from '@/pages/advertising/rejected';
 import AdvertisingSettingsPage from '@/pages/advertising/settings';
 import AdvertisingAuditPage from '@/pages/advertising/audit';
+import UsersPage from '@/pages/users';
+import ContentPage from '@/pages/content';
+import ReportsPage from '@/pages/reports';
+import ModerationPage from '@/pages/moderation';
+import AnalyticsPage from '@/pages/analytics';
+import SettingsPage from '@/pages/settings';
+import SystemPage from '@/pages/system';
+import AuditLogPage from '@/pages/audit-log';
+import AnnouncementsPage from '@/pages/announcements';
+import FeatureControlsPage from '@/pages/feature-controls';
 
 const queryClient = new QueryClient();
 
@@ -74,19 +84,19 @@ function Router() {
           <Route path="/advertising/reports" component={() => <IntegrationRequired moduleName="Advertising Reports" />} />
           <Route path="/advertising/fraud" component={() => <IntegrationRequired moduleName="Click Fraud Detection" />} />
 
-          {/* Core App Routes (Integration Required) */}
-          <Route path="/users" component={() => <IntegrationRequired moduleName="Users" />} />
-          <Route path="/content" component={() => <IntegrationRequired moduleName="Content" />} />
-          <Route path="/reports" component={() => <IntegrationRequired moduleName="Reports" />} />
-          <Route path="/moderation" component={() => <IntegrationRequired moduleName="Moderation" />} />
-          <Route path="/analytics" component={() => <IntegrationRequired moduleName="Analytics" />} />
-          <Route path="/settings" component={() => <IntegrationRequired moduleName="Settings" />} />
-          <Route path="/system" component={() => <IntegrationRequired moduleName="System" />} />
-          <Route path="/audit-log" component={() => <IntegrationRequired moduleName="Audit Log" />} />
+          {/* Core App Routes */}
+          <Route path="/users" component={UsersPage} />
+          <Route path="/content" component={ContentPage} />
+          <Route path="/reports" component={ReportsPage} />
+          <Route path="/moderation" component={ModerationPage} />
+          <Route path="/analytics" component={AnalyticsPage} />
+          <Route path="/settings" component={SettingsPage} />
+          <Route path="/system" component={SystemPage} />
+          <Route path="/audit-log" component={AuditLogPage} />
           <Route path="/admins" component={() => <IntegrationRequired moduleName="Admins" />} />
           <Route path="/revenue" component={() => <IntegrationRequired moduleName="Revenue" />} />
-          <Route path="/announcements" component={() => <IntegrationRequired moduleName="Announcements" />} />
-          <Route path="/feature-controls" component={() => <IntegrationRequired moduleName="Feature Controls" />} />
+          <Route path="/announcements" component={AnnouncementsPage} />
+          <Route path="/feature-controls" component={FeatureControlsPage} />
           <Route path="/blocked-words" component={() => <IntegrationRequired moduleName="Blocked Words" />} />
           <Route path="/appeals" component={() => <IntegrationRequired moduleName="Appeals" />} />
           <Route path="/trending" component={() => <IntegrationRequired moduleName="Trending" />} />

@@ -47,6 +47,14 @@ import {
   UpdateBlastParams,
   UpdateBlastResponse,
 } from "@workspace/api-zod";
+import {
+  adminContentStatuses,
+  adminFeatureFlags,
+  adminSettings,
+  createAdminReport,
+  recordAudit,
+} from "../lib/admin-state";
+import { isActiveAdmin } from "../lib/admin-auth";
 
 const router: IRouter = Router();
 
@@ -124,7 +132,7 @@ function normalizeProfileLocation(city: string, state: string): {
   };
 }
 
-const users = [
+export const users = [
   {
     id: "user-kinamin",
     username: "kinamin",
@@ -268,7 +276,7 @@ async function isAdminUser(userId: string | null | undefined): Promise<boolean> 
   try {
     const clerkUser = await clerkClient.users.getUser(userId);
     const metadata = clerkUser.publicMetadata as Record<string, unknown>;
-    return metadata.role === "admin" || metadata.isAdmin === true;
+    return isActiveAdmin(metadata);
   } catch {
     return false;
   }
@@ -289,7 +297,7 @@ type TargetRecord = {
   };
 };
 
-const targets: TargetRecord[] = [
+export const targets: TargetRecord[] = [
   {
     id: "target-atl-wings",
     name: "Midnight Wings ATL",
@@ -439,6 +447,12 @@ const notifications = [
   { id: "notice-3", type: "trending" as const, message: "Your Blast is gaining momentum in Atlanta.", createdAt: "2026-08-28T23:58:00.000Z", read: true, actor: users[0] },
 ];
 
+const isFeatureEnabled = (key: string): boolean =>
+  adminFeatureFlags.find((feature) => feature.key === key)?.enabled ?? false;
+
+const visibleBlasts = (): Blast[] =>
+  blasts.filter((blast) => (adminContentStatuses.get(blast.id) ?? "published") === "published");
+
 function distanceInMiles(
   latitudeA: number,
   longitudeA: number,
@@ -567,7 +581,7 @@ router.get("/feed", (req, res): void => {
       return;
     }
 
-    const nearbyBlasts = blasts.filter((blast) => {
+    const nearbyBlasts = visibleBlasts().filter((blast) => {
       const coordinates = blast.target.coordinates;
       if (!coordinates) return false;
       return distanceInMiles(
@@ -588,11 +602,11 @@ router.get("/feed", (req, res): void => {
     return;
   }
 
-  res.json(GetFeedResponse.parse({ items: blasts, page, hasMore: false }));
+  res.json(GetFeedResponse.parse({ items: visibleBlasts(), page, hasMore: false }));
 });
 
 router.get("/trending", (_req, res): void => {
-  res.json(GetTrendingResponse.parse({ blasts: [...blasts].sort((a, b) => b.viewCount - a.viewCount), targets }));
+  res.json(GetTrendingResponse.parse({ blasts: visibleBlasts().sort((a, b) => b.viewCount - a.viewCount), targets }));
 });
 
 router.get("/search", (req, res): void => {
@@ -604,7 +618,7 @@ router.get("/search", (req, res): void => {
   const q = parsed.data.q.toLowerCase();
   res.json(SearchResponse.parse({
     people: users.filter((user) => `${user.username} ${user.displayName} ${user.bio}`.toLowerCase().includes(q)),
-    blasts: blasts.filter((blast) => blast.content.toLowerCase().includes(q)),
+    blasts: visibleBlasts().filter((blast) => blast.content.toLowerCase().includes(q)),
     targets: targets.filter((target) => `${target.name} ${target.description} ${target.location}`.toLowerCase().includes(q)),
   }));
 });
@@ -624,6 +638,10 @@ router.get("/targets", (req, res): void => {
 });
 
 router.post("/targets", (req, res): void => {
+  if (!isFeatureEnabled("new_target_requests")) {
+    res.status(403).json({ error: "New Target requests are currently disabled." });
+    return;
+  }
   const parsed = CreateTargetBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid Target details" });
@@ -662,7 +680,7 @@ router.get("/targets/:slug", (req, res): void => {
     res.status(404).json({ error: "Target not found" });
     return;
   }
-  const targetBlasts = blasts.filter((blast) => blast.target.id === target.id);
+  const targetBlasts = visibleBlasts().filter((blast) => blast.target.id === target.id);
   res.json(GetTargetResponse.parse({
     target,
     blasts: targetBlasts,
@@ -710,7 +728,7 @@ router.get("/users/:username", async (req, res): Promise<void> => {
     res.status(404).json({ error: "User not found" });
     return;
   }
-  const profileBlasts = blasts.filter((blast) => blast.author.username === user.username);
+  const profileBlasts = visibleBlasts().filter((blast) => blast.author.username === user.username);
   res.json(GetUserProfileResponse.parse({ ...user, coverUrl: user.coverUrl || "", blasts: profileBlasts, media: profileBlasts.filter((blast) => blast.mediaUrl) }));
 });
 
@@ -763,6 +781,9 @@ router.post("/blasts", async (req, res): Promise<void> => {
     isBookmarked: false,
   };
   blasts.unshift(blast);
+  if (adminSettings.contentReviewMode) {
+    adminContentStatuses.set(blast.id, "hidden");
+  }
   res.status(201).json(CreateBlastResponse.parse(blast));
 });
 
@@ -860,6 +881,10 @@ router.post("/blasts/:id/comments", (req, res): void => {
 });
 
 router.post("/blasts/:id/back", (req, res): void => {
+  if (!isFeatureEnabled("blast_back")) {
+    res.status(403).json({ error: "Blast Back is currently disabled." });
+    return;
+  }
   const params = CreateBlastBackParams.safeParse(req.params);
   const body = CreateBlastBackBody.safeParse(req.body);
   if (!params.success || !body.success) {
@@ -890,6 +915,9 @@ router.post("/blasts/:id/back", (req, res): void => {
     originalBlastId: original.id,
   };
   blasts.unshift(blast);
+  if (adminSettings.contentReviewMode) {
+    adminContentStatuses.set(blast.id, "hidden");
+  }
   res.status(201).json(CreateBlastBackResponse.parse(blast));
 });
 
@@ -913,16 +941,36 @@ router.get("/notifications", (_req, res): void => {
 });
 
 router.get("/bookmarks", (_req, res): void => {
-  res.json(GetBookmarksResponse.parse(blasts.filter((blast) => blast.isBookmarked)));
+  res.json(GetBookmarksResponse.parse(visibleBlasts().filter((blast) => blast.isBookmarked)));
 });
 
 router.post("/reports", (req, res): void => {
+  const { userId } = getAuth(req);
+  const reporterId = userId ?? (process.env.NODE_ENV === "development" ? users[0].id : null);
+  if (!reporterId) {
+    res.status(401).json({ error: "Sign in is required to submit a report." });
+    return;
+  }
   const parsed = CreateReportBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  res.status(201).json(CreateReportResponse.parse({ id: randomUUID(), status: "open" }));
+  const report = createAdminReport({
+    targetType: parsed.data.targetType,
+    targetId: parsed.data.targetId,
+    reason: parsed.data.reason,
+    description: parsed.data.description ?? "",
+    reporterId,
+  });
+  recordAudit({
+    action: "report_created",
+    entityType: parsed.data.targetType,
+    entityId: parsed.data.targetId,
+    actorId: reporterId,
+    details: `Report opened for ${parsed.data.reason}.`,
+  });
+  res.status(201).json(CreateReportResponse.parse({ id: report.id, status: report.status }));
 });
 
 router.post("/blocks", (req, res): void => {
