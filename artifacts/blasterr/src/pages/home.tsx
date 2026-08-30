@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   useGetFeed,
   getGetFeedQueryKey
@@ -19,10 +19,9 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       {/* Mobile Header */}
       <header className="md:hidden sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
-          <span className="font-display font-bold text-xl text-white neon-glow">BLASTERR</span>
-        </div>
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
+          <img src="/logo.png" alt="BLASTERR" className="h-12 w-auto" />
+        </Link>
       </header>
 
       {/* Desktop Header / Tabs */}

@@ -17,10 +17,9 @@ export default function Landing() {
 
       {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between p-6 max-w-7xl mx-auto w-full">
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="BLASTERR" className="h-8 md:h-12 w-auto" />
-          <span className="font-display font-bold text-2xl md:text-3xl tracking-tight text-white neon-glow">BLASTERR</span>
-        </div>
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
+          <img src="/logo.png" alt="BLASTERR" className="h-12 md:h-16 w-auto" />
+        </Link>
         <div className="flex items-center gap-4">
           {isLoading ? null : user ? (
             <Link href="/home" className="flex items-center">
