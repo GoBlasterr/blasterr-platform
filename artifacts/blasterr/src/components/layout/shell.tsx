@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Home, 
@@ -25,6 +25,7 @@ interface ShellProps {
 
 export function Shell({ children }: ShellProps) {
   const [location] = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
   const { signOut } = useClerk();
   const { data: user } = useCurrentUser();
 
@@ -44,6 +45,12 @@ export function Shell({ children }: ShellProps) {
       { icon: Settings, label: "Settings", href: "/settings" }
     );
   }
+
+  useEffect(() => {
+    if (location === "/home") {
+      mainRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }, [location]);
 
   // Hide shell on auth pages and landing
   if (location === "/" || location === "/splash" || location === "/sign-in" || location === "/sign-up" || location === "/privacy" || location === "/terms") {
@@ -121,7 +128,7 @@ export function Shell({ children }: ShellProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="min-h-0 flex-1 flex justify-center overflow-y-auto overscroll-contain pb-20 md:pb-0">
+      <main ref={mainRef} className="min-h-0 flex-1 flex justify-center overflow-y-auto overscroll-contain pb-20 md:pb-0">
         <div className="w-full max-w-2xl min-h-screen border-r border-white/5 bg-background/50 backdrop-blur-sm">
           {children}
         </div>
