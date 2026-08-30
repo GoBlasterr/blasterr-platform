@@ -47,9 +47,7 @@ export function Shell({ children }: ShellProps) {
   }
 
   useEffect(() => {
-    if (location === "/home") {
-      mainRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    }
+    mainRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [location]);
 
   // Hide shell on auth pages and landing
