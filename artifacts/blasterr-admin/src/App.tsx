@@ -139,24 +139,32 @@ function SignUpPage() {
 
 function AdminLanding() {
   return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-background p-6 text-foreground">
-      <section className="w-full max-w-lg rounded-sm border bg-card p-8 shadow-2xl">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-          Restricted control center
-        </p>
-        <h1 className="font-mono text-3xl font-bold tracking-tight">BLASTERR ADMIN</h1>
-        <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">
-          Manage advertising, moderation, and platform operations from one secure
-          workspace. Access is granted only to staff accounts authorized by BLASTERR.
-        </p>
-        <a
-          href={`${basePath}/sign-in`}
-          className="mt-7 inline-flex h-10 items-center justify-center rounded-sm bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-          data-testid="link-staff-sign-in"
-        >
-          Staff sign in
-        </a>
-      </section>
+    <main className="flex min-h-[100dvh] items-center justify-center bg-black p-6 text-white">
+      <div className="flex w-full max-w-lg -translate-y-2 flex-col items-center gap-10 sm:-translate-y-4">
+        <img
+          src={`${import.meta.env.BASE_URL}blasterr-logo.png`}
+          alt="BLASTERR"
+          className="h-auto w-[min(30rem,82vw)] object-contain"
+          data-testid="img-landing-blasterr-logo"
+        />
+        <section className="w-full rounded-sm border border-white/20 bg-black p-8 text-white shadow-2xl">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#e5f403]">
+            Restricted control center
+          </p>
+          <h1 className="font-mono text-3xl font-bold tracking-tight text-white">BLASTERR ADMIN</h1>
+          <p className="mt-4 max-w-md text-sm leading-6 text-white">
+            Manage advertising, moderation, and platform operations from one secure
+            workspace. Access is granted only to staff accounts authorized by BLASTERR.
+          </p>
+          <a
+            href={`${basePath}/sign-in`}
+            className="mt-7 inline-flex h-10 items-center justify-center rounded-sm bg-[#e5f403] px-5 text-sm font-semibold text-black transition-colors hover:bg-[#e5f403]/90"
+            data-testid="link-staff-sign-in"
+          >
+            Staff sign in
+          </a>
+        </section>
+      </div>
     </main>
   );
 }
