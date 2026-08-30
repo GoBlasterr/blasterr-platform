@@ -153,7 +153,11 @@ export default function CreateBlast() {
                       )}
                     </div>
                   )}
-                  <FormMessage />
+                  {form.formState.errors.targetId?.message && (
+                    <p className="text-sm font-medium text-destructive">
+                      {form.formState.errors.targetId.message}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
