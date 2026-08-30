@@ -42,6 +42,8 @@ export * from './searchResults';
 export * from './searchType';
 export * from './target';
 export * from './targetDetail';
+export * from './targetInput';
+export * from './targetInputType';
 export * from './targetStats';
 export * from './targetType';
 export * from './trendingResponse';

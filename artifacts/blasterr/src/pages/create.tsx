@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { 
   useCreateBlast,
+  useCreateTarget,
   useSearch,
   getGetFeedQueryKey,
   getSearchQueryKey,
@@ -24,11 +25,30 @@ const blastSchema = z.object({
   targetId: z.string().min(1, "Select a target"),
 });
 
+const targetTypeOptions = [
+  { value: "person", label: "Person" },
+  { value: "business", label: "Business" },
+  { value: "place", label: "Place" },
+  { value: "product", label: "Product" },
+  { value: "entertainment", label: "Entertainment" },
+  { value: "sports", label: "Sports" },
+  { value: "gaming", label: "Gaming" },
+  { value: "other", label: "Other" },
+] as const;
+
+type NewTarget = {
+  name: string;
+  type: (typeof targetTypeOptions)[number]["value"];
+  location: string;
+  description: string;
+};
+
 export default function CreateBlast() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const createMutation = useCreateBlast();
+  const createTargetMutation = useCreateTarget();
   
   const [targetQuery, setTargetQuery] = useState("");
   const debouncedQuery = useDebounce(targetQuery, 300);
@@ -41,6 +61,13 @@ export default function CreateBlast() {
   });
   
   const [selectedTarget, setSelectedTarget] = useState<any>(null);
+  const [isCreatingTarget, setIsCreatingTarget] = useState(false);
+  const [newTarget, setNewTarget] = useState<NewTarget>({
+    name: "",
+    type: "other",
+    location: "",
+    description: "",
+  });
 
   const form = useForm<z.infer<typeof blastSchema>>({
     resolver: zodResolver(blastSchema),
@@ -122,9 +149,95 @@ export default function CreateBlast() {
                   </div>
                   
                   {/* Dropdown results mock */}
-                  {targetQuery.length > 2 && (
+                  {(targetQuery.length > 2 || isCreatingTarget) && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
-                      {isSearching ? (
+                      {isCreatingTarget ? (
+                        <div className="p-4 space-y-4">
+                          <div>
+                            <p className="font-bold text-white">Create a new Target</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Add the Target you want to lock onto, then continue your Blast.
+                            </p>
+                          </div>
+                          <Input
+                            autoFocus
+                            value={newTarget.name}
+                            onChange={(event) => setNewTarget((current) => ({ ...current, name: event.target.value }))}
+                            placeholder="Target name"
+                            className="bg-background border-white/10 rounded-lg"
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <select
+                              value={newTarget.type}
+                              onChange={(event) => setNewTarget((current) => ({
+                                ...current,
+                                type: event.target.value as NewTarget["type"],
+                              }))}
+                              className="h-10 rounded-lg border border-white/10 bg-background px-3 text-sm text-white outline-none focus:border-primary"
+                            >
+                              {targetTypeOptions.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                              ))}
+                            </select>
+                            <Input
+                              value={newTarget.location}
+                              onChange={(event) => setNewTarget((current) => ({ ...current, location: event.target.value }))}
+                              placeholder="Location"
+                              className="bg-background border-white/10 rounded-lg"
+                            />
+                          </div>
+                          <Textarea
+                            value={newTarget.description}
+                            onChange={(event) => setNewTarget((current) => ({ ...current, description: event.target.value }))}
+                            placeholder="What should people know about this Target?"
+                            className="min-h-20 resize-none bg-background border-white/10 rounded-lg"
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setIsCreatingTarget(false)}
+                              className="text-muted-foreground hover:text-white"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              disabled={!newTarget.name.trim() || createTargetMutation.isPending}
+                              onClick={() => {
+                                createTargetMutation.mutate(
+                                  {
+                                    data: {
+                                      ...newTarget,
+                                      name: newTarget.name.trim(),
+                                      location: newTarget.location.trim(),
+                                      description: newTarget.description.trim(),
+                                    },
+                                  },
+                                  {
+                                    onSuccess: (target) => {
+                                      setSelectedTarget(target);
+                                      form.setValue("targetId", target.id, { shouldValidate: true });
+                                      setTargetQuery("");
+                                      setIsCreatingTarget(false);
+                                      setNewTarget({ name: "", type: "other", location: "", description: "" });
+                                      toast({ title: "Target locked on." });
+                                    },
+                                    onError: () => {
+                                      toast({ title: "Could not create Target", variant: "destructive" });
+                                    },
+                                  },
+                                );
+                              }}
+                              className="rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90"
+                            >
+                              {createTargetMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Target"}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : isSearching ? (
                         <div className="p-4 text-center text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin mx-auto" /></div>
                       ) : searchResults?.targets?.length ? (
                         searchResults.targets.map(t => (
@@ -148,7 +261,18 @@ export default function CreateBlast() {
                         ))
                       ) : (
                         <div className="p-4 text-center text-muted-foreground text-sm">
-                          No targets found. <Button variant="link" className="text-primary px-1 h-auto py-0">Create new target</Button>
+                          No targets found.{" "}
+                          <Button
+                            type="button"
+                            variant="link"
+                            onClick={() => {
+                              setNewTarget((current) => ({ ...current, name: targetQuery.trim() }));
+                              setIsCreatingTarget(true);
+                            }}
+                            className="text-primary px-1 h-auto py-0"
+                          >
+                            Create new target
+                          </Button>
                         </div>
                       )}
                     </div>

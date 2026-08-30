@@ -265,6 +265,36 @@ export const ListTargetsResponse = zod.array(ListTargetsResponseItem)
 
 
 /**
+ * @summary Create a new Target
+ */
+export const createTargetBodyNameMax = 120;
+
+export const createTargetBodyLocationMax = 120;
+
+export const createTargetBodyDescriptionMax = 500;
+
+
+
+export const CreateTargetBody = zod.object({
+  "name": zod.string().min(1).max(createTargetBodyNameMax),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string().max(createTargetBodyLocationMax),
+  "description": zod.string().max(createTargetBodyDescriptionMax)
+})
+
+export const CreateTargetResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string()
+})
+
+
+/**
  * @summary Get a Target and its Blasts
  */
 export const GetTargetParams = zod.object({

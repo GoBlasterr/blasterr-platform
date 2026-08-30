@@ -6,6 +6,8 @@ import {
   CreateBlastBackResponse,
   CreateBlastBody,
   CreateBlastResponse,
+  CreateTargetBody,
+  CreateTargetResponse,
   CreateCommentBody,
   CreateCommentParams,
   CreateCommentResponse,
@@ -85,7 +87,18 @@ const users = [
   },
 ];
 
-const targets = [
+type TargetRecord = {
+  id: string;
+  name: string;
+  slug: string;
+  type: "person" | "business" | "place" | "product" | "entertainment" | "sports" | "gaming" | "other";
+  location: string;
+  blastCount: number;
+  imageUrl: string;
+  description: string;
+};
+
+const targets: TargetRecord[] = [
   {
     id: "target-atl-wings",
     name: "Midnight Wings ATL",
@@ -260,6 +273,34 @@ router.get("/targets", (req, res): void => {
     (!parsed.data.type || target.type === parsed.data.type),
   );
   res.json(ListTargetsResponse.parse(result));
+});
+
+router.post("/targets", (req, res): void => {
+  const parsed = CreateTargetBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid Target details" });
+    return;
+  }
+
+  const baseSlug = parsed.data.name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "target";
+  const slug = `${baseSlug}-${randomUUID().slice(0, 8)}`;
+  const target = {
+    id: `target-${randomUUID()}`,
+    name: parsed.data.name.trim(),
+    slug,
+    type: parsed.data.type,
+    location: parsed.data.location.trim(),
+    blastCount: 0,
+    imageUrl: "",
+    description: parsed.data.description.trim(),
+  };
+
+  targets.push(target);
+  res.status(201).json(CreateTargetResponse.parse(target));
 });
 
 router.get("/targets/:slug", (req, res): void => {

@@ -116,6 +116,23 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Target"
+    post:
+      operationId: createTarget
+      tags: [targets]
+      summary: Create a new Target
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TargetInput"
+      responses:
+        "201":
+          description: Created Target
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Target"
   /targets/{slug}:
     get:
       operationId: getTarget
@@ -442,6 +459,16 @@ components:
         blastCount: { type: number }
         imageUrl: { type: string }
         description: { type: string }
+    TargetInput:
+      type: object
+      required: [name, type, location, description]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        type:
+          type: string
+          enum: [person, business, place, product, entertainment, sports, gaming, other]
+        location: { type: string, maxLength: 120 }
+        description: { type: string, maxLength: 500 }
     Blast:
       type: object
       required: [id, content, createdAt, author, target, location, mediaUrl, reactions, commentCount, shareCount, viewCount, isBookmarked]

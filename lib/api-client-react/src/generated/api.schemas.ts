@@ -109,6 +109,33 @@ export type Profile = User & {
   media: Blast[];
 };
 
+export type TargetInputType = typeof TargetInputType[keyof typeof TargetInputType];
+
+
+export const TargetInputType = {
+  person: 'person',
+  business: 'business',
+  place: 'place',
+  product: 'product',
+  entertainment: 'entertainment',
+  sports: 'sports',
+  gaming: 'gaming',
+  other: 'other',
+} as const;
+
+export interface TargetInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  type: TargetInputType;
+  /** @maxLength 120 */
+  location: string;
+  /** @maxLength 500 */
+  description: string;
+}
+
 export interface FeedResponse {
   items: Blast[];
   page: number;

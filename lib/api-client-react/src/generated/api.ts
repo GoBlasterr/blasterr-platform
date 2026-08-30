@@ -44,6 +44,7 @@ import type {
   SearchResults,
   Target,
   TargetDetail,
+  TargetInput,
   TrendingResponse,
   User
 } from './api.schemas';
@@ -557,6 +558,77 @@ export function useListTargets<TData = Awaited<ReturnType<typeof listTargets>>, 
 
 
 
+
+export const getCreateTargetUrl = () => {
+
+
+
+
+  return `/api/targets`
+}
+
+/**
+ * @summary Create a new Target
+ */
+export const createTarget = async (targetInput: TargetInput, options?: Parameters<typeof customFetch>[1]): Promise<Target> => {
+
+  return customFetch<Target>(getCreateTargetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(targetInput)
+  }
+);}
+
+
+
+
+
+export const getCreateTargetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTarget>>, TError,{data: BodyType<TargetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTarget>>, TError,{data: BodyType<TargetInput>}, TContext> => {
+
+const mutationKey = ['createTarget'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTarget>>, {data: BodyType<TargetInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTarget(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTargetMutationResult = NonNullable<Awaited<ReturnType<typeof createTarget>>>
+    export type CreateTargetMutationBody = BodyType<TargetInput>
+    export type CreateTargetMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new Target
+ */
+export const useCreateTarget = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTarget>>, TError,{data: BodyType<TargetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTarget>>,
+        TError,
+        {data: BodyType<TargetInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTargetMutationOptions(options));
+    }
 
 export const getGetTargetUrl = (slug: string,) => {
 
