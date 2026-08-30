@@ -1658,3 +1658,427 @@ export const GetAdminClipsResponse = zod.object({
 })
 
 
+export const GetAdminAdvertisingOverviewResponse = zod.object({
+  "advertiserCount": zod.number(),
+  "campaignCount": zod.number(),
+  "activeAdvertisementCount": zod.number(),
+  "eventCount": zod.number(),
+  "series": zod.array(zod.object({
+  "date": zod.string(),
+  "impressions": zod.number(),
+  "clicks": zod.number()
+})),
+  "activity": zod.array(zod.object({
+  "id": zod.string(),
+  "action": zod.string(),
+  "entityType": zod.string(),
+  "entityId": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "actorClerkId": zod.string().nullable(),
+  "createdAt": zod.string()
+})),
+  "billingIntegrationAvailable": zod.boolean()
+})
+
+
+export const listAdminAdvertisersQueryPageDefault = 1;
+
+export const listAdminAdvertisersQueryLimitDefault = 25;
+export const listAdminAdvertisersQueryLimitMax = 100;
+
+
+
+export const ListAdminAdvertisersQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminAdvertisersQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminAdvertisersQueryLimitMax).default(listAdminAdvertisersQueryLimitDefault),
+  "status": zod.coerce.string().optional(),
+  "search": zod.coerce.string().optional()
+})
+
+export const ListAdminAdvertisersResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "ownerClerkId": zod.string().nullable(),
+  "contactEmail": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+export const createAdminAdvertiserBodyNameMax = 160;
+
+export const createAdminAdvertiserBodyOwnerClerkIdMax = 200;
+
+export const createAdminAdvertiserBodyContactEmailMax = 320;
+
+
+
+export const CreateAdminAdvertiserBody = zod.object({
+  "name": zod.string().min(1).max(createAdminAdvertiserBodyNameMax),
+  "ownerClerkId": zod.string().max(createAdminAdvertiserBodyOwnerClerkIdMax).optional(),
+  "contactEmail": zod.string().max(createAdminAdvertiserBodyContactEmailMax).optional()
+})
+
+export const CreateAdminAdvertiserResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "ownerClerkId": zod.string().nullable(),
+  "contactEmail": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const UpdateAdminAdvertiserStatusParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminAdvertiserStatusBodyReasonMax = 1000;
+
+
+
+export const UpdateAdminAdvertiserStatusBody = zod.object({
+  "status": zod.string(),
+  "reason": zod.string().min(1).max(updateAdminAdvertiserStatusBodyReasonMax).optional()
+})
+
+export const UpdateAdminAdvertiserStatusResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "ownerClerkId": zod.string().nullable(),
+  "contactEmail": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const listAdminCampaignsQueryPageDefault = 1;
+
+export const listAdminCampaignsQueryLimitDefault = 25;
+export const listAdminCampaignsQueryLimitMax = 100;
+
+
+
+export const ListAdminCampaignsQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminCampaignsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminCampaignsQueryLimitMax).default(listAdminCampaignsQueryLimitDefault),
+  "status": zod.coerce.string().optional(),
+  "search": zod.coerce.string().optional()
+})
+
+export const ListAdminCampaignsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "placements": zod.array(zod.string()),
+  "targeting": zod.record(zod.string(), zod.unknown()),
+  "dailyBudget": zod.number().nullable(),
+  "totalBudget": zod.number().nullable(),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+export const createAdminCampaignBodyNameMax = 160;
+
+
+export const createAdminCampaignBodyDailyBudgetMin = 0;
+
+export const createAdminCampaignBodyTotalBudgetMin = 0;
+
+
+
+export const CreateAdminCampaignBody = zod.object({
+  "advertiserId": zod.string(),
+  "name": zod.string().min(1).max(createAdminCampaignBodyNameMax),
+  "placements": zod.array(zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips'])).min(1),
+  "targeting": zod.record(zod.string(), zod.unknown()).optional(),
+  "dailyBudget": zod.number().min(createAdminCampaignBodyDailyBudgetMin).optional(),
+  "totalBudget": zod.number().min(createAdminCampaignBodyTotalBudgetMin).optional(),
+  "startsAt": zod.string().optional(),
+  "endsAt": zod.string().optional(),
+  "status": zod.enum(['draft', 'active', 'paused']).optional()
+})
+
+export const CreateAdminCampaignResponse = zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "placements": zod.array(zod.string()),
+  "targeting": zod.record(zod.string(), zod.unknown()),
+  "dailyBudget": zod.number().nullable(),
+  "totalBudget": zod.number().nullable(),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const UpdateAdminCampaignStatusParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminCampaignStatusBodyReasonMax = 1000;
+
+
+
+export const UpdateAdminCampaignStatusBody = zod.object({
+  "status": zod.string(),
+  "reason": zod.string().min(1).max(updateAdminCampaignStatusBodyReasonMax).optional()
+})
+
+export const UpdateAdminCampaignStatusResponse = zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "placements": zod.array(zod.string()),
+  "targeting": zod.record(zod.string(), zod.unknown()),
+  "dailyBudget": zod.number().nullable(),
+  "totalBudget": zod.number().nullable(),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const listAdminAdvertisementsQueryPageDefault = 1;
+
+export const listAdminAdvertisementsQueryLimitDefault = 25;
+export const listAdminAdvertisementsQueryLimitMax = 100;
+
+
+
+export const ListAdminAdvertisementsQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminAdvertisementsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminAdvertisementsQueryLimitMax).default(listAdminAdvertisementsQueryLimitDefault),
+  "status": zod.coerce.string().optional(),
+  "search": zod.coerce.string().optional()
+})
+
+export const ListAdminAdvertisementsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "campaignId": zod.string(),
+  "adGroupId": zod.string().nullable(),
+  "creativeId": zod.string().nullable(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "placement": zod.string(),
+  "headline": zod.string(),
+  "body": zod.string(),
+  "mediaUrl": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+export const createAdminAdvertisementBodyNameMax = 160;
+
+export const createAdminAdvertisementBodyHeadlineMax = 200;
+
+export const createAdminAdvertisementBodyBodyMax = 1000;
+
+export const createAdminAdvertisementBodyMediaUrlMax = 2000;
+
+export const createAdminAdvertisementBodyDestinationUrlMax = 2000;
+
+
+
+export const CreateAdminAdvertisementBody = zod.object({
+  "campaignId": zod.string(),
+  "adGroupId": zod.string().optional(),
+  "creativeId": zod.string().optional(),
+  "name": zod.string().min(1).max(createAdminAdvertisementBodyNameMax),
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips']),
+  "headline": zod.string().min(1).max(createAdminAdvertisementBodyHeadlineMax),
+  "body": zod.string().max(createAdminAdvertisementBodyBodyMax).optional(),
+  "mediaUrl": zod.string().max(createAdminAdvertisementBodyMediaUrlMax).optional().describe('Absolute HTTP(S) URL; enforced by the API.'),
+  "destinationUrl": zod.string().max(createAdminAdvertisementBodyDestinationUrlMax).optional().describe('Absolute HTTP(S) URL; enforced by the API.')
+})
+
+export const CreateAdminAdvertisementResponse = zod.object({
+  "id": zod.string(),
+  "campaignId": zod.string(),
+  "adGroupId": zod.string().nullable(),
+  "creativeId": zod.string().nullable(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "placement": zod.string(),
+  "headline": zod.string(),
+  "body": zod.string(),
+  "mediaUrl": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const ReviewAdminAdvertisementParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reviewAdminAdvertisementBodyReasonMax = 1000;
+
+
+
+export const ReviewAdminAdvertisementBody = zod.object({
+  "action": zod.enum(['approve', 'reject', 'pause', 'resume', 'request_changes']),
+  "reason": zod.string().min(1).max(reviewAdminAdvertisementBodyReasonMax).optional()
+})
+
+export const ReviewAdminAdvertisementResponse = zod.object({
+  "id": zod.string(),
+  "campaignId": zod.string(),
+  "adGroupId": zod.string().nullable(),
+  "creativeId": zod.string().nullable(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "placement": zod.string(),
+  "headline": zod.string(),
+  "body": zod.string(),
+  "mediaUrl": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const GetAdminAdvertisingSettingsResponse = zod.object({
+  "enabled": zod.boolean(),
+  "emergencyShutdown": zod.boolean(),
+  "placementSettings": zod.record(zod.string(), zod.unknown()),
+  "frequencySettings": zod.record(zod.string(), zod.unknown()),
+  "featureFlags": zod.record(zod.string(), zod.unknown()),
+  "billingIntegrationAvailable": zod.boolean(),
+  "updatedAt": zod.string()
+})
+
+
+export const updateAdminAdvertisingSettingsBodyReasonMax = 1000;
+
+
+
+export const UpdateAdminAdvertisingSettingsBody = zod.object({
+  "enabled": zod.boolean().optional(),
+  "emergencyShutdown": zod.boolean().optional(),
+  "placementSettings": zod.record(zod.string(), zod.unknown()).optional(),
+  "frequencySettings": zod.record(zod.string(), zod.unknown()).optional(),
+  "featureFlags": zod.record(zod.string(), zod.unknown()).optional(),
+  "reason": zod.string().min(1).max(updateAdminAdvertisingSettingsBodyReasonMax)
+})
+
+export const UpdateAdminAdvertisingSettingsResponse = zod.object({
+  "enabled": zod.boolean(),
+  "emergencyShutdown": zod.boolean(),
+  "placementSettings": zod.record(zod.string(), zod.unknown()),
+  "frequencySettings": zod.record(zod.string(), zod.unknown()),
+  "featureFlags": zod.record(zod.string(), zod.unknown()),
+  "billingIntegrationAvailable": zod.boolean(),
+  "updatedAt": zod.string()
+})
+
+
+export const listAdminAdvertisingAuditQueryPageDefault = 1;
+
+export const listAdminAdvertisingAuditQueryLimitDefault = 25;
+export const listAdminAdvertisingAuditQueryLimitMax = 100;
+
+
+
+export const ListAdminAdvertisingAuditQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminAdvertisingAuditQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminAdvertisingAuditQueryLimitMax).default(listAdminAdvertisingAuditQueryLimitDefault)
+})
+
+export const ListAdminAdvertisingAuditResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "action": zod.string(),
+  "entityType": zod.string(),
+  "entityId": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "actorClerkId": zod.string().nullable(),
+  "createdAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+export const getAdPlacementQuerySessionIdMin = 12;
+export const getAdPlacementQuerySessionIdMax = 200;
+
+
+
+export const GetAdPlacementQueryParams = zod.object({
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips']),
+  "sessionId": zod.coerce.string().min(getAdPlacementQuerySessionIdMin).max(getAdPlacementQuerySessionIdMax)
+})
+
+export const GetAdPlacementResponse = zod.object({
+  "ad": zod.union([zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "advertiserName": zod.string(),
+  "campaignId": zod.string(),
+  "placement": zod.string(),
+  "headline": zod.string(),
+  "body": zod.string(),
+  "mediaUrl": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "deliveryToken": zod.string()
+}),zod.null()])
+})
+
+
+export const recordAdEventBodySessionIdMin = 12;
+export const recordAdEventBodySessionIdMax = 200;
+
+export const recordAdEventBodyDeliveryTokenMin = 20;
+export const recordAdEventBodyDeliveryTokenMax = 2000;
+
+
+
+export const RecordAdEventBody = zod.object({
+  "advertisementId": zod.string(),
+  "eventType": zod.enum(['impression', 'click', 'video_view']),
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips']),
+  "sessionId": zod.string().min(recordAdEventBodySessionIdMin).max(recordAdEventBodySessionIdMax),
+  "deliveryToken": zod.string().min(recordAdEventBodyDeliveryTokenMin).max(recordAdEventBodyDeliveryTokenMax)
+})
+
+export const RecordAdEventResponse = zod.object({
+  "recorded": zod.boolean()
+})
+
+

@@ -543,6 +543,331 @@ export interface AdminClipsOverview {
   clips: Clip[];
 }
 
+export interface Advertiser {
+  id: string;
+  name: string;
+  status: string;
+  /** @nullable */
+  ownerClerkId: string | null;
+  /** @nullable */
+  contactEmail: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdvertiserInput {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /** @maxLength 200 */
+  ownerClerkId?: string;
+  /** @maxLength 320 */
+  contactEmail?: string;
+}
+
+export type CampaignTargeting = { [key: string]: unknown };
+
+export interface Campaign {
+  id: string;
+  advertiserId: string;
+  name: string;
+  status: string;
+  placements: string[];
+  targeting: CampaignTargeting;
+  /** @nullable */
+  dailyBudget: number | null;
+  /** @nullable */
+  totalBudget: number | null;
+  /** @nullable */
+  startsAt: string | null;
+  /** @nullable */
+  endsAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CampaignInputPlacementsItem = typeof CampaignInputPlacementsItem[keyof typeof CampaignInputPlacementsItem];
+
+
+export const CampaignInputPlacementsItem = {
+  home_feed: 'home_feed',
+  following_feed: 'following_feed',
+  search: 'search',
+  trending: 'trending',
+  profile: 'profile',
+  clips: 'clips',
+} as const;
+
+export type CampaignInputTargeting = { [key: string]: unknown };
+
+export type CampaignInputStatus = typeof CampaignInputStatus[keyof typeof CampaignInputStatus];
+
+
+export const CampaignInputStatus = {
+  draft: 'draft',
+  active: 'active',
+  paused: 'paused',
+} as const;
+
+export interface CampaignInput {
+  advertiserId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /** @minItems 1 */
+  placements: CampaignInputPlacementsItem[];
+  targeting?: CampaignInputTargeting;
+  /** @minimum 0 */
+  dailyBudget?: number;
+  /** @minimum 0 */
+  totalBudget?: number;
+  startsAt?: string;
+  endsAt?: string;
+  status?: CampaignInputStatus;
+}
+
+export interface Advertisement {
+  id: string;
+  campaignId: string;
+  /** @nullable */
+  adGroupId: string | null;
+  /** @nullable */
+  creativeId: string | null;
+  name: string;
+  status: string;
+  placement: string;
+  headline: string;
+  body: string;
+  /** @nullable */
+  mediaUrl: string | null;
+  /** @nullable */
+  destinationUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AdvertisementInputPlacement = typeof AdvertisementInputPlacement[keyof typeof AdvertisementInputPlacement];
+
+
+export const AdvertisementInputPlacement = {
+  home_feed: 'home_feed',
+  following_feed: 'following_feed',
+  search: 'search',
+  trending: 'trending',
+  profile: 'profile',
+  clips: 'clips',
+} as const;
+
+export interface AdvertisementInput {
+  campaignId: string;
+  adGroupId?: string;
+  creativeId?: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  placement: AdvertisementInputPlacement;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  headline: string;
+  /** @maxLength 1000 */
+  body?: string;
+  /**
+     * Absolute HTTP(S) URL; enforced by the API.
+     * @maxLength 2000
+     */
+  mediaUrl?: string;
+  /**
+     * Absolute HTTP(S) URL; enforced by the API.
+     * @maxLength 2000
+     */
+  destinationUrl?: string;
+}
+
+export type AdvertisementReviewAction = typeof AdvertisementReviewAction[keyof typeof AdvertisementReviewAction];
+
+
+export const AdvertisementReviewAction = {
+  approve: 'approve',
+  reject: 'reject',
+  pause: 'pause',
+  resume: 'resume',
+  request_changes: 'request_changes',
+} as const;
+
+export interface AdvertisementReview {
+  action: AdvertisementReviewAction;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  reason?: string;
+}
+
+export interface StatusUpdate {
+  status: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  reason?: string;
+}
+
+export interface AdvertisementDelivery {
+  id: string;
+  advertiserId: string;
+  advertiserName: string;
+  campaignId: string;
+  placement: string;
+  headline: string;
+  body: string;
+  /** @nullable */
+  mediaUrl: string | null;
+  /** @nullable */
+  destinationUrl: string | null;
+  deliveryToken: string;
+}
+
+export type AdEventInputEventType = typeof AdEventInputEventType[keyof typeof AdEventInputEventType];
+
+
+export const AdEventInputEventType = {
+  impression: 'impression',
+  click: 'click',
+  video_view: 'video_view',
+} as const;
+
+export type AdEventInputPlacement = typeof AdEventInputPlacement[keyof typeof AdEventInputPlacement];
+
+
+export const AdEventInputPlacement = {
+  home_feed: 'home_feed',
+  following_feed: 'following_feed',
+  search: 'search',
+  trending: 'trending',
+  profile: 'profile',
+  clips: 'clips',
+} as const;
+
+export interface AdEventInput {
+  advertisementId: string;
+  eventType: AdEventInputEventType;
+  placement: AdEventInputPlacement;
+  /**
+     * @minLength 12
+     * @maxLength 200
+     */
+  sessionId: string;
+  /**
+     * @minLength 20
+     * @maxLength 2000
+     */
+  deliveryToken: string;
+}
+
+export type AdvertisingSettingsPlacementSettings = { [key: string]: unknown };
+
+export type AdvertisingSettingsFrequencySettings = { [key: string]: unknown };
+
+export type AdvertisingSettingsFeatureFlags = { [key: string]: unknown };
+
+export interface AdvertisingSettings {
+  enabled: boolean;
+  emergencyShutdown: boolean;
+  placementSettings: AdvertisingSettingsPlacementSettings;
+  frequencySettings: AdvertisingSettingsFrequencySettings;
+  featureFlags: AdvertisingSettingsFeatureFlags;
+  billingIntegrationAvailable: boolean;
+  updatedAt: string;
+}
+
+export type AdvertisingSettingsUpdatePlacementSettings = { [key: string]: unknown };
+
+export type AdvertisingSettingsUpdateFrequencySettings = { [key: string]: unknown };
+
+export type AdvertisingSettingsUpdateFeatureFlags = { [key: string]: unknown };
+
+export interface AdvertisingSettingsUpdate {
+  enabled?: boolean;
+  emergencyShutdown?: boolean;
+  placementSettings?: AdvertisingSettingsUpdatePlacementSettings;
+  frequencySettings?: AdvertisingSettingsUpdateFrequencySettings;
+  featureFlags?: AdvertisingSettingsUpdateFeatureFlags;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  reason: string;
+}
+
+export interface AdvertisingAudit {
+  id: string;
+  action: string;
+  entityType: string;
+  /** @nullable */
+  entityId: string | null;
+  /** @nullable */
+  reason: string | null;
+  /** @nullable */
+  actorClerkId: string | null;
+  createdAt: string;
+}
+
+export interface AdvertiserPage {
+  items: Advertiser[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface CampaignPage {
+  items: Campaign[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface AdvertisementPage {
+  items: Advertisement[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface AdvertisingAuditPage {
+  items: AdvertisingAudit[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export type AdvertisingOverviewSeriesItem = {
+  date: string;
+  impressions: number;
+  clicks: number;
+};
+
+export interface AdvertisingOverview {
+  advertiserCount: number;
+  campaignCount: number;
+  activeAdvertisementCount: number;
+  eventCount: number;
+  series: AdvertisingOverviewSeriesItem[];
+  activity: AdvertisingAudit[];
+  billingIntegrationAvailable: boolean;
+}
+
 export type PageParameter = number;
 
 export type FeedTabParameter = typeof FeedTabParameter[keyof typeof FeedTabParameter];
@@ -560,6 +885,12 @@ export type LatitudeParameter = number;
 export type LongitudeParameter = number;
 
 export type RadiusParameter = number;
+
+export type LimitParameter = number;
+
+export type StatusParameter = string;
+
+export type SearchParameter = string;
 
 export type GetFeedParams = {
 tab?: FeedTabParameter;
@@ -637,4 +968,87 @@ export const GetMyClipsStatus = {
   FAILED: 'FAILED',
   SHARED: 'SHARED',
 } as const;
+
+export type ListAdminAdvertisersParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: StatusParameter;
+search?: SearchParameter;
+};
+
+export type ListAdminCampaignsParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: StatusParameter;
+search?: SearchParameter;
+};
+
+export type ListAdminAdvertisementsParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: StatusParameter;
+search?: SearchParameter;
+};
+
+export type ListAdminAdvertisingAuditParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+};
+
+export type GetAdPlacementParams = {
+placement: GetAdPlacementPlacement;
+/**
+ * @minLength 12
+ * @maxLength 200
+ */
+sessionId: string;
+};
+
+export type GetAdPlacementPlacement = typeof GetAdPlacementPlacement[keyof typeof GetAdPlacementPlacement];
+
+
+export const GetAdPlacementPlacement = {
+  home_feed: 'home_feed',
+  following_feed: 'following_feed',
+  search: 'search',
+  trending: 'trending',
+  profile: 'profile',
+  clips: 'clips',
+} as const;
+
+export type GetAdPlacement200 = {
+  ad: AdvertisementDelivery | null;
+};
+
+export type RecordAdEvent201 = {
+  recorded: boolean;
+};
 

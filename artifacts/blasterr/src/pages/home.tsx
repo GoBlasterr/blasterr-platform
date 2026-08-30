@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   useGetFeed,
@@ -6,6 +6,7 @@ import {
 } from "@workspace/api-client-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
+import { FeedAdPlacement } from "@/components/shared/sponsored-blast-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Home as HomeIcon, PenSquare } from "lucide-react";
 
@@ -14,10 +15,17 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const isStandaloneFeed = location === "/";
 
+  const adIndexRef = useRef<Record<string, number>>({});
+
   // Type assertion since the OpenAPI schema type isn't matching perfectly in this mockup context
   const { data: feedData, isLoading } = useGetFeed({ tab: activeTab as any, page: 1 });
   const { data: user } = useCurrentUser();
   const welcomeName = user?.displayName?.trim() || user?.username || "User";
+
+  if (feedData?.items?.length && adIndexRef.current[activeTab] === undefined) {
+    adIndexRef.current[activeTab] = feedData.items.length >= 2 ? 1 : 0;
+  }
+  const currentAdIndex = adIndexRef.current[activeTab];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -107,9 +115,17 @@ export default function Home() {
             <BlastSkeleton />
           </>
         ) : feedData?.items?.length ? (
-          feedData.items.map((blast: any) => (
-            <BlastCard key={blast.id} blast={blast} />
-          ))
+          feedData.items.map((blast: any, index: number) => {
+            const isAfterTarget = index === currentAdIndex;
+            return (
+              <Fragment key={blast.id}>
+                <BlastCard blast={blast} />
+                {isAfterTarget && (
+                  <FeedAdPlacement key={`ad-${activeTab}`} placement={activeTab === "for-you" ? "home_feed" : "following_feed"} />
+                )}
+              </Fragment>
+            );
+          })
         ) : (
           <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
             <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
