@@ -62,14 +62,14 @@ function StaffSignIn() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
-      <section className="w-full max-w-md rounded-xl border bg-card p-8 shadow-2xl">
-        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-[0.22em] text-primary">Restricted control center</p>
-        <h1 className="text-center text-3xl font-bold">BLASTERR ADMIN</h1>
-        <p className="mt-3 text-center text-sm text-muted-foreground">Sign in with your authorized staff credentials.</p>
+    <main className="flex min-h-screen items-center justify-center bg-black p-6 text-white">
+      <section className="w-full max-w-md rounded-xl border border-white/20 bg-black p-8 text-white shadow-2xl">
+        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-[0.22em] text-[#e5f403]">Restricted control center</p>
+        <h1 className="text-center text-3xl font-bold text-white">BLASTERR ADMIN</h1>
+        <p className="mt-3 text-center text-sm text-white">Sign in with your authorized staff credentials.</p>
         <form className="mt-8 space-y-5" onSubmit={submit}>
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="staff-username">Username</label>
+            <label className="text-sm font-medium text-white" htmlFor="staff-username">Username</label>
             <Input
               id="staff-username"
               name="username"
@@ -77,12 +77,13 @@ function StaffSignIn() {
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               placeholder="Enter username"
+              className="border-white/30 bg-black text-white placeholder:text-white/60 focus-visible:ring-[#e5f403]"
               required
               data-testid="staff-username"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="staff-password">Password</label>
+            <label className="text-sm font-medium text-white" htmlFor="staff-password">Password</label>
             <Input
               id="staff-password"
               name="password"
@@ -91,6 +92,7 @@ function StaffSignIn() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter password"
+              className="border-white/30 bg-black text-white placeholder:text-white/60 focus-visible:ring-[#e5f403]"
               required
               data-testid="staff-password"
             />
@@ -99,7 +101,7 @@ function StaffSignIn() {
           <button
             type="submit"
             disabled={!isLoaded || isSubmitting || !username.trim() || !password}
-            className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 w-full items-center justify-center rounded-md bg-[#e5f403] px-5 text-sm font-semibold text-black hover:bg-[#e5f403]/90 disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="staff-sign-in"
           >
             {isSubmitting ? 'Signing in…' : 'Sign in'}
@@ -123,7 +125,7 @@ createRoot(document.getElementById('root')!, {
     signUpUrl={`${basePath}/sign-up`}
   >
     <ClerkLoading>
-      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">Loading BLASTERR ADMIN…</div>
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">Loading BLASTERR ADMIN…</div>
     </ClerkLoading>
     <ClerkLoaded>
       <Show when="signed-in">
