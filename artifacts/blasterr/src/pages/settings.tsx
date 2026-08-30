@@ -238,6 +238,9 @@ export default function Settings() {
                   <Camera className="w-4 h-4" />
                   {avatarFile ? "Change Avatar File" : "Select Avatar File"}
                 </Button>
+                <p className="text-xs text-muted-foreground">
+                  Recommended avatar size: <span className="text-white">800 × 800 px</span>
+                </p>
                 <input
                   ref={avatarInputRef}
                   type="file"
