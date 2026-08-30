@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -6,8 +6,10 @@ import * as z from "zod";
 import { 
   useCreateBlast,
   useCreateTarget,
+  useGetTarget,
   useSearch,
   getGetFeedQueryKey,
+  getGetTargetQueryKey,
   getSearchQueryKey,
 } from "@workspace/api-client-react";
 import type { Target } from "@workspace/api-client-react";
@@ -95,7 +97,7 @@ const StageCard = ({
               )}
             </div>
           </div>
-          {isCompleted && !isActive && (
+          {isCompleted && !isActive && onEdit && (
             <Button type="button" variant="ghost" size="sm" onClick={onEdit} className="text-muted-foreground hover:text-white rounded-full">
               Edit
             </Button>
@@ -118,6 +120,18 @@ export default function CreateBlast() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const lockedTargetSlug = new URLSearchParams(window.location.search).get("target") || "";
+  const isTargetLocked = Boolean(lockedTargetSlug);
+  const {
+    data: lockedTargetData,
+    isLoading: isLockedTargetLoading,
+    isError: isLockedTargetError,
+  } = useGetTarget(lockedTargetSlug, {
+    query: {
+      enabled: isTargetLocked,
+      queryKey: getGetTargetQueryKey(lockedTargetSlug),
+    },
+  });
   const createMutation = useCreateBlast();
   const createTargetMutation = useCreateTarget();
   
@@ -169,7 +183,16 @@ export default function CreateBlast() {
     },
   });
 
+  useEffect(() => {
+    const lockedTarget = lockedTargetData?.target;
+    if (!lockedTarget) return;
+    setSelectedTarget(lockedTarget);
+    form.setValue("targetId", lockedTarget.id, { shouldValidate: true });
+    setStage((currentStage) => currentStage === 1 ? 2 : currentStage);
+  }, [form, lockedTargetData?.target]);
+
   const handleTargetSelect = (t: Target) => {
+    if (isTargetLocked && t.slug !== lockedTargetSlug) return;
     setSelectedTarget(t);
     form.setValue("targetId", t.id, { shouldValidate: true });
     setStage(2);
@@ -181,6 +204,7 @@ export default function CreateBlast() {
   };
 
   const handleCreateTarget = () => {
+    if (isTargetLocked) return;
     createTargetMutation.mutate(
       {
         data: {
@@ -351,8 +375,11 @@ export default function CreateBlast() {
   };
 
   const onSubmit = (values: z.infer<typeof blastSchema>) => {
+    const blastValues = isTargetLocked && selectedTarget
+      ? { ...values, targetId: selectedTarget.id }
+      : values;
     createMutation.mutate(
-      { data: values },
+      { data: blastValues },
       {
         onSuccess: (createdBlast) => {
           queryClient.setQueryData(
@@ -388,7 +415,7 @@ export default function CreateBlast() {
           variant="ghost"
           size="icon"
           aria-label="Back to feed without publishing"
-          onClick={() => setLocation("/home")}
+          onClick={() => setLocation(isTargetLocked ? `/target/${lockedTargetSlug}` : "/home")}
           className="rounded-full hover:bg-white/10"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -407,10 +434,43 @@ export default function CreateBlast() {
               isCompleted={!!selectedTarget} 
               title="Lock Onto Target" 
               summary={selectedTarget && <><TargetIcon className="w-4 h-4"/> {selectedTarget.name}</>}
-              onEdit={() => setStage(1)}
+              onEdit={isTargetLocked ? undefined : () => setStage(1)}
             >
               <div className="space-y-4">
-                {!isCreatingTarget ? (
+                {isTargetLocked ? (
+                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+                    {isLockedTargetLoading ? (
+                      <div className="flex items-center gap-3 text-primary">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span className="font-medium">Loading Target lock...</span>
+                      </div>
+                    ) : isLockedTargetError || !selectedTarget ? (
+                      <div className="space-y-2">
+                        <p className="font-bold text-white">Target lock unavailable</p>
+                        <p className="text-sm text-muted-foreground">
+                          This Blast cannot be published because the original Target could not be loaded.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/30 bg-black/40">
+                          {selectedTarget.imageUrl ? (
+                            <img src={selectedTarget.imageUrl} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <TargetIcon className="h-6 w-6 text-primary" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-widest text-primary">Locked Target</p>
+                          <p className="mt-1 text-lg font-bold text-white">{selectedTarget.name}</p>
+                          {selectedTarget.location && (
+                            <p className="mt-1 text-xs text-muted-foreground">{selectedTarget.location}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : !isCreatingTarget ? (
                   <>
                     <div className="relative group">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />

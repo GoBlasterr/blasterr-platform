@@ -64,7 +64,7 @@ export default function TargetDetail() {
                )}
             </div>
             
-             <Button className="rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 px-6 shadow-[0_0_15px_rgba(229,244,3,0.3)]" onClick={() => setLocation('/create')}>
+             <Button className="rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 px-6 shadow-[0_0_15px_rgba(229,244,3,0.3)]" onClick={() => setLocation(`/create?target=${encodeURIComponent(target.slug)}`)}>
               <PenSquare className="w-4 h-4 mr-2" /> Blast
             </Button>
           </div>
