@@ -122,8 +122,18 @@ router.get("/clips", async (req, res): Promise<void> => {
 });
 
 router.get("/admin/clips", async (req, res): Promise<void> => {
-  const user = await viewer(req);
-  if (!user.admin) return void res.status(403).json({ error: "Admin access is required." });
+  const { userId } = getAuth(req);
+  if (!userId) return void res.status(401).json({ error: "Authentication required." });
+  let admin = false;
+  try {
+    const clerkUser = await clerkClient.users.getUser(userId);
+    const metadata = clerkUser.publicMetadata as Record<string, unknown>;
+    if (isSuspended(metadata)) return void res.status(403).json({ error: "This account is suspended." });
+    admin = isActiveAdmin(metadata);
+  } catch {
+    return void res.status(403).json({ error: "Admin access is required." });
+  }
+  if (!admin) return void res.status(403).json({ error: "Admin access is required." });
   res.json(GetAdminClipsResponse.parse({
     clipCount: clips.length,
     completedCount: clips.filter((clip) => ["COMPLETED", "SHARED"].includes(clip.renderStatus)).length,

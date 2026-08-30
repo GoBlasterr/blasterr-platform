@@ -1,8 +1,11 @@
 import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SignIn, SignUp, useAuth, useClerk, useUser } from '@clerk/react';
+import { getGetAdminOverviewQueryKey, useGetAdminOverview } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
 import NotFound from '@/pages/not-found';
 import OverviewPage from '@/pages/overview';
 import MediaPage from '@/pages/media';
@@ -39,8 +42,9 @@ import AnnouncementsPage from '@/pages/announcements';
 import FeatureControlsPage from '@/pages/feature-controls';
 
 const queryClient = new QueryClient();
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-function Router() {
+function AdminRouter() {
   return (
     <AdminShell>
       <RoutedErrorBoundary>
@@ -109,17 +113,180 @@ function Router() {
   );
 }
 
+function SignInPage() {
+  return (
+    <main className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-8">
+      <SignIn
+        routing="path"
+        path={`${basePath}/sign-in`}
+        signUpUrl={`${basePath}/sign-up`}
+      />
+    </main>
+  );
+}
+
+function SignUpPage() {
+  return (
+    <main className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-8">
+      <SignUp
+        routing="path"
+        path={`${basePath}/sign-up`}
+        signInUrl={`${basePath}/sign-in`}
+      />
+    </main>
+  );
+}
+
+function AdminLanding() {
+  return (
+    <main className="flex min-h-[100dvh] items-center justify-center bg-background p-6 text-foreground">
+      <section className="w-full max-w-lg rounded-sm border bg-card p-8 shadow-2xl">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+          Restricted control center
+        </p>
+        <h1 className="font-mono text-3xl font-bold tracking-tight">BLASTERR ADMIN</h1>
+        <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">
+          Manage advertising, moderation, and platform operations from one secure
+          workspace. Access is granted only to staff accounts authorized by BLASTERR.
+        </p>
+        <a
+          href={`${basePath}/sign-in`}
+          className="mt-7 inline-flex h-10 items-center justify-center rounded-sm bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          data-testid="link-staff-sign-in"
+        >
+          Staff sign in
+        </a>
+      </section>
+    </main>
+  );
+}
+
+function SignedOutRouter() {
+  return (
+    <Switch>
+      <Route path="/" component={AdminLanding} />
+      <Route path="/sign-in/*?" component={SignInPage} />
+      <Route path="/sign-up/*?" component={SignUpPage} />
+      <Route component={() => <Redirect to="/" />} />
+    </Switch>
+  );
+}
+
+function httpStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return undefined;
+  const status = (error as { status?: unknown }).status;
+  return typeof status === 'number' ? status : undefined;
+}
+
+function AuthLoadingState() {
+  return (
+    <main className="flex min-h-[100dvh] items-center justify-center bg-background p-6 text-foreground">
+      <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
+        Verifying staff access…
+      </p>
+    </main>
+  );
+}
+
+function AccessDeniedState() {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const identity = user?.primaryEmailAddress?.emailAddress ?? user?.username ?? 'this account';
+
+  return (
+    <main className="flex min-h-[100dvh] items-center justify-center bg-background p-6 text-foreground">
+      <section className="w-full max-w-xl rounded-sm border border-destructive/30 bg-card p-8 shadow-2xl">
+        <p className="mb-3 font-mono text-xs font-bold uppercase tracking-[0.22em] text-destructive">
+          Access denied · 403
+        </p>
+        <h1 className="font-mono text-3xl font-bold tracking-tight">Staff authorization required</h1>
+        <p className="mt-4 text-sm leading-6 text-muted-foreground">
+          {identity} is signed in, but this account is not authorized for the BLASTERR
+          control center. Ask a BLASTERR administrator to grant staff access.
+        </p>
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">
+          The server verifies the staff role for every admin request. This screen is
+          only a clear client-side explanation of that server decision.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-7 rounded-sm font-mono text-xs uppercase tracking-wider"
+          onClick={() => void signOut({ redirectUrl: basePath || '/' })}
+          data-testid="button-sign-out-denied"
+        >
+          Sign out
+        </Button>
+      </section>
+    </main>
+  );
+}
+
+function SessionVerificationState() {
+  const { signOut } = useClerk();
+
+  return (
+    <main className="flex min-h-[100dvh] items-center justify-center bg-background p-6 text-foreground">
+      <section className="w-full max-w-xl rounded-sm border border-destructive/30 bg-card p-8 shadow-2xl">
+        <p className="mb-3 font-mono text-xs font-bold uppercase tracking-[0.22em] text-destructive">
+          Session verification failed · 401
+        </p>
+        <h1 className="font-mono text-3xl font-bold tracking-tight">Sign-in required</h1>
+        <p className="mt-4 text-sm leading-6 text-muted-foreground">
+          Clerk shows an active session, but the BLASTERR API could not verify it.
+          Sign out and sign in again to refresh your session.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-7 rounded-sm font-mono text-xs uppercase tracking-wider"
+          onClick={() => void signOut({ redirectUrl: `${basePath}/sign-in` })}
+          data-testid="button-refresh-session"
+        >
+          Sign in again
+        </Button>
+      </section>
+    </main>
+  );
+}
+
+function AdminAccessGate() {
+  const { data, isPending, isError, error } = useGetAdminOverview({
+    query: {
+      queryKey: getGetAdminOverviewQueryKey(),
+      retry: false,
+      staleTime: 30_000,
+    },
+    request: {
+      credentials: 'include',
+    },
+  });
+
+  if (isPending || (!data && !isError)) return <AuthLoadingState />;
+  if (isError) {
+    return httpStatus(error) === 403 ? <AccessDeniedState /> : <SessionVerificationState />;
+  }
+
+  return <AdminRouter />;
+}
+
+function AuthenticatedRouter() {
+  return <AdminAccessGate />;
+}
+
 function RoutedErrorBoundary({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   return <ErrorBoundary resetKey={location}>{children}</ErrorBoundary>;
 }
 
 function App() {
+  const { isSignedIn } = useAuth();
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          <Router />
+          {isSignedIn ? <AuthenticatedRouter /> : <SignedOutRouter />}
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

@@ -984,8 +984,11 @@ router.post("/blocks", (req, res): void => {
 
 router.get("/admin/overview", async (req, res): Promise<void> => {
   const { userId } = getAuth(req);
-  const isDevelopmentPreview = !userId && process.env.NODE_ENV === "development";
-  if (!isDevelopmentPreview && !await isAdminUser(userId)) {
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required." });
+    return;
+  }
+  if (!await isAdminUser(userId)) {
     res.status(403).json({ error: "Admin access required." });
     return;
   }

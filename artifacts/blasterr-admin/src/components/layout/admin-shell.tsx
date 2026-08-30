@@ -1,10 +1,19 @@
 import { ReactNode, useState } from "react";
+import { useClerk, useUser } from "@clerk/react";
 import { Sidebar } from "./sidebar";
 import { Bell, Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { signOut } = useClerk();
+  const { user } = useUser();
+  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ")
+    || user?.username
+    || user?.primaryEmailAddress?.emailAddress
+    || "Staff user";
+  const initials = [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join("")
+    || displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground flex w-full">
@@ -59,12 +68,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </Button>
             <div className="flex items-center gap-3 pl-2 lg:pl-4 border-l">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold leading-none">Admin session</p>
-                <p className="text-xs text-muted-foreground mt-1">Server-authorized</p>
+                <p className="text-sm font-bold leading-none">{displayName}</p>
+                <p className="text-xs text-muted-foreground mt-1">Server-authorized staff</p>
               </div>
               <div className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black rounded-sm flex items-center justify-center font-bold font-mono text-xs shrink-0">
-                SYS
+                {initials}
               </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-sm font-mono text-[10px] uppercase tracking-wider"
+                onClick={() => void signOut({ redirectUrl: import.meta.env.BASE_URL.replace(/\/$/, '') || "/" })}
+                data-testid="button-sign-out"
+              >
+                Sign out
+              </Button>
             </div>
           </div>
         </header>
