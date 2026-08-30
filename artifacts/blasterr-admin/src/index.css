@@ -72,7 +72,7 @@
   --foreground: 0 0% 4%;
   --border: 0 0% 90%;
   --input: 0 0% 90%;
-  --ring: 63.734439834025 97.570850202429% 48.431372549020%;
+  --ring: 64 98% 42%;
   
   --card: 0 0% 100%;
   --card-foreground: 0 0% 4%;
@@ -82,9 +82,9 @@
   --popover-foreground: 0 0% 4%;
   --popover-border: 0 0% 90%;
   
-  --primary: 63.734439834025 97.570850202429% 48.431372549020%; /* BLASTERR Neon Yellow */
+  --primary: 64 98% 42%; /* BLASTERR Dark Neon Yellow */
   --primary-foreground: 0 0% 4%;
-  --primary-border: 63.734439834025 97.570850202429% 48.431372549020%;
+  --primary-border: 64 98% 42%;
   
   --secondary: 0 0% 90%;
   --secondary-foreground: 0 0% 10%;
@@ -95,7 +95,7 @@
   --muted-border: 0 0% 88%;
   
   --accent: 0 0% 94%;
-  --accent-foreground: 63.734439834025 97.570850202429% 48.431372549020%;
+  --accent-foreground: 64 98% 42%;
   --accent-border: 0 0% 88%;
   
   --destructive: 0 84% 60%;
@@ -105,15 +105,15 @@
   --sidebar: 0 0% 100%;
   --sidebar-foreground: 0 0% 20%;
   --sidebar-border: 0 0% 90%;
-  --sidebar-primary: 63.734439834025 97.570850202429% 48.431372549020%;
+  --sidebar-primary: 64 98% 42%;
   --sidebar-primary-foreground: 0 0% 4%;
-  --sidebar-primary-border: 63.734439834025 97.570850202429% 48.431372549020%;
+  --sidebar-primary-border: 64 98% 42%;
   --sidebar-accent: 0 0% 94%;
   --sidebar-accent-foreground: 0 0% 9%;
   --sidebar-accent-border: 0 0% 88%;
-  --sidebar-ring: 63.734439834025 97.570850202429% 48.431372549020%;
+  --sidebar-ring: 64 98% 42%;
   
-  --chart-1: 63.734439834025 97.570850202429% 48.431372549020%;
+  --chart-1: 64 98% 42%;
   --chart-2: 220 100% 50%;
   --chart-3: 45 100% 50%;
   --chart-4: 160 100% 40%;
@@ -131,7 +131,7 @@
   --foreground: 0 0% 96%;
   --border: 0 0% 15%;
   --input: 0 0% 15%;
-  --ring: 63.734439834025 97.570850202429% 48.431372549020%;
+  --ring: 64 98% 42%;
   
   --card: 0 0% 6%;
   --card-foreground: 0 0% 96%;
@@ -141,9 +141,9 @@
   --popover-foreground: 0 0% 96%;
   --popover-border: 0 0% 15%;
   
-  --primary: 63.734439834025 97.570850202429% 48.431372549020%;
+  --primary: 64 98% 42%;
   --primary-foreground: 0 0% 4%;
-  --primary-border: 63.734439834025 97.570850202429% 48.431372549020%;
+  --primary-border: 64 98% 42%;
   
   --secondary: 0 0% 15%;
   --secondary-foreground: 0 0% 96%;
@@ -154,7 +154,7 @@
   --muted-border: 0 0% 15%;
   
   --accent: 0 0% 15%;
-  --accent-foreground: 63.734439834025 97.570850202429% 48.431372549020%;
+  --accent-foreground: 64 98% 42%;
   --accent-border: 0 0% 20%;
   
   --destructive: 0 62% 30%;
@@ -164,15 +164,15 @@
   --sidebar: 0 0% 6%;
   --sidebar-foreground: 0 0% 80%;
   --sidebar-border: 0 0% 15%;
-  --sidebar-primary: 63.734439834025 97.570850202429% 48.431372549020%;
+  --sidebar-primary: 64 98% 42%;
   --sidebar-primary-foreground: 0 0% 4%;
-  --sidebar-primary-border: 63.734439834025 97.570850202429% 48.431372549020%;
+  --sidebar-primary-border: 64 98% 42%;
   --sidebar-accent: 0 0% 15%;
   --sidebar-accent-foreground: 0 0% 96%;
   --sidebar-accent-border: 0 0% 20%;
-  --sidebar-ring: 63.734439834025 97.570850202429% 48.431372549020%;
+  --sidebar-ring: 64 98% 42%;
   
-  --chart-1: 63.734439834025 97.570850202429% 48.431372549020%;
+  --chart-1: 64 98% 42%;
   --chart-2: 220 100% 50%;
   --chart-3: 45 100% 50%;
   --chart-4: 160 100% 40%;
