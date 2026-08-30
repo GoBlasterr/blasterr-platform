@@ -1,0 +1,1742 @@
+# BLASTERR — BLAST-TO-CLIP / BLASTR CLIPS SYSTEM
+
+## REPLIT AGENT BUILD PROMPT
+
+Build a new major feature inside the BLASTERR social platform called:
+
+# 🔥 BLASTR CLIPS
+
+The purpose of BLASTR CLIPS is to turn compelling BLASTERR posts into short-form vertical videos that users can export and share to platforms such as:
+
+* YouTube Shorts
+* TikTok
+* Instagram Reels
+* Facebook Reels
+* X
+
+This feature should become BLASTERR's built-in content distribution and marketing engine.
+
+---
+
+# 1. CORE CONCEPT
+
+When a user creates a particularly interesting, funny, controversial, dramatic, informative, or entertaining Blast, they should have a prominent button:
+
+# ✨ CREATE CLIP
+
+The user clicks:
+
+### CREATE CLIP
+
+BLASTERR opens a professional short-form video creation interface.
+
+The user selects a video style:
+
+🔥 **BREAKING BLAST**
+
+😂 **FUNNY**
+
+🚨 **DRAMATIC**
+
+🧾 **RECEIPTS**
+
+⚔️ **DEBATE**
+
+🎤 **STORY**
+
+Then BLASTERR automatically creates a vertical:
+
+# 9:16 BLASTR CLIP
+
+The generated video should contain:
+
+* Original Blast content
+* User/profile attribution
+* BLASTERR branding
+* BLASTR CLIPS branding
+* Animated captions
+* Appropriate background visuals
+* Optional uploaded media from the original Blast
+* Optional audio/music from an approved/licensed library
+* Dynamic transitions
+* CTA
+* BLASTERR logo
+* BLASTERR website/app branding
+
+The final video should be optimized for short-form social media.
+
+---
+
+# 2. IMPORTANT PRODUCT GOAL
+
+This is NOT supposed to feel like a basic video converter.
+
+It should feel like:
+
+> **BLASTERR has its own built-in media studio.**
+
+The user should feel like they are creating a professional TikTok/Short/Reel directly from their Blast.
+
+The interface should be futuristic, premium, extremely easy to use, and consistent with the existing BLASTERR outer-space design.
+
+---
+
+# 3. EXISTING BLASTERR BRAND
+
+Use the existing attached BLASTERR logo as the source of truth for:
+
+* Colors
+* Logo treatment
+* Brand accents
+* Visual identity
+
+Do NOT create a new unrelated color palette.
+
+Maintain the existing BLASTERR:
+
+### OUTER SPACE / FUTURISTIC / PREMIUM / DIGITAL UNIVERSE
+
+aesthetic.
+
+Use:
+
+* Deep space backgrounds
+* Stars
+* Nebulas
+* Cosmic gradients
+* Glassmorphism
+* Futuristic panels
+* Subtle neon glow
+* Holographic elements
+* Modern typography
+* Smooth animations
+
+The video editor should look like a futuristic media-production studio.
+
+---
+
+# 4. WHERE THE CREATE CLIP BUTTON APPEARS
+
+Add:
+
+# ✨ CREATE CLIP
+
+to the Blast action menu.
+
+Possible locations:
+
+### On every eligible Blast
+
+`...`
+
+→ Create Clip
+
+And optionally:
+
+### Under the Blast
+
+🔥 Reactions
+
+💬 Comments
+
+↗ Share
+
+🔖 Save
+
+✨ **Create Clip**
+
+The button should be visually distinct.
+
+---
+
+# 5. USER PERMISSION / CONTENT RIGHTS
+
+Build content-permission logic into the feature.
+
+A user should only be able to create external promotional clips from content they are authorized to use.
+
+For each Blast, maintain fields such as:
+
+* allow_clip_creation
+* allow_external_sharing
+* allow_promotional_use
+
+When a user creates a Blast, provide appropriate settings such as:
+
+### CLIP & DISTRIBUTION
+
+☑ Allow BLASTERR to create BLASTR CLIPS from this Blast
+
+☑ Allow my Blast to be featured on BLASTERR social channels
+
+☑ Allow external promotional distribution
+
+Users should be able to change these settings where appropriate.
+
+Do not assume that BLASTERR automatically owns uploaded third-party content.
+
+Do not use copyrighted music without appropriate licensing or permission.
+
+Do not scrape music from TikTok, YouTube, Instagram, or other platforms.
+
+Use only:
+
+* User-owned audio
+* Properly licensed music
+* Platform-approved/licensed music
+* Royalty-free music where appropriate
+* Original BLASTERR audio
+
+---
+
+# 6. CREATE CLIP SCREEN
+
+When the user clicks:
+
+# ✨ CREATE CLIP
+
+Open a dedicated creation studio.
+
+Header:
+
+# 🔥 BLASTR CLIPS
+
+Subheading:
+
+### Turn your Blast into a shareable short.
+
+Layout:
+
+### LEFT
+
+Video preview.
+
+### RIGHT
+
+Creation controls.
+
+On mobile:
+
+* Video preview on top
+* Controls underneath
+
+---
+
+# 7. VIDEO PREVIEW
+
+The preview must be:
+
+## 9:16 VERTICAL
+
+Recommended:
+
+1080 × 1920
+
+Display a realistic phone-style preview.
+
+The preview should update when the user changes:
+
+* Style
+* Text
+* Captions
+* Background
+* Branding
+* Audio
+* Duration
+* Layout
+
+Add:
+
+▶ Play
+
+⏸ Pause
+
+↻ Replay
+
+Timeline/scrubber if practical.
+
+---
+
+# 8. VIDEO STYLES
+
+Create six initial templates.
+
+---
+
+## STYLE 1 — 🔥 BREAKING BLAST
+
+Feel:
+
+* Breaking news
+* Urgent
+* High energy
+* Fast paced
+
+Use:
+
+* Strong headline
+* Animated text
+* Rapid transitions
+* BLASTERR branding
+* Breaking Blast visual treatment
+
+Example:
+
+# 🔥 BREAKING BLAST
+
+> "THIS RESTAURANT JUST GOT PUT ON BLAST..."
+
+Then show the original Blast.
+
+End:
+
+### WHAT DO YOU THINK?
+
+🔥 BLAST IT ON BLASTERR
+
+---
+
+# 9. STYLE 2 — 😂 FUNNY
+
+Feel:
+
+* Comedic
+* Fast
+* Entertaining
+* Meme-friendly
+
+Use:
+
+* Large animated captions
+* Comedic timing
+* Zoom effects
+* Punch-in transitions
+* Reaction moments
+* Optional approved sound effects
+
+Do not make it childish.
+
+Keep it modern and social-media oriented.
+
+---
+
+# 10. STYLE 3 — 🚨 DRAMATIC
+
+Feel:
+
+* Cinematic
+* Suspenseful
+* High tension
+
+Use:
+
+* Darker cosmic visuals
+* Dramatic transitions
+* Cinematic text
+* Suspense timing
+* Appropriate sound effects
+
+Example:
+
+> "SHE PUT HER RESTAURANT ON BLAST..."
+
+Then:
+
+> "THE OWNER BLASTED BACK."
+
+Then:
+
+### WHO'S RIGHT?
+
+---
+
+# 11. STYLE 4 — 🧾 RECEIPTS
+
+Feel:
+
+* Evidence
+* Investigation
+* Storytelling
+* Screenshots
+* Proof
+
+This style should emphasize:
+
+# 🧾 DROP THE RECEIPTS
+
+Allow the clip to display:
+
+* Screenshots
+* Uploaded images
+* Original Blast
+* Receipts/media
+* Timeline
+* Supporting text
+
+Animate screenshots into the video.
+
+Use zoom/pan effects.
+
+Make uploaded screenshots readable.
+
+---
+
+# 12. STYLE 5 — ⚔️ DEBATE
+
+Feel:
+
+* Argument
+* Two sides
+* Competition
+* Social debate
+
+If the Blast has a Blast Back, automatically recognize that relationship.
+
+Example:
+
+### SIDE A
+
+Original Blast
+
+VS.
+
+### SIDE B
+
+BLAST BACK
+
+Then:
+
+# ⚔️ WHO'S RIGHT?
+
+Allow a poll/vote CTA if the underlying Blast supports voting.
+
+This template should be designed so future BLAST BATTLES can plug into it.
+
+---
+
+# 13. STYLE 6 — 🎤 STORY
+
+Feel:
+
+* Storytelling
+* Narration
+* Documentary/social commentary
+
+Structure:
+
+### HOOK
+
+First 1–3 seconds.
+
+### STORY
+
+Display the Blast and supporting media.
+
+### RESPONSE
+
+Show comments or Blast Back if applicable.
+
+### END
+
+CTA.
+
+Example:
+
+> "This started with one Blast..."
+
+Then:
+
+> "Then everyone started talking."
+
+Then:
+
+# WHAT WOULD YOU DO?
+
+🔥 BLAST IT
+
+---
+
+# 14. AUTOMATIC VIDEO STRUCTURE
+
+When creating a clip, automatically build a structure similar to:
+
+### 0–3 seconds
+
+HOOK
+
+Example:
+
+> 🔥 THIS JUST GOT BLASTED...
+
+### 3–10 seconds
+
+Original Blast headline/content.
+
+### 10–25 seconds
+
+Supporting media/content.
+
+### 25–40 seconds
+
+Comments, reactions, Blast Back, or additional context.
+
+### Final 3–5 seconds
+
+BLASTERR CTA.
+
+Example:
+
+# WHAT DO YOU THINK?
+
+### 🔥 BLAST IT ON BLASTERR
+
+**BLASTERR.COM**
+
+Duration should be dynamic based on content.
+
+Support:
+
+* 15 seconds
+* 30 seconds
+* 45 seconds
+* 60 seconds
+
+Architect the video engine so longer formats can be added later.
+
+---
+
+# 15. AI-ASSISTED CLIP CREATION
+
+Create an architecture for AI-assisted clip generation.
+
+The system should eventually be capable of:
+
+* Identifying the hook
+* Selecting important portions of a Blast
+* Creating a short headline
+* Generating captions
+* Summarizing long text
+* Selecting important comments
+* Selecting Blast Back content
+* Creating a story structure
+* Suggesting a title
+* Suggesting hashtags
+* Suggesting a CTA
+
+For Phase 1 of this feature, implement practical AI functionality where available, but DO NOT make the entire application dependent on AI.
+
+If AI generation is unavailable, create deterministic fallback logic.
+
+The clip creation system must still work.
+
+---
+
+# 16. AUTOMATIC CAPTION GENERATION
+
+Captions should be a major feature.
+
+Generate large, readable animated captions.
+
+Caption options:
+
+### STYLE
+
+* Bold
+* Minimal
+* Breaking
+* Meme
+* Cinematic
+* Story
+
+### POSITION
+
+* Top
+* Center
+* Bottom
+
+### ANIMATION
+
+* Pop
+* Slide
+* Fade
+* Word-by-word
+* Highlight
+
+Make sure captions remain readable on mobile.
+
+---
+
+# 17. USER CUSTOMIZATION
+
+Before generating the final clip, allow the user to customize:
+
+### TITLE
+
+### DESCRIPTION
+
+### CAPTIONS
+
+### STYLE
+
+### BACKGROUND
+
+### MUSIC
+
+### VOICEOVER
+
+### DURATION
+
+### BRANDING
+
+### CTA
+
+Do not overwhelm users.
+
+Use tabs or expandable sections.
+
+---
+
+# 18. BRANDING CONTROLS
+
+Automatically include:
+
+### BLASTERR logo
+
+and:
+
+### BLASTR CLIPS
+
+The branding should be attractive but not cover the actual content.
+
+Possible locations:
+
+* Top corner
+* Bottom corner
+* End card
+
+Include a subtle watermark.
+
+Allow the creator to select:
+
+### Minimal Branding
+
+or
+
+### Full BLASTR Branding
+
+Do not allow users to completely remove required attribution where platform rules/content permissions require it.
+
+---
+
+# 19. PROFILE ATTRIBUTION
+
+Every generated clip should clearly attribute the original creator.
+
+Example:
+
+### 🔥 BLAST BY @USERNAME
+
+Include:
+
+* Profile image
+* Username
+* Display name where appropriate
+
+This should help creators receive recognition when their Blast appears elsewhere.
+
+---
+
+# 20. TARGET ATTRIBUTION
+
+If the Blast is attached to a Target, show it.
+
+Example:
+
+### 🎯 BLASTING
+
+**Joe's BBQ**
+
+Atlanta, GA
+
+This helps maintain the core BLASTERR Target ecosystem.
+
+---
+
+# 21. COMMENTS / SOCIAL PROOF
+
+Where appropriate, the clip should be able to include:
+
+### TOP COMMENTS
+
+Example:
+
+> "@Mike: Ain't no way 😂"
+
+> "@Sarah: FACTS."
+
+> "@John: I disagree."
+
+Display them as animated social comments.
+
+Only use comments that are eligible to be externally displayed according to user/content permissions.
+
+---
+
+# 22. REACTION COUNTS
+
+If relevant, display social proof:
+
+🔥 12.4K
+
+💬 842
+
+👀 93K views
+
+Do not fabricate statistics.
+
+Only display real statistics.
+
+---
+
+# 23. BLAST BACK INTEGRATION
+
+If the Blast has a Blast Back, the clip creator should detect it.
+
+Display:
+
+### ORIGINAL BLAST
+
+then:
+
+### 🔥 BLAST BACK
+
+This should automatically create a compelling two-sided video when possible.
+
+---
+
+# 24. VIDEO RENDERING ENGINE
+
+Use a proper programmatic video generation system.
+
+Preferred approach:
+
+### REMOTION
+
+Use React-based video composition where practical.
+
+The system should render:
+
+### 1080 × 1920
+
+### 9:16
+
+Use FFmpeg where necessary for:
+
+* Video processing
+* Audio processing
+* Media conversion
+* Compression
+* Thumbnail generation
+
+Do not create fake video previews that cannot actually be exported.
+
+The generated clip must be a real playable video file.
+
+---
+
+# 25. MEDIA PROCESSING
+
+Support:
+
+* JPG
+* PNG
+* WEBP
+* MP4
+* MOV where practical
+
+Validate uploads.
+
+Optimize media before rendering where appropriate.
+
+Do not allow arbitrary file types.
+
+Create thumbnails.
+
+Use asynchronous processing for larger video files.
+
+Do not block the main web request while a long video renders.
+
+---
+
+# 26. CLIP GENERATION PROCESS
+
+When user clicks:
+
+# CREATE BLASTR CLIP
+
+Show:
+
+### GENERATING YOUR BLAST...
+
+with a futuristic progress animation.
+
+Possible stages:
+
+### ANALYZING BLAST
+
+↓
+
+### BUILDING STORY
+
+↓
+
+### ADDING CAPTIONS
+
+↓
+
+### APPLYING BRANDING
+
+↓
+
+### RENDERING VIDEO
+
+↓
+
+### YOUR BLAST IS READY 🔥
+
+The rendering process should run asynchronously.
+
+---
+
+# 27. CLIP LIBRARY
+
+Create a user's:
+
+# MY CLIPS
+
+section.
+
+Show:
+
+* Drafts
+* Processing
+* Completed
+* Published/shared
+
+Each clip card should display:
+
+* Thumbnail
+* Title
+* Style
+* Duration
+* Date
+* Views
+* Status
+
+Actions:
+
+### VIEW
+
+### EDIT
+
+### DOWNLOAD/EXPORT
+
+### SHARE
+
+### DELETE
+
+---
+
+# 28. SHARE SCREEN
+
+After the clip is generated:
+
+# 🔥 YOUR BLAST IS READY
+
+Buttons:
+
+### YouTube Shorts
+
+### TikTok
+
+### Instagram
+
+### Facebook
+
+### X
+
+### Copy Link
+
+### Share
+
+### Export Video
+
+---
+
+# 29. IMPORTANT — SOCIAL PLATFORM INTEGRATIONS
+
+Do not fake direct publishing integrations.
+
+Different social platforms have different APIs, OAuth requirements, upload requirements, account permissions, and review processes.
+
+Build the architecture so each platform is an independent integration.
+
+Example:
+
+```text
+SocialDistributionService
+    ├── YouTubeService
+    ├── TikTokService
+    ├── InstagramService
+    ├── FacebookService
+    └── XService
+```
+
+Initially implement:
+
+### EXPORT VIDEO
+
+### COPY SHARE LINK
+
+### NATIVE WEB/MOBILE SHARE
+
+Where official APIs and permissions are available, build OAuth-based integrations.
+
+Do not scrape websites.
+
+Do not automate browser actions to bypass platform restrictions.
+
+Do not store third-party passwords.
+
+---
+
+# 30. YOUTUBE SHORTS
+
+Architect for official YouTube API integration.
+
+Allow the user to eventually:
+
+* Connect YouTube
+* Authorize BLASTERR
+* Select channel
+* Create title
+* Create description
+* Add hashtags
+* Select privacy
+* Publish
+
+Until official credentials/API configuration is available, provide a clean:
+
+### EXPORT FOR YOUTUBE SHORTS
+
+workflow.
+
+Never pretend a video was published if it was only exported.
+
+---
+
+# 31. TIKTOK
+
+Architect for official TikTok publishing/sharing capabilities.
+
+Allow:
+
+* Account connection
+* Authorization
+* Caption
+* Hashtags
+* Export/publish where officially supported
+
+If direct publishing is unavailable for the current account/API configuration:
+
+### EXPORT TO TIKTOK
+
+and provide the finished 9:16 video.
+
+---
+
+# 32. INSTAGRAM / FACEBOOK
+
+Architect for official Meta APIs where applicable.
+
+Support:
+
+* Instagram Reels
+* Facebook Reels
+
+Again:
+
+Do not fake publishing.
+
+If direct publishing isn't configured:
+
+### EXPORT & SHARE
+
+---
+
+# 33. X
+
+Architect for official X API functionality where available.
+
+Allow:
+
+* Connected account
+* Caption
+* Video
+* Publish/share
+
+If unavailable:
+
+### EXPORT FOR X
+
+---
+
+# 34. HASHTAG GENERATION
+
+Create an optional AI-assisted hashtag suggestion system.
+
+Example:
+
+#BLASTERR
+
+#BLASTRCLIPS
+
+#Funny
+
+#Atlanta
+
+#Restaurant
+
+Only suggest hashtags relevant to the content.
+
+Do not spam hashtags.
+
+Allow users to edit them.
+
+---
+
+# 35. CLIP TITLES
+
+Automatically suggest titles.
+
+Example:
+
+Original Blast:
+
+> "This restaurant has the best wings in Atlanta."
+
+Suggested:
+
+### "Atlanta's Best Wings Just Got BLASTED 🔥"
+
+Allow the user to edit.
+
+---
+
+# 36. THUMBNAIL GENERATION
+
+Generate a thumbnail/frame suitable for social media.
+
+Create:
+
+* 16:9 preview where appropriate
+* 9:16 thumbnail
+* Platform-specific image where needed
+
+The thumbnail should feature:
+
+* Hook
+* Target
+* BLASTERR branding
+* Creator attribution
+
+Avoid clutter.
+
+---
+
+# 37. ADMIN BLASTR MEDIA CENTER
+
+Add a protected admin section:
+
+# 🎬 BLASTR MEDIA CENTER
+
+This will eventually allow BLASTERR staff to turn viral user Blasts into official BLASTR content.
+
+Dashboard:
+
+### VIRAL BLASTS
+
+Display potential viral Blasts.
+
+Metrics:
+
+* Views
+* Engagement
+* Shares
+* Comments
+* Blast Backs
+* Growth rate
+
+Add:
+
+### VIRAL SCORE
+
+This can be a basic calculated score initially.
+
+Example:
+
+```text
+Viral Score =
+engagement + velocity + comments + shares + views
+```
+
+Do not claim this is AI if it is simply algorithmic.
+
+---
+
+# 38. ADMIN CREATE CLIP
+
+Admins should be able to select any eligible Blast and click:
+
+# ✨ CREATE BLASTR CLIP
+
+Admins can create clips for:
+
+* BLASTR CLIPS YouTube
+* BLASTERR social channels
+* Marketing
+* Sponsored campaigns
+* Promotional content
+
+Respect the user's content permissions.
+
+---
+
+# 39. FEATURED BLASTS
+
+Create a system where admins can mark a Blast:
+
+### FEATURED FOR BLASTR
+
+Fields:
+
+* Featured status
+* Featured date
+* Featured category
+* Clip status
+* Clip URL
+* Publishing status
+
+This will allow the BLASTERR editorial team to identify content for the media network.
+
+---
+
+# 40. CLIP ANALYTICS
+
+Prepare analytics infrastructure for:
+
+* Clip views
+* Shares
+* Downloads
+* Generated clips
+* Published clips
+* Platform
+* Engagement
+* Click-throughs
+* BLASTERR referrals
+
+Eventually:
+
+### CLIP → BLASTERR CONVERSION
+
+Track how many users come back to BLASTERR after watching a clip where tracking is legally and technically appropriate.
+
+This is extremely important because BLASTR CLIPS is intended to become a user acquisition engine.
+
+---
+
+# 41. VIRAL LOOP
+
+Design the system around this loop:
+
+```text
+USER CREATES BLAST
+        ↓
+PEOPLE ENGAGE
+        ↓
+BLAST STARTS TRENDING
+        ↓
+CREATE CLIP
+        ↓
+BLASTR CLIP GENERATED
+        ↓
+SHARED TO SOCIAL MEDIA
+        ↓
+NEW PEOPLE SEE CLIP
+        ↓
+THEY VISIT BLASTERR
+        ↓
+THEY JOIN
+        ↓
+THEY CREATE BLASTS
+        ↓
+MORE CONTENT
+```
+
+The product architecture should support this loop.
+
+---
+
+# 42. SHARE CTA
+
+Every BLASTR CLIP should end with a strong CTA.
+
+Examples:
+
+### 🔥 WHAT DO YOU THINK?
+
+### BLAST IT.
+
+### JOIN THE CONVERSATION.
+
+### SEE THE FULL BLAST ON BLASTERR.
+
+### WHO'S RIGHT?
+
+### DROP YOUR TAKE.
+
+End card:
+
+# BLASTERR
+
+### SAY IT. BLAST IT.
+
+**BLASTERR.COM**
+
+Use the official BLASTERR branding.
+
+---
+
+# 43. FUTURE AI VIDEO FEATURES
+
+Do not necessarily implement all of these now, but architect the system so they can be added:
+
+### AI VOICEOVER
+
+Turn a Blast into narrated content.
+
+### AI STORY BUILDER
+
+Turn multiple related Blasts into a story.
+
+### AI COMMENT SELECTOR
+
+Identify the most interesting comments.
+
+### AI HOOK GENERATOR
+
+Generate multiple opening hooks.
+
+### AI CLIP SCORE
+
+Predict which Blasts are likely to perform well.
+
+### AI VIDEO EDITOR
+
+Automatically choose:
+
+* Timing
+* Captions
+* Zooms
+* Transitions
+* Media
+* Comments
+* Backgrounds
+
+### AI BLAST COMPILATIONS
+
+Turn multiple Blasts into:
+
+"Top 10 Blasts This Week"
+
+---
+
+# 44. FUTURE BLASTR MEDIA NETWORK
+
+Design the architecture so BLASTR can eventually have:
+
+### BLASTR CLIPS
+
+Main short-form channel.
+
+### BLASTR SPORTS
+
+Sports Blasts.
+
+### BLASTR ENTERTAINMENT
+
+Celebrity/music/entertainment.
+
+### BLASTR GAMING
+
+Gaming/streamer content.
+
+### BLASTR LOCAL
+
+Local city content.
+
+Do NOT build all of these now.
+
+Simply make the content categorization flexible enough to support them later.
+
+---
+
+# 45. DATABASE ADDITIONS
+
+Add appropriate database structures.
+
+At minimum consider:
+
+### clips
+
+* id
+* blast_id
+* creator_id
+* style
+* title
+* description
+* duration
+* aspect_ratio
+* render_status
+* video_url
+* thumbnail_url
+* created_at
+* updated_at
+
+### clip_assets
+
+* id
+* clip_id
+* asset_type
+* asset_url
+* order
+* duration
+
+### clip_settings
+
+* clip_id
+* caption_style
+* branding_style
+* music_id
+* voiceover_enabled
+* voiceover_id
+* cta_text
+* duration
+
+### clip_distribution
+
+* id
+* clip_id
+* platform
+* status
+* external_post_id
+* published_at
+* error_message
+
+### music_assets
+
+* id
+* title
+* artist
+* license_type
+* audio_url
+* duration
+* active
+
+### clip_analytics
+
+* id
+* clip_id
+* platform
+* views
+* likes
+* comments
+* shares
+* clicks
+* recorded_at
+
+### content_permissions
+
+Store the relevant creator permissions controlling external feature/distribution.
+
+Use proper relational relationships and indexes.
+
+---
+
+# 46. RENDER QUEUE
+
+Do not render videos synchronously inside a normal page request.
+
+Create an asynchronous rendering architecture.
+
+Example:
+
+```text
+User clicks CREATE CLIP
+        ↓
+Create clip record
+        ↓
+Queue render job
+        ↓
+Render worker
+        ↓
+Generate video
+        ↓
+Upload video
+        ↓
+Generate thumbnail
+        ↓
+Update clip status
+        ↓
+Notify user
+```
+
+Statuses:
+
+### DRAFT
+
+### QUEUED
+
+### PROCESSING
+
+### COMPLETED
+
+### FAILED
+
+Allow users to retry failed renders.
+
+---
+
+# 47. ERROR HANDLING
+
+If a clip fails:
+
+Show:
+
+### SOMETHING WENT WRONG
+
+> We couldn't finish your BlastR Clip.
+
+Buttons:
+
+### RETRY
+
+### EDIT CLIP
+
+### CANCEL
+
+Log technical errors for administrators.
+
+Never expose raw server errors to users.
+
+---
+
+# 48. MOBILE EXPERIENCE
+
+This feature must work exceptionally well on phones.
+
+Mobile flow:
+
+### Blast
+
+↓
+
+### ✨ CREATE CLIP
+
+↓
+
+### Choose Style
+
+↓
+
+### Preview
+
+↓
+
+### Customize
+
+↓
+
+### CREATE BLASTR CLIP
+
+↓
+
+### Video generated
+
+↓
+
+### SHARE
+
+The user should be able to create a clip in under a minute once the system is functioning.
+
+---
+
+# 49. VISUAL VIDEO STYLE
+
+The actual videos must look like they belong to BLASTERR.
+
+Use:
+
+* Logo
+* Brand colors from attached logo
+* Outer-space visuals
+* Neon accents
+* Futuristic typography
+* Cosmic particles
+* Glass panels
+* Digital HUD elements
+* Subtle animation
+
+But do NOT overdo the effects.
+
+The Blast content must remain the focus.
+
+The aesthetic should be:
+
+# PREMIUM FUTURISTIC SOCIAL MEDIA
+
+not:
+
+# CHEESY SCI-FI GAME.
+
+---
+
+# 50. PERFORMANCE
+
+Video generation can be resource-intensive.
+
+Optimize for:
+
+* Async rendering
+* Queue-based processing
+* Compressed media
+* Efficient image handling
+* Proper cleanup
+* Thumbnail generation
+* CDN/object storage architecture
+
+Do not store large video files directly inside PostgreSQL.
+
+Use appropriate object storage.
+
+Design the media architecture so it can later scale beyond Replit.
+
+---
+
+# 51. SECURITY
+
+Implement:
+
+* Authentication checks
+* Authorization
+* Ownership verification
+* Content permission checks
+* Secure media uploads
+* File type validation
+* File size limits
+* Rate limiting
+* Abuse prevention
+* Protected admin routes
+
+Users must not be able to create clips from private content they do not have permission to access.
+
+---
+
+# 52. REUSABLE COMPONENTS
+
+Create reusable components such as:
+
+* CreateClipButton
+* ClipStudio
+* ClipStyleSelector
+* ClipPreview
+* ClipTimeline
+* CaptionEditor
+* BrandingSelector
+* AudioSelector
+* CTAEditor
+* ClipRenderProgress
+* ClipResult
+* ClipSharePanel
+* ClipCard
+* MyClips
+* SocialShareButton
+* AdminClipQueue
+* ClipAnalytics
+* ViralBlastCard
+
+Keep the architecture modular.
+
+---
+
+# 53. PHASE 1 SUCCESS CRITERIA
+
+The feature is NOT complete if the UI merely looks good.
+
+I must be able to:
+
+1. Create a Blast.
+2. Click **CREATE CLIP**.
+3. Choose a style.
+4. Preview the clip.
+5. Customize basic settings.
+6. Generate a REAL 9:16 video.
+7. See the render progress.
+8. Receive the completed clip.
+9. View the completed video.
+10. Save/export it.
+11. Share it using available sharing mechanisms.
+12. See it inside My Clips.
+13. Delete it.
+14. Retry failed renders.
+15. Maintain creator attribution.
+16. Maintain BLASTERR branding.
+17. Respect content permissions.
+
+Test this entire workflow.
+
+---
+
+# 54. DO NOT FAKE FUNCTIONALITY
+
+Do not create buttons that pretend to publish to YouTube/TikTok/Instagram/Facebook/X if no official integration exists.
+
+Do not display:
+
+> "Published successfully"
+
+unless the platform actually confirms successful publication.
+
+If API credentials are not configured, show:
+
+### CONNECT ACCOUNT
+
+or:
+
+### EXPORT FOR PLATFORM
+
+This must be honest and production-minded.
+
+---
+
+# 55. FINAL PRODUCT EXPERIENCE
+
+The final experience should feel like:
+
+A user sees an amazing Blast.
+
+They think:
+
+> "This needs to be a video."
+
+They click:
+
+# ✨ CREATE CLIP
+
+They choose:
+
+🔥 Breaking
+
+😂 Funny
+
+🚨 Dramatic
+
+🧾 Receipts
+
+⚔️ Debate
+
+🎤 Story
+
+BLASTERR generates the video.
+
+They preview it.
+
+They click:
+
+# 🔥 CREATE BLASTR CLIP
+
+Then:
+
+# YOUR CLIP IS READY.
+
+### SHARE IT EVERYWHERE.
+
+YouTube Shorts
+TikTok
+Instagram
+Facebook
+X
+
+The entire process should feel fast, polished, futuristic, and addictive.
+
+---
+
+# 56. BUILD THIS AS PART OF BLASTERR'S LONG-TERM GROWTH ENGINE
+
+Remember the larger BLASTERR strategy:
+
+## BLASTERR
+
+The social network.
+
+## BLASTS
+
+The user-generated conversations.
+
+## BLASTR CLIPS
+
+The short-form media network.
+
+## SOCIAL PLATFORMS
+
+The distribution channels.
+
+## BLASTERR
+
+The destination where viewers return to participate in the conversation.
+
+The goal is to create a self-reinforcing content and acquisition loop.
+
+---
+
+# START BUILDING
+
+First inspect the existing BLASTERR project architecture and attached logo.
+
+Do not unnecessarily rebuild existing BLASTERR functionality.
+
+Integrate BLASTR CLIPS into the existing application.
+
+First create:
+
+1. Database schema.
+2. Create Clip button.
+3. Clip Studio.
+4. Six visual templates.
+5. 9:16 video preview.
+6. Actual video rendering.
+7. Caption system.
+8. BLASTERR/BLASTR branding.
+9. Profile attribution.
+10. Clip library.
+11. Export/share functionality.
+12. Admin BLASTR Media Center.
+13. Content permission controls.
+
+Then test the complete end-to-end workflow.
+
+The result should be a real working **BLAST-TO-CLIP system**, not a static prototype.
+
+# 🔥 BLASTR CLIPS
+
+### YOU BLASTED IT. WE CLIPPED IT.
