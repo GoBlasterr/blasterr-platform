@@ -1,6 +1,8 @@
 import { useGetFeed } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
-import { MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, MapPin } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Nearby() {
   // In a real app we'd get browser geolocation first, then pass coords
@@ -9,9 +11,21 @@ export default function Nearby() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="sticky top-0 z-20 glass-panel border-b border-white/10 p-4">
-        <h2 className="font-display font-bold text-2xl text-white flex items-center gap-2">
-          <MapPin className="w-6 h-6 text-primary" /> Nearby Scanner
-        </h2>
+        <div className="flex items-center gap-3">
+          <Link href="/home">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full text-muted-foreground hover:bg-white/10 hover:text-white"
+              aria-label="Back to home feed"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <h2 className="font-display font-bold text-2xl text-white flex items-center gap-2">
+            <MapPin className="w-6 h-6 text-primary" /> Nearby Scanner
+          </h2>
+        </div>
         <p className="text-sm text-muted-foreground mt-1">Targets within your current sector</p>
       </div>
 
