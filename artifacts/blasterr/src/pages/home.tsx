@@ -7,7 +7,7 @@ import {
 } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Home as HomeIcon, PenSquare } from "lucide-react";
+import { PenSquare } from "lucide-react";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -21,15 +21,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Mobile Header */}
-      <header className="md:hidden sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <Link
-          href="/home"
-          className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white"
-          aria-label="Home Feed"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Home Feed</span>
-        </Link>
+      <header className="md:hidden sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-center">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
           <img src="/word-logo.png" alt="BLASTERR" className="h-14 w-auto" />
         </Link>
@@ -37,17 +29,8 @@ export default function Home() {
 
       {/* Desktop Header / Tabs */}
       <div className="sticky top-0 md:top-0 z-20 glass-panel border-b border-white/10 pt-4 px-4 pb-0">
-        <div className="relative flex h-10 items-center justify-between mb-3">
-          <Link
-            href="/home"
-            className="hidden md:inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white hover:bg-primary/15 hover:text-primary"
-            aria-label="Home Feed"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <HomeIcon className="h-4 w-4" />
-            <span>Home Feed</span>
-          </Link>
-          <h2 className="hidden md:block absolute left-1/2 max-w-[calc(100%-12rem)] -translate-x-1/2 truncate font-display font-bold text-2xl text-white">
+        <div className="relative flex h-10 items-center justify-center mb-3">
+          <h2 className="hidden md:block absolute left-2 max-w-[calc(100%-1rem)] truncate font-display font-bold text-2xl text-white">
             Welcome, {welcomeName}
           </h2>
         </div>
