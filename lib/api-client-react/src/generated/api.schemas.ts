@@ -171,6 +171,8 @@ export interface TargetInput {
   location: string;
   /** @maxLength 500 */
   description: string;
+  /** @maxLength 500 */
+  imageUrl?: string;
 }
 
 export interface FeedResponse {

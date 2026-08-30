@@ -665,6 +665,7 @@ components:
           enum: [person, business, place, product, entertainment, sports, gaming, other]
         location: { type: string, maxLength: 120 }
         description: { type: string, maxLength: 500 }
+        imageUrl: { type: string, maxLength: 500 }
     Blast:
       type: object
       required: [id, content, createdAt, author, target, location, mediaUrl, reactions, commentCount, shareCount, viewCount, isBookmarked]

@@ -357,13 +357,16 @@ export const createTargetBodyLocationMax = 120;
 
 export const createTargetBodyDescriptionMax = 500;
 
+export const createTargetBodyImageUrlMax = 500;
+
 
 
 export const CreateTargetBody = zod.object({
   "name": zod.string().min(1).max(createTargetBodyNameMax),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string().max(createTargetBodyLocationMax),
-  "description": zod.string().max(createTargetBodyDescriptionMax)
+  "description": zod.string().max(createTargetBodyDescriptionMax),
+  "imageUrl": zod.string().max(createTargetBodyImageUrlMax).optional()
 })
 
 export const CreateTargetResponse = zod.object({

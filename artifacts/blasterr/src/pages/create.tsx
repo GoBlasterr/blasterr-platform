@@ -49,6 +49,7 @@ type NewTarget = {
   type: (typeof targetTypeOptions)[number]["value"];
   location: string;
   description: string;
+  imageUrl: string;
 };
 
 const BLAST_MODES = [
@@ -126,6 +127,9 @@ export default function CreateBlast() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
+  const targetImageInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingTargetImage, setIsUploadingTargetImage] = useState(false);
+  const [targetImagePreview, setTargetImagePreview] = useState("");
   const [isLocating, setIsLocating] = useState(false);
   
   const [targetQuery, setTargetQuery] = useState("");
@@ -150,6 +154,7 @@ export default function CreateBlast() {
     type: "other",
     location: "",
     description: "",
+    imageUrl: "",
   });
 
   const form = useForm<z.infer<typeof blastSchema>>({
@@ -190,7 +195,8 @@ export default function CreateBlast() {
           handleTargetSelect(target);
           setTargetQuery("");
           setIsCreatingTarget(false);
-          setNewTarget({ name: "", type: "other", location: "", description: "" });
+          setNewTarget({ name: "", type: "other", location: "", description: "", imageUrl: "" });
+          setTargetImagePreview("");
           toast({ title: "Target locked on." });
         },
         onError: () => {
@@ -250,6 +256,67 @@ export default function CreateBlast() {
     }
   };
 
+  const handleTargetImageSelected = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Choose an image file", variant: "destructive" });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Images must be 10 MB or smaller", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingTargetImage(true);
+    setTargetImagePreview(URL.createObjectURL(file));
+    try {
+      const urlResponse = await fetch("/api/storage/uploads/request-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: file.name,
+          size: file.size,
+          contentType: file.type,
+        }),
+      });
+      const uploadDetails = await urlResponse.json() as { uploadURL?: string; objectPath?: string; error?: string };
+      if (!urlResponse.ok || !uploadDetails.uploadURL || !uploadDetails.objectPath) {
+        throw new Error(uploadDetails.error || "Could not prepare image upload");
+      }
+
+      const uploadResponse = await fetch(uploadDetails.uploadURL, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!uploadResponse.ok) {
+        throw new Error("Could not upload image");
+      }
+
+      setNewTarget((current) => ({
+        ...current,
+        imageUrl: `/api/storage${uploadDetails.objectPath}`,
+      }));
+      toast({ title: "Picture attached to Target." });
+    } catch (error) {
+      setTargetImagePreview("");
+      setNewTarget((current) => ({ ...current, imageUrl: "" }));
+      toast({
+        title: error instanceof Error ? error.message : "Could not upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingTargetImage(false);
+    }
+  };
+
+  const removeTargetImage = () => {
+    setTargetImagePreview("");
+    setNewTarget((current) => ({ ...current, imageUrl: "" }));
+    if (targetImageInputRef.current) {
+      targetImageInputRef.current.value = "";
+    }
+  };
+
   const removeImage = () => {
     setImagePreview("");
     form.setValue("mediaUrl", "", { shouldValidate: true });
@@ -290,7 +357,7 @@ export default function CreateBlast() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
           toast({ title: "Blast fired successfully!" });
-          setLocation("/home");
+          setLocation("/splash");
         },
         onError: () => {
           toast({ title: "Failed to fire Blast", variant: "destructive" });
@@ -456,6 +523,68 @@ export default function CreateBlast() {
                     </div>
                     
                     <div className="space-y-5">
+                      <div className="space-y-2">
+                        <label htmlFor="new-target-image" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">
+                          Target Picture
+                        </label>
+                        <input
+                          ref={targetImageInputRef}
+                          id="new-target-image"
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            if (file) void handleTargetImageSelected(file);
+                          }}
+                        />
+                        {targetImagePreview ? (
+                          <div className="relative overflow-hidden rounded-2xl border border-primary/40 bg-black/50">
+                            <img
+                              src={targetImagePreview}
+                              alt="New Target picture preview"
+                              className="h-44 w-full object-cover"
+                            />
+                            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-gradient-to-t from-black/80 to-transparent p-4 pt-10">
+                              <span className="text-sm font-medium text-white">
+                                {isUploadingTargetImage ? "Uploading picture..." : "Picture ready"}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                disabled={isUploadingTargetImage}
+                                onClick={removeTargetImage}
+                                className="rounded-full"
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => targetImageInputRef.current?.click()}
+                            disabled={isUploadingTargetImage}
+                            className="flex w-full items-center gap-4 rounded-2xl border border-dashed border-white/15 bg-black/30 p-4 text-left transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:cursor-wait disabled:opacity-70"
+                            data-testid="button-upload-target-picture"
+                          >
+                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                              {isUploadingTargetImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
+                            </span>
+                            <span>
+                              <span className="block font-bold text-white">
+                                {isUploadingTargetImage ? "Uploading picture..." : "Upload Target picture"}
+                              </span>
+                              <span className="mt-1 block text-xs text-muted-foreground">
+                                Optional · JPG, PNG, or WebP up to 10 MB
+                              </span>
+                            </span>
+                          </button>
+                        )}
+                      </div>
+
                       <div>
                         <label htmlFor="new-target-name" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 block">Designation</label>
                         <Input

@@ -643,7 +643,7 @@ router.post("/targets", (req, res): void => {
     type: parsed.data.type,
     location: parsed.data.location.trim(),
     blastCount: 0,
-    imageUrl: "",
+    imageUrl: parsed.data.imageUrl?.trim() ?? "",
     description: parsed.data.description.trim(),
   };
 
