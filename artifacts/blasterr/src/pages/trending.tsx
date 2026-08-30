@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { useGetTrending } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
@@ -6,8 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, TrendingUp, Flame } from "lucide-react";
 
 export default function Trending() {
-  const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<"blasts" | "targets">("blasts");
+  const [location, setLocation] = useLocation();
+  const activeTab: "blasts" | "targets" = location === "/trending/targets" ? "targets" : "blasts";
   
   const { data: trendingData, isLoading } = useGetTrending();
 
@@ -18,7 +17,11 @@ export default function Trending() {
         <h2 className="font-display font-bold text-2xl text-white mb-4 px-2 flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-primary" /> Trending
         </h2>
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setLocation(v === "targets" ? "/trending/targets" : "/trending")}
+          className="w-full"
+        >
           <TabsList className="w-full grid grid-cols-2 bg-transparent p-0 h-auto gap-0 rounded-none border-b border-transparent">
             <TabsTrigger 
               value="blasts" 

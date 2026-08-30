@@ -65,6 +65,7 @@ function Router() {
           <Route path="/following" component={Home} />
           <Route path="/create" component={CreateBlast} />
           <Route path="/trending" component={Trending} />
+          <Route path="/trending/targets" component={Trending} />
           <Route path="/nearby" component={Nearby} />
           <Route path="/search" component={Search} />
           <Route path="/target/:slug" component={TargetDetail} />

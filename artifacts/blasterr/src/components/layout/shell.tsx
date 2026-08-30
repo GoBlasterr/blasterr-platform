@@ -71,7 +71,8 @@ export function Shell({ children }: ShellProps) {
 
           <nav className="flex flex-col gap-2" aria-label="Main navigation">
             {navItems.map((item) => {
-              const isActive = location === item.href;
+              const isActive = location === item.href ||
+                (item.href === "/trending" && location === "/trending/targets");
               return (
                 <Link key={item.href} href={item.href} className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive ? 'bg-primary/10 text-primary neon-border' : 'hover:bg-white/5 text-muted-foreground hover:text-white'}`}>
                   <item.icon className={`w-6 h-6 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : ''}`} />
@@ -147,14 +148,14 @@ export function Shell({ children }: ShellProps) {
           {children}
         </div>
         
-        {/* Right Sidebar (Desktop only) */}
-        <aside className="hidden xl:block w-[350px] p-6 sticky top-0 h-screen overflow-y-auto custom-scrollbar">
-           {/* Add right sidebar content later like "Trending Targets" or "Who to follow" */}
-           <div className="glass-panel p-5 rounded-2xl mb-6">
-             <h3 className="font-display font-bold text-lg mb-4 text-white">Trending Targets</h3>
-             <div className="text-sm text-muted-foreground italic">Connect API to see targets</div>
-           </div>
-        </aside>
+        {location === "/trending/targets" && (
+          <aside className="hidden xl:block w-[350px] p-6 sticky top-0 h-screen overflow-y-auto custom-scrollbar">
+            <div className="glass-panel p-5 rounded-2xl mb-6">
+              <h3 className="font-display font-bold text-lg mb-4 text-white">Trending Targets</h3>
+              <div className="text-sm text-muted-foreground italic">Connect API to see targets</div>
+            </div>
+          </aside>
+        )}
       </main>
 
       {/* Mobile Bottom Nav */}
