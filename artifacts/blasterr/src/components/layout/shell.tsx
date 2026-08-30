@@ -143,7 +143,7 @@ export function Shell({ children }: ShellProps) {
       </aside>
 
       {/* Main Content */}
-      <main ref={mainRef} className="min-h-0 flex-1 flex justify-center xl:justify-start overflow-y-auto overscroll-contain pb-20 md:pb-0">
+      <main ref={mainRef} className="min-h-0 flex-1 flex justify-center md:justify-start overflow-y-auto overscroll-contain pb-20 md:pb-0">
         <div className="w-full max-w-2xl min-h-screen border-r border-white/5 bg-background/50 backdrop-blur-sm">
           {children}
         </div>
