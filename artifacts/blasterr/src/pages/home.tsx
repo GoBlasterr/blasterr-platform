@@ -63,15 +63,15 @@ export default function Home() {
             </Link>
           )}
           <div className={`hidden md:flex absolute items-center gap-3 max-w-[calc(100%-1rem)] ${isStandaloneFeed ? "left-1/2 -translate-x-1/2" : "right-4"}`}>
-            <h2 className="truncate font-display font-bold text-2xl text-white">
-              Welcome, {welcomeName}
-            </h2>
-            <Avatar className="h-10 w-10 shrink-0 border-2 border-primary/60 shadow-[0_0_12px_rgba(229,244,3,0.25)]">
+            <Avatar className="h-14 w-14 shrink-0 border-2 border-primary/60 shadow-[0_0_12px_rgba(229,244,3,0.25)]">
               <AvatarImage src={user?.avatarUrl || undefined} alt={`${welcomeName} profile image`} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">
                 {welcomeName.slice(0, 1).toUpperCase()}
               </AvatarFallback>
             </Avatar>
+            <h2 className="min-w-0 truncate font-display font-bold text-2xl text-white">
+              Welcome, {welcomeName}
+            </h2>
           </div>
         </div>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
