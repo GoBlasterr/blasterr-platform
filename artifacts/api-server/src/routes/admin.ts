@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { clerkClient, getAuth } from "@clerk/express";
 import { Router, type IRouter, type NextFunction, type Request, type Response } from "express";
 import {
@@ -47,7 +46,17 @@ import {
   adminReports,
   adminSettings,
   auditRecords,
+  createAdminAnnouncementWithAudit,
+  deleteAdminAnnouncementWithAudit,
+  ensureAdminState,
+  getAdminReports,
+  moderateAdminReportWithAudit,
   recordAudit,
+  setContentStatusWithAudit,
+  updateAdminAnnouncementWithAudit,
+  updateAdminFeatureWithAudit,
+  updateAdminReportWithAudit,
+  updateAdminSettingsWithAudit,
 } from "../lib/admin-state";
 import { isActiveAdmin, isSuspended } from "../lib/admin-auth";
 import { blasts, users } from "./social";
@@ -56,6 +65,13 @@ const router: IRouter = Router();
 const startedAt = Date.now();
 
 async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    await ensureAdminState();
+  } catch (error) {
+    req.log.error({ err: error }, "Unable to load admin state");
+    res.status(503).json({ error: "Admin state is temporarily unavailable." });
+    return;
+  }
   const { userId } = getAuth(req);
   if (!userId) {
     res.status(401).json({ error: "Authentication required." });
@@ -110,11 +126,15 @@ function adminUser(user: Awaited<ReturnType<typeof clerkClient.users.getUser>>) 
   };
 }
 
-function adminContent(blast: (typeof blasts)[number]) {
+function adminContent(
+  blast: (typeof blasts)[number],
+  statuses = adminContentStatuses,
+  reports = adminReports,
+) {
   return {
     ...blast,
-    status: adminContentStatuses.get(blast.id) ?? "published",
-    reportCount: adminReports.filter((report) => report.targetType === "blast" && report.targetId === blast.id).length,
+    status: statuses.get(blast.id) ?? "published",
+    reportCount: reports.filter((report) => report.targetType === "blast" && report.targetId === blast.id).length,
   };
 }
 
@@ -163,7 +183,7 @@ async function reporterProfile(reporterId: string) {
   }
 }
 
-async function adminReport(report: (typeof adminReports)[number]) {
+async function adminReport(report: Awaited<ReturnType<typeof getAdminReports>>[number]) {
   return {
     ...report,
     reporter: await reporterProfile(report.reporterId),
@@ -171,28 +191,28 @@ async function adminReport(report: (typeof adminReports)[number]) {
 }
 
 router.get("/users", async (req, res): Promise<void> => {
-  const parsed = GetAdminReportsQueryParams.safeParse(req.query);
+  const parsed = GetAdminUsersQueryParams.safeParse(req.query);
   if (!parsed.success) {
-    res.status(400).json({ error: "Invalid content filters." });
+    res.status(400).json({ error: "Invalid user filters." });
     return;
   }
   const query = parsed.data.q?.trim().toLowerCase();
   const { data } = await clerkClient.users.getUserList({ limit: 100 });
-  const filtered = blasts
-    .map(adminContent)
-    .filter((blast) => !query || blast.content.toLowerCase().includes(query) || blast.author.username.toLowerCase().includes(query))
-    .filter((blast) => !parsed.data.status || parsed.data.status === "all" || blast.status === parsed.data.status);
-  res.json(GetAdminContentResponse.parse({ items: filtered, total: filtered.length }));
+  const filtered = data
+    .map(adminUser)
+    .filter((user) => !query || `${user.username} ${user.displayName}`.toLowerCase().includes(query))
+    .filter((user) => !parsed.data.status || parsed.data.status === "all" || user.status === parsed.data.status);
+  res.json(GetAdminUsersResponse.parse({ users: filtered, total: filtered.length }));
 });
 
-router.patch("/content/:id", async (req, res): Promise<void> => {
-  const params = UpdateAdminFeatureParams.safeParse(req.params);
-  const body = UpdateAdminFeatureBody.safeParse(req.body);
+router.patch("/users/:id", async (req, res): Promise<void> => {
+  const params = UpdateAdminUserParams.safeParse(req.params);
+  const body = UpdateAdminUserBody.safeParse(req.body);
   if (!params.success || !body.success) {
     res.status(400).json({ error: "Invalid user update." });
     return;
   }
-    let user;
+  let user;
   try {
     user = await clerkClient.users.getUser(params.data.id);
   } catch {
@@ -200,6 +220,13 @@ router.patch("/content/:id", async (req, res): Promise<void> => {
     return;
   }
   const metadata = user.publicMetadata as Record<string, unknown>;
+  await recordAudit({
+    action: "user_update_requested",
+    entityType: "user",
+    entityId: user.id,
+    actorId: actorId(res),
+    details: `Requested user changes: ${JSON.stringify(body.data)}.`,
+  });
   user = await clerkClient.users.updateUserMetadata(user.id, {
     publicMetadata: {
       ...metadata,
@@ -207,31 +234,38 @@ router.patch("/content/:id", async (req, res): Promise<void> => {
       ...(body.data.status ? { status: body.data.status } : {}),
     },
   });
-  recordAudit({
+  await recordAudit({
     action: body.data.status === "suspended" ? "user_suspended" : "user_updated",
     entityType: "user",
     entityId: user.id,
     actorId: actorId(res),
-    details: `Updated role/status for @${adminUser(user).username}.`,
+    details: `Applied user changes: ${JSON.stringify(body.data)}.`,
   });
   res.json(UpdateAdminUserResponse.parse(adminUser(user)));
 });
 
 router.delete("/users/:id", async (req, res): Promise<void> => {
-  const params = UpdateAdminFeatureParams.safeParse(req.params);
+  const params = DeleteAdminUserParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: "Invalid user id." });
     return;
   }
-    let user;
+  let user;
   try {
     user = await clerkClient.users.getUser(params.data.id);
   } catch {
     res.status(404).json({ error: "User not found." });
     return;
   }
+  await recordAudit({
+    action: "user_delete_requested",
+    entityType: "user",
+    entityId: user.id,
+    actorId: actorId(res),
+    details: `Deleted @${adminUser(user).username}.`,
+  });
   await clerkClient.users.deleteUser(user.id);
-  recordAudit({
+  await recordAudit({
     action: "user_deleted",
     entityType: "user",
     entityId: user.id,
@@ -242,22 +276,22 @@ router.delete("/users/:id", async (req, res): Promise<void> => {
 });
 
 router.get("/content", (req, res): void => {
-  const parsed = GetAdminReportsQueryParams.safeParse(req.query);
+  const parsed = GetAdminContentQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid content filters." });
     return;
   }
   const query = parsed.data.q?.trim().toLowerCase();
   const filtered = blasts
-    .map(adminContent)
+    .map((blast) => adminContent(blast))
     .filter((blast) => !query || blast.content.toLowerCase().includes(query) || blast.author.username.toLowerCase().includes(query))
     .filter((blast) => !parsed.data.status || parsed.data.status === "all" || blast.status === parsed.data.status);
   res.json(GetAdminContentResponse.parse({ items: filtered, total: filtered.length }));
 });
 
-router.patch("/content/:id", (req, res): void => {
-  const params = UpdateAdminFeatureParams.safeParse(req.params);
-  const body = UpdateAdminFeatureBody.safeParse(req.body);
+router.patch("/content/:id", async (req, res): Promise<void> => {
+  const params = UpdateAdminContentParams.safeParse(req.params);
+  const body = UpdateAdminContentBody.safeParse(req.body);
   if (!params.success || !body.success) {
     res.status(400).json({ error: "Invalid content update." });
     return;
@@ -267,8 +301,7 @@ router.patch("/content/:id", (req, res): void => {
     res.status(404).json({ error: "Blast not found." });
     return;
   }
-  adminContentStatuses.set(blast.id, body.data.status);
-  recordAudit({
+  await setContentStatusWithAudit(blast.id, body.data.status, {
     action: `content_${body.data.status}`,
     entityType: "blast",
     entityId: blast.id,
@@ -278,23 +311,21 @@ router.patch("/content/:id", (req, res): void => {
   res.json(UpdateAdminContentResponse.parse(adminContent(blast)));
 });
 
-router.delete("/content/:id", (req, res): void => {
-  const params = UpdateAdminFeatureParams.safeParse(req.params);
+router.delete("/content/:id", async (req, res): Promise<void> => {
+  const params = DeleteAdminContentParams.safeParse(req.params);
   if (!params.success) {
-    res.status(400).json({ error: "Invalid announcement id." });
+    res.status(400).json({ error: "Invalid Blast id." });
     return;
   }
-  const index = adminAnnouncements.findIndex((item) => item.id === params.data.id);
-  if (index < 0) {
-    res.status(404).json({ error: "Announcement not found." });
+  const blast = blasts.find((item) => item.id === params.data.id);
+  if (!blast) {
+    res.status(404).json({ error: "Blast not found." });
     return;
   }
-  const [deleted] = adminAnnouncements.splice(index, 1);
-  adminContentStatuses.set(deleted.id, "removed");
-  recordAudit({
+  await setContentStatusWithAudit(blast.id, "removed", {
     action: "content_deleted",
     entityType: "blast",
-    entityId: deleted.id,
+    entityId: blast.id,
     actorId: actorId(res),
     details: "Deleted Blast from the live feed.",
   });
@@ -307,60 +338,58 @@ router.get("/reports", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid report filters." });
     return;
   }
-  const reports = await Promise.all(adminReports
+  const reports = await Promise.all((await getAdminReports())
     .filter((report) => !parsed.data.status || parsed.data.status === "all" || report.status === parsed.data.status)
     .map(adminReport));
   res.json(GetAdminReportsResponse.parse({ reports, total: reports.length }));
 });
 
 router.patch("/reports/:id", async (req, res): Promise<void> => {
-  const params = UpdateAdminFeatureParams.safeParse(req.params);
-  const body = UpdateAdminFeatureBody.safeParse(req.body);
-  if (!body.success) {
+  const params = UpdateAdminReportParams.safeParse(req.params);
+  const body = UpdateAdminReportBody.safeParse(req.body);
+  if (!params.success || !body.success) {
     res.status(400).json({ error: "Invalid moderation action." });
     return;
   }
-  const report = adminReports.find((item) => item.id === body.data.reportId);
+  const report = await updateAdminReportWithAudit(params.data.id, body.data, {
+    action: `report_${body.data.status}`,
+    entityType: "report",
+    entityId: params.data.id,
+    actorId: actorId(res),
+    details: body.data.note || `Set report status to ${body.data.status}.`,
+  });
   if (!report) {
     res.status(404).json({ error: "Report not found." });
     return;
   }
-  report.status = body.data.status;
-  if (body.data.note !== undefined) report.note = body.data.note;
-  recordAudit({
-    action: `report_${body.data.status}`,
-    entityType: "report",
-    entityId: report.id,
-    actorId: actorId(res),
-    details: body.data.note || `Set report status to ${body.data.status}.`,
-  });
   res.json(UpdateAdminReportResponse.parse(await adminReport(report)));
 });
 
 router.get("/moderation", async (_req, res): Promise<void> => {
-  const items = await Promise.all(adminReports
+  const items = await Promise.all((await getAdminReports())
     .filter((report) => report.status === "open" || report.status === "in_review")
     .map(adminReport));
   res.json(GetAdminModerationResponse.parse({ items, openCount: items.length }));
 });
 
 router.post("/moderation", async (req, res): Promise<void> => {
-  const body = UpdateAdminFeatureBody.safeParse(req.body);
+  const body = CreateAdminModerationActionBody.safeParse(req.body);
   if (!body.success) {
     res.status(400).json({ error: "Invalid moderation action." });
     return;
   }
-  const report = adminReports.find((item) => item.id === body.data.reportId);
+  const report = (await getAdminReports()).find((item) => item.id === body.data.reportId);
   if (!report) {
     res.status(404).json({ error: "Report not found." });
     return;
   }
+  let contentUpdate: { id: string; status: "removed" } | undefined;
   if (body.data.action === "remove" && report.targetType === "blast") {
     if (!blasts.some((blast) => blast.id === report.targetId)) {
       res.status(404).json({ error: "Reported Blast not found." });
       return;
     }
-    adminContentStatuses.set(report.targetId, "removed");
+    contentUpdate = { id: report.targetId, status: "removed" };
     report.status = "resolved";
   } else if (body.data.action === "suspend" && report.targetType === "user") {
     let user;
@@ -370,6 +399,13 @@ router.post("/moderation", async (req, res): Promise<void> => {
       res.status(404).json({ error: "Reported user not found." });
       return;
     }
+    await recordAudit({
+      action: "user_suspension_requested",
+      entityType: "user",
+      entityId: user.id,
+      actorId: actorId(res),
+      details: body.data.note || "Requested suspension from a moderation report.",
+    });
     await clerkClient.users.updateUserMetadata(user.id, {
       publicMetadata: {
         ...(user.publicMetadata as Record<string, unknown>),
@@ -386,7 +422,12 @@ router.post("/moderation", async (req, res): Promise<void> => {
     report.status = "resolved";
   }
   report.note = body.data.note ?? "";
-  recordAudit({
+  await moderateAdminReportWithAudit({
+    reportId: report.id,
+    status: report.status,
+    note: report.note,
+    content: contentUpdate,
+  }, {
     action: `moderation_${body.data.action}`,
     entityType: report.targetType,
     entityId: report.targetId,
@@ -400,9 +441,10 @@ router.post("/moderation", async (req, res): Promise<void> => {
 });
 
 router.get("/analytics", async (_req, res): Promise<void> => {
-  const openReports = adminReports.filter((report) => report.status === "open" || report.status === "in_review").length;
-  const resolvedReports = adminReports.filter((report) => report.status === "resolved" || report.status === "dismissed").length;
-  const totalReports = adminReports.length;
+  const reports = await getAdminReports();
+  const openReports = reports.filter((report) => report.status === "open" || report.status === "in_review").length;
+  const resolvedReports = reports.filter((report) => report.status === "resolved" || report.status === "dismissed").length;
+  const totalReports = reports.length;
   const { data: clerkUsers } = await clerkClient.users.getUserList({ limit: 100 });
   res.json(GetAdminAnalyticsResponse.parse({
     activeUsers: clerkUsers.filter((user) => (user.publicMetadata as Record<string, unknown>).status !== "suspended").length,
@@ -441,92 +483,81 @@ router.get("/settings", (_req, res): void => {
   res.json(GetAdminSettingsResponse.parse(adminSettings));
 });
 
-router.patch("/settings", (req, res): void => {
-  const body = UpdateAdminFeatureBody.safeParse(req.body);
+router.patch("/settings", async (req, res): Promise<void> => {
+  const body = UpdateAdminSettingsBody.safeParse(req.body);
   if (!body.success) {
     res.status(400).json({ error: "Invalid settings." });
     return;
   }
-  Object.assign(adminSettings, body.data);
-  recordAudit({
+  const settings = await updateAdminSettingsWithAudit(body.data, actorId(res), {
     action: "settings_updated",
     entityType: "settings",
     entityId: "platform",
     actorId: actorId(res),
-    details: "Updated platform moderation settings.",
+    details: `Updated platform moderation settings: ${JSON.stringify(body.data)}.`,
   });
-  res.json(UpdateAdminSettingsResponse.parse(adminSettings));
+  res.json(UpdateAdminSettingsResponse.parse(settings));
 });
 
 router.get("/announcements", (_req, res): void => {
   res.json(GetAdminAnnouncementsResponse.parse(adminAnnouncements));
 });
 
-router.post("/announcements", (req, res): void => {
-  const body = UpdateAdminFeatureBody.safeParse(req.body);
+router.post("/announcements", async (req, res): Promise<void> => {
+  const body = CreateAdminAnnouncementBody.safeParse(req.body);
   if (!body.success) {
     res.status(400).json({ error: "Invalid announcement." });
     return;
   }
-  const createdAt = new Date().toISOString();
-  const announcement = adminAnnouncements.find((item) => item.id === params.data.id);
-  if (!announcement) {
-    res.status(404).json({ error: "Announcement not found." });
-    return;
-  }
-  Object.assign(announcement, body.data, { updatedAt: new Date().toISOString() });
-  recordAudit({
-    action: "announcement_updated",
+  const announcement = await createAdminAnnouncementWithAudit(body.data, actorId(res), {
+    action: "announcement_created",
     entityType: "announcement",
-    entityId: announcement.id,
+    entityId: "",
     actorId: actorId(res),
-    details: `Updated "${announcement.title}".`,
+    details: `Created "${body.data.title}".`,
   });
-  res.json(UpdateAdminAnnouncementResponse.parse(announcement));
+  res.status(201).json(CreateAdminAnnouncementResponse.parse(announcement));
 });
 
-router.delete("/announcements/:id", (req, res): void => {
-  const params = UpdateAdminFeatureParams.safeParse(req.params);
-  const body = UpdateAdminFeatureBody.safeParse(req.body);
+router.patch("/announcements/:id", async (req, res): Promise<void> => {
+  const params = UpdateAdminAnnouncementParams.safeParse(req.params);
+  const body = UpdateAdminAnnouncementBody.safeParse(req.body);
   if (!params.success || !body.success) {
     res.status(400).json({ error: "Invalid announcement update." });
     return;
   }
-  const announcement = adminAnnouncements.find((item) => item.id === params.data.id);
+  const announcement = await updateAdminAnnouncementWithAudit(params.data.id, body.data, actorId(res), {
+    action: "announcement_updated",
+    entityType: "announcement",
+    entityId: params.data.id,
+    actorId: actorId(res),
+    details: `Updated announcement fields: ${JSON.stringify(body.data)}.`,
+  });
   if (!announcement) {
     res.status(404).json({ error: "Announcement not found." });
     return;
   }
-  Object.assign(announcement, body.data, { updatedAt: new Date().toISOString() });
-  recordAudit({
-    action: "announcement_updated",
-    entityType: "announcement",
-    entityId: announcement.id,
-    actorId: actorId(res),
-    details: `Updated "${announcement.title}".`,
-  });
   res.json(UpdateAdminAnnouncementResponse.parse(announcement));
 });
 
-router.delete("/announcements/:id", (req, res): void => {
-  const params = UpdateAdminFeatureParams.safeParse(req.params);
+router.delete("/announcements/:id", async (req, res): Promise<void> => {
+  const params = DeleteAdminAnnouncementParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: "Invalid announcement id." });
     return;
   }
-  const index = adminAnnouncements.findIndex((item) => item.id === params.data.id);
-  if (index < 0) {
+  const existing = adminAnnouncements.find((item) => item.id === params.data.id);
+  const deleted = await deleteAdminAnnouncementWithAudit(params.data.id, {
+    action: "announcement_deleted",
+    entityType: "announcement",
+    entityId: params.data.id,
+    actorId: actorId(res),
+    details: `Deleted "${existing?.title ?? params.data.id}".`,
+  });
+  if (!deleted) {
     res.status(404).json({ error: "Announcement not found." });
     return;
   }
-  const [deleted] = adminAnnouncements.splice(index, 1);
-  recordAudit({
-    action: "announcement_deleted",
-    entityType: "announcement",
-    entityId: deleted.id,
-    actorId: actorId(res),
-    details: `Deleted "${deleted.title}".`,
-  });
   res.sendStatus(204);
 });
 
@@ -534,27 +565,24 @@ router.get("/features", (_req, res): void => {
   res.json(GetAdminFeaturesResponse.parse(adminFeatureFlags));
 });
 
-router.patch("/features/:key", (req, res): void => {
+router.patch("/features/:key", async (req, res): Promise<void> => {
   const params = UpdateAdminFeatureParams.safeParse(req.params);
   const body = UpdateAdminFeatureBody.safeParse(req.body);
   if (!params.success || !body.success) {
     res.status(400).json({ error: "Invalid feature update." });
     return;
   }
-  const feature = adminFeatureFlags.find((item) => item.key === params.data.key);
+  const feature = await updateAdminFeatureWithAudit(params.data.key, body.data.enabled, actorId(res), {
+    action: body.data.enabled ? "feature_enabled" : "feature_disabled",
+    entityType: "feature",
+    entityId: params.data.key,
+    actorId: actorId(res),
+    details: `${params.data.key} ${body.data.enabled ? "enabled" : "disabled"}.`,
+  });
   if (!feature) {
     res.status(404).json({ error: "Feature not found." });
     return;
   }
-  feature.enabled = body.data.enabled;
-  feature.updatedAt = new Date().toISOString();
-  recordAudit({
-    action: feature.enabled ? "feature_enabled" : "feature_disabled",
-    entityType: "feature",
-    entityId: feature.key,
-    actorId: actorId(res),
-    details: `${feature.label} ${feature.enabled ? "enabled" : "disabled"}.`,
-  });
   res.json(UpdateAdminFeatureResponse.parse(feature));
 });
 

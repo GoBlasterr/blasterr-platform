@@ -25,7 +25,7 @@ import { renderClip } from "../lib/clip-renderer";
 import { isActiveAdmin, isSuspended } from "../lib/admin-auth";
 import { getPrivateObjectPath, getSignedObjectUrl } from "./storage";
 import { blasts, type Blast } from "./social";
-import { adminFeatureFlags } from "../lib/admin-state";
+import { adminFeatureFlags, recordAudit } from "../lib/admin-state";
 
 const router: IRouter = Router();
 type Status = "DRAFT" | "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED" | "SHARED";
@@ -177,6 +177,15 @@ router.post("/clips", async (req, res): Promise<void> => {
       ctaText: body.data.ctaText?.trim() || "See the full Blast on BLASTERR",
     },
   };
+  if (user.admin && !owner) {
+    await recordAudit({
+      action: "clip_created_for_user",
+      entityType: "clip",
+      entityId: clip.id,
+      actorId: user.id,
+      details: `Created a Clip from Blast ${blast.id} owned by another user.`,
+    });
+  }
   clips.unshift(clip);
   queue(clip);
   res.status(201).json(CreateClipResponse.parse(payload(clip)));
@@ -196,11 +205,21 @@ router.patch("/clips/:id", async (req, res): Promise<void> => {
   const clip = params.success ? clips.find((item) => item.id === params.data.id) : undefined;
   if (!clip) return void res.status(404).json({ error: "Clip not found." });
   if (!body.success) return void res.status(400).json({ error: "Invalid clip settings." });
-  if (!canManage(clip, await viewer(req))) return void res.status(403).json({ error: "Access denied." });
+  const user = await viewer(req);
+  if (!canManage(clip, user)) return void res.status(403).json({ error: "Access denied." });
   if (["QUEUED", "PROCESSING"].includes(clip.renderStatus)) {
     return void res.status(409).json({ error: "Wait for this render to finish." });
   }
   const update = body.data;
+  if (user.admin && clip.creatorId !== user.id) {
+    await recordAudit({
+      action: "clip_update_requested",
+      entityType: "clip",
+      entityId: clip.id,
+      actorId: user.id!,
+      details: `Requested Clip changes: ${JSON.stringify(update)}.`,
+    });
+  }
   clip.title = update.title?.trim() || clip.title;
   clip.description = update.description?.trim() ?? clip.description;
   clip.duration = update.duration ?? clip.duration;
@@ -236,8 +255,18 @@ router.post("/clips/:id/retry", async (req, res): Promise<void> => {
   const params = RetryClipParams.safeParse(req.params);
   const clip = params.success ? clips.find((item) => item.id === params.data.id) : undefined;
   if (!clip) return void res.status(404).json({ error: "Clip not found." });
-  if (!canManage(clip, await viewer(req))) return void res.status(403).json({ error: "Access denied." });
+  const user = await viewer(req);
+  if (!canManage(clip, user)) return void res.status(403).json({ error: "Access denied." });
   if (clip.renderStatus !== "FAILED") return void res.status(409).json({ error: "Only failed clips can retry." });
+  if (user.admin && clip.creatorId !== user.id) {
+    await recordAudit({
+      action: "clip_retry_requested",
+      entityType: "clip",
+      entityId: clip.id,
+      actorId: user.id!,
+      details: "Retried another user's failed Clip render.",
+    });
+  }
   clip.renderStatus = "QUEUED";
   clip.updatedAt = iso();
   queue(clip);
@@ -248,7 +277,8 @@ router.post("/clips/:id/share", async (req, res): Promise<void> => {
   const params = ShareClipParams.safeParse(req.params);
   const clip = params.success ? clips.find((item) => item.id === params.data.id) : undefined;
   if (!clip) return void res.status(404).json({ error: "Clip not found." });
-  if (!canManage(clip, await viewer(req))) return void res.status(403).json({ error: "Access denied." });
+  const user = await viewer(req);
+  if (!canManage(clip, user)) return void res.status(403).json({ error: "Access denied." });
   if (!["COMPLETED", "SHARED"].includes(clip.renderStatus)) {
     return void res.status(409).json({ error: "This clip is not ready to share." });
   }
@@ -257,6 +287,15 @@ router.post("/clips/:id/share", async (req, res): Promise<void> => {
   }
   if (!clip.videoUrl) {
     return void res.status(409).json({ error: "This clip has no exported video." });
+  }
+  if (user.admin && clip.creatorId !== user.id) {
+    await recordAudit({
+      action: "clip_shared",
+      entityType: "clip",
+      entityId: clip.id,
+      actorId: user.id!,
+      details: "Shared another user's Clip externally.",
+    });
   }
   clip.renderStatus = "SHARED";
   clip.updatedAt = iso();

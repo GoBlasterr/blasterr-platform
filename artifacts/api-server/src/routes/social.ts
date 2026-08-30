@@ -51,10 +51,11 @@ import {
   adminContentStatuses,
   adminFeatureFlags,
   adminSettings,
-  createAdminReport,
+  createAdminReportWithAudit,
   recordAudit,
+  setContentStatusWithAudit,
 } from "../lib/admin-state";
-import { isActiveAdmin } from "../lib/admin-auth";
+import { canCreateUserContent, canManageOwnedResource, isActiveAdmin } from "../lib/admin-auth";
 import { findTargetMatches } from "../lib/target-resolution";
 
 const router: IRouter = Router();
@@ -820,6 +821,10 @@ router.post("/blasts", async (req, res): Promise<void> => {
     return;
   }
   const { userId } = getAuth(req);
+  if (!canCreateUserContent(userId)) {
+    res.status(401).json({ error: "Sign in is required to create a Blast." });
+    return;
+  }
   const author = userId
     ? (await loadAuthenticatedProfile(userId)).profile
     : process.env.NODE_ENV === "development"
@@ -842,12 +847,18 @@ router.post("/blasts", async (req, res): Promise<void> => {
   };
   blasts.unshift(blast);
   if (adminSettings.contentReviewMode) {
-    adminContentStatuses.set(blast.id, "hidden");
+    await setContentStatusWithAudit(blast.id, "hidden", {
+      action: "content_hidden_for_review",
+      entityType: "blast",
+      entityId: blast.id,
+      actorId: "system",
+      details: "Content review mode hid a newly created Blast.",
+    });
   }
   res.status(201).json(CreateBlastResponse.parse(blast));
 });
 
-router.patch("/blasts/:id", (req, res): void => {
+router.patch("/blasts/:id", async (req, res): Promise<void> => {
   const params = UpdateBlastParams.safeParse(req.params);
   const body = UpdateBlastBody.safeParse(req.body);
   if (!params.success || !body.success) {
@@ -858,6 +869,37 @@ router.patch("/blasts/:id", (req, res): void => {
   if (!blast) {
     res.status(404).json({ error: "Blast not found" });
     return;
+  }
+  const { userId } = getAuth(req);
+  const viewerId = userId ?? (process.env.NODE_ENV === "development" ? users[0].id : null);
+  if (!viewerId) {
+    res.status(401).json({ error: "Sign in is required to edit this Blast." });
+    return;
+  }
+  const isOwner = blast.author.id === viewerId;
+  const isDevelopmentAdminAction = (
+    !userId &&
+    process.env.NODE_ENV === "development" &&
+    req.get("x-blasterr-admin-action") === "true"
+  );
+  const isAdmin = await isAdminUser(userId);
+  if (!canManageOwnedResource({
+    actorId: viewerId,
+    ownerId: blast.author.id,
+    isAdmin,
+    isDevelopmentAdminAction,
+  })) {
+    res.status(403).json({ error: "Only the Blast creator or an admin can edit this Blast." });
+    return;
+  }
+  if (!isOwner && (isDevelopmentAdminAction || isAdmin)) {
+    await recordAudit({
+      action: "content_update_requested",
+      entityType: "blast",
+      entityId: blast.id,
+      actorId: userId ?? "development-admin",
+      details: `Updated Blast fields: ${JSON.stringify(body.data)}.`,
+    });
   }
   if (body.data.content !== undefined) blast.content = body.data.content;
   if (body.data.location !== undefined) blast.location = body.data.location;
@@ -885,10 +927,20 @@ router.delete("/blasts/:id", async (req, res): Promise<void> => {
     process.env.NODE_ENV === "development" &&
     req.get("x-blasterr-admin-action") === "true"
   );
-  const canDelete = isOwner || isDevelopmentAdminAction || await isAdminUser(userId);
+  const isAdmin = await isAdminUser(userId);
+  const canDelete = isOwner || isDevelopmentAdminAction || isAdmin;
   if (!canDelete) {
     res.status(403).json({ error: "Only the Blast creator or an admin can delete this Blast." });
     return;
+  }
+  if (!isOwner && (isDevelopmentAdminAction || isAdmin)) {
+    await setContentStatusWithAudit(blast.id, "removed", {
+      action: "content_deleted",
+      entityType: "blast",
+      entityId: blast.id,
+      actorId: userId ?? "development-admin",
+      details: "Deleted Blast from the live feed.",
+    });
   }
   blasts.splice(index, 1);
   res.sendStatus(204);
@@ -940,7 +992,7 @@ router.post("/blasts/:id/comments", (req, res): void => {
   }));
 });
 
-router.post("/blasts/:id/back", (req, res): void => {
+router.post("/blasts/:id/back", async (req, res): Promise<void> => {
   if (!isFeatureEnabled("blast_back")) {
     res.status(403).json({ error: "Blast Back is currently disabled." });
     return;
@@ -957,11 +1009,19 @@ router.post("/blasts/:id/back", (req, res): void => {
     res.status(404).json({ error: "Blast or Target not found" });
     return;
   }
+  const { userId } = getAuth(req);
+  if (!canCreateUserContent(userId)) {
+    res.status(401).json({ error: "Sign in is required to create a Blast Back." });
+    return;
+  }
+  const author = userId
+    ? (await loadAuthenticatedProfile(userId)).profile
+    : await loadDemoProfile();
   const blast: Blast = {
     id: randomUUID(),
     content: body.data.content,
     createdAt: new Date().toISOString(),
-    author: users[0],
+    author,
     target,
     location: body.data.location ?? users[0].location,
     mediaUrl: body.data.mediaUrl ?? "",
@@ -976,7 +1036,13 @@ router.post("/blasts/:id/back", (req, res): void => {
   };
   blasts.unshift(blast);
   if (adminSettings.contentReviewMode) {
-    adminContentStatuses.set(blast.id, "hidden");
+    await setContentStatusWithAudit(blast.id, "hidden", {
+      action: "content_hidden_for_review",
+      entityType: "blast",
+      entityId: blast.id,
+      actorId: "system",
+      details: "Content review mode hid a newly created Blast Back.",
+    });
   }
   res.status(201).json(CreateBlastBackResponse.parse(blast));
 });
@@ -1004,7 +1070,7 @@ router.get("/bookmarks", (_req, res): void => {
   res.json(GetBookmarksResponse.parse(visibleBlasts().filter((blast) => blast.isBookmarked)));
 });
 
-router.post("/reports", (req, res): void => {
+router.post("/reports", async (req, res): Promise<void> => {
   const { userId } = getAuth(req);
   const reporterId = userId ?? (process.env.NODE_ENV === "development" ? users[0].id : null);
   if (!reporterId) {
@@ -1016,14 +1082,13 @@ router.post("/reports", (req, res): void => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const report = createAdminReport({
+  const report = await createAdminReportWithAudit({
     targetType: parsed.data.targetType,
     targetId: parsed.data.targetId,
     reason: parsed.data.reason,
     description: parsed.data.description ?? "",
     reporterId,
-  });
-  recordAudit({
+  }, {
     action: "report_created",
     entityType: parsed.data.targetType,
     entityId: parsed.data.targetId,

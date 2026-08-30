@@ -1,10 +1,10 @@
 ---
 name: Social persistence boundary
-description: Why BLASTERR social and BLASTR Clips metadata currently use process memory despite having relational schemas.
+description: Which BLASTERR records are durable now, and which social/Clip metadata intentionally remains process-local.
 ---
 
-Keep the active BLASTERR social and BLASTR Clips metadata path in process memory until the project explicitly schedules the persistence migration. Generated media bytes belong in App Storage, and relational schemas should stay aligned with the API model so the migration is straightforward.
+Keep active BLASTERR social and BLASTR Clips metadata in process memory until the project explicitly schedules that domain migration. Administrative reports, audit events, moderation statuses, settings, feature controls, and announcements are the exception: they must remain PostgreSQL-backed and restart-safe. Generated media bytes belong in App Storage.
 
-**Why:** The project deliberately prioritizes a coherent working product before moving the existing social domain to PostgreSQL; changing only Clips would create a split persistence model and inconsistent ownership references.
+**Why:** Operational and moderation history cannot disappear on restart, while partially migrating user social content would create inconsistent ownership references and a split social model.
 
-**How to apply:** New social or clip features may extend the in-memory domain and the future-facing schema together. Treat restart durability and recoverable render jobs as the scope of a dedicated persistence migration, not an incidental partial conversion.
+**How to apply:** Persist every privileged control-plane mutation and its actor-stamped audit event, preferably atomically. Social or Clip features may extend the in-memory domain and future-facing schema together until their dedicated migration.

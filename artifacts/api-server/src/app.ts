@@ -10,7 +10,7 @@ import {
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
-import { adminSettings } from "./lib/admin-state";
+import { adminSettings, ensureAdminState } from "./lib/admin-state";
 import { isSuspended } from "./lib/admin-auth";
 
 const app: Express = express();
@@ -50,6 +50,13 @@ app.use(
 app.use(async (req, res, next) => {
   if (!req.path.startsWith("/api/") || req.path === "/api/healthz" || req.path.startsWith("/api/admin/")) {
     next();
+    return;
+  }
+  try {
+    await ensureAdminState();
+  } catch (error) {
+    req.log.error({ err: error }, "Unable to load persisted platform state");
+    res.status(503).json({ error: "BLASTERR is temporarily unavailable." });
     return;
   }
   if (adminSettings.maintenanceMode) {
