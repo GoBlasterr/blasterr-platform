@@ -26,9 +26,9 @@ export default function Home() {
 
       {/* Desktop Header / Tabs */}
       <div className="sticky top-0 md:top-0 z-20 glass-panel border-b border-white/10 pt-4 px-4 pb-0">
-        <div className="relative flex items-center justify-center mb-3">
+        <div className="relative flex h-10 items-center justify-center mb-3">
           <h2 className="hidden md:block absolute left-2 font-display font-bold text-2xl text-white">Home</h2>
-          <Link href="/" className="hidden md:flex hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
+          <Link href="/" className="hidden md:flex fixed left-1/2 top-4 z-30 -translate-x-1/2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
             <img src="/word-logo.png" alt="BLASTERR" className="h-10 w-auto" />
           </Link>
         </div>
