@@ -9,7 +9,7 @@ export default function SignIn() {
       {/* Background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[100px] mix-blend-screen pointer-events-none"></div>
 
-      <header className="p-6 pt-9 md:pt-10 relative z-10 flex items-center justify-end max-w-7xl mx-auto w-full">
+      <header className="p-6 pt-14 md:pt-16 relative z-10 flex items-center justify-end max-w-7xl mx-auto w-full">
         <Link href="/" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
           <img src="/logo.png" alt="BLASTERR" className="h-16 md:h-20 w-auto object-contain" />
         </Link>
@@ -23,8 +23,8 @@ export default function SignIn() {
       <main className="flex-1 flex items-center justify-center p-6 relative z-10">
         <div className="w-full max-w-md translate-y-4 md:translate-y-6">
           <div className="glass-panel p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl">
-            <h1 className="font-display font-bold text-3xl text-white mb-2">Access Comm Link</h1>
-            <p className="text-muted-foreground mb-5">Enter credentials to resume your session.</p>
+            <h1 className="font-display font-bold text-3xl text-white mb-2 text-center">Access Comm Link</h1>
+            <p className="text-muted-foreground mb-5 text-center">Enter credentials to resume your session.</p>
 
             <ClerkSignIn
               appearance={{
