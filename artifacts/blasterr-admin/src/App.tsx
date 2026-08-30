@@ -117,18 +117,18 @@ function AdminRouter() {
 
 function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isLoaded || !username.trim() || !password || isSubmitting) return;
+    if (!isLoaded || !email.trim() || !password || isSubmitting) return;
     setError('');
     setIsSubmitting(true);
     try {
-      const firstFactor = await signIn.create({ identifier: username.trim() });
+      const firstFactor = await signIn.create({ identifier: email.trim() });
       if (firstFactor.status !== 'needs_first_factor') {
         throw new Error('This account is not configured for password sign-in.');
       }
@@ -162,17 +162,18 @@ function SignInPage() {
           </p>
           <form className="mt-8 space-y-5" onSubmit={submit}>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-white" htmlFor="staff-username">Username</label>
+              <label className="text-sm font-medium text-white" htmlFor="staff-email">Email address</label>
               <Input
-                id="staff-username"
-                name="username"
-                autoComplete="username"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="Enter username"
+                id="staff-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="Enter email address"
                 className="border-white/30 bg-black text-white placeholder:text-white/60 focus-visible:ring-[#e5f403]"
                 required
-                data-testid="staff-username"
+                data-testid="staff-email"
               />
             </div>
             <div className="space-y-2">
@@ -193,7 +194,7 @@ function SignInPage() {
             {error && <p className="text-sm text-red-400" role="alert">{error}</p>}
             <button
               type="submit"
-              disabled={!isLoaded || isSubmitting || !username.trim() || !password}
+              disabled={!isLoaded || isSubmitting || !email.trim() || !password}
               className="inline-flex h-10 w-full items-center justify-center rounded-sm bg-[#e5f403] px-5 text-sm font-semibold text-black transition-colors hover:bg-[#e5f403]/90 disabled:cursor-not-allowed"
               data-testid="staff-sign-in"
             >
