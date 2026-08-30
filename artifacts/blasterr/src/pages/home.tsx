@@ -7,11 +7,12 @@ import {
 } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PenSquare } from "lucide-react";
+import { ArrowLeft, Home as HomeIcon, PenSquare } from "lucide-react";
 
 export default function Home() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
+  const isStandaloneFeed = location === "/";
 
   // Type assertion since the OpenAPI schema type isn't matching perfectly in this mockup context
   const { data: feedData, isLoading } = useGetFeed({ tab: activeTab as any, page: 1 });
@@ -22,6 +23,17 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       {/* Mobile Header */}
       <header className="md:hidden sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-center">
+        {isStandaloneFeed && (
+          <Link
+            href="/home"
+            className="absolute left-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white hover:bg-primary/15 hover:text-primary"
+            aria-label="Open Home Feed with navigation"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <HomeIcon className="h-4 w-4" />
+            <span>Home Feed</span>
+          </Link>
+        )}
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
           <img src="/word-logo.png" alt="BLASTERR" className="h-14 w-auto" />
         </Link>
@@ -30,7 +42,18 @@ export default function Home() {
       {/* Desktop Header / Tabs */}
       <div className="sticky top-0 md:top-0 z-20 glass-panel border-b border-white/10 pt-4 px-4 pb-0">
         <div className="relative flex h-10 items-center justify-center mb-3">
-          <h2 className="hidden md:block absolute left-2 max-w-[calc(100%-1rem)] truncate font-display font-bold text-2xl text-white">
+          {isStandaloneFeed && (
+            <Link
+              href="/home"
+              className="hidden md:inline-flex absolute left-0 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white hover:bg-primary/15 hover:text-primary"
+              aria-label="Open Home Feed with navigation"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <HomeIcon className="h-4 w-4" />
+              <span>Home Feed</span>
+            </Link>
+          )}
+          <h2 className={`hidden md:block absolute max-w-[calc(100%-12rem)] truncate font-display font-bold text-2xl text-white ${isStandaloneFeed ? "left-1/2 -translate-x-1/2" : "left-2"}`}>
             Welcome, {welcomeName}
           </h2>
         </div>
