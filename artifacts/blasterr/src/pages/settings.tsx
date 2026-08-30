@@ -202,7 +202,7 @@ export default function Settings() {
         <h2 className="font-display font-bold text-2xl text-white">System Settings</h2>
       </div>
 
-      <div className="flex-1 p-4 md:p-6 max-w-3xl w-full">
+      <div className="flex-1 max-w-3xl w-full p-4 pb-36 md:p-6 md:pb-8">
         {/* Profile Settings */}
         <section className="mb-10">
           <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-6 border-b border-white/5 pb-2">
