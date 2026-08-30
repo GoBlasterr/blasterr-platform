@@ -46,8 +46,8 @@ export default function Splash() {
         onError={() => setHasError(true)}
         aria-label="BLASTERR introduction"
       >
-        <source src="/blasterr-intro-1788063024505.webm" type="video/webm" />
-        <source src="/blasterr-intro-1788063024505.mp4" type="video/mp4" />
+        <source src="/blasterr-intro-transparent-v2.webm" type="video/webm" />
+        <source src="/blasterr-intro-transparent-v2.mp4" type="video/mp4" />
       </video>
 
       <div className="absolute inset-0 bg-black/25" />

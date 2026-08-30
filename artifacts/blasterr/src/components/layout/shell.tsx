@@ -46,7 +46,7 @@ export function Shell({ children }: ShellProps) {
   }
 
   // Hide shell on auth pages and landing
-  if (location === "/" || location === "/splash" || location === "/sign-in" || location === "/sign-up") {
+  if (location === "/" || location === "/splash" || location === "/sign-in" || location === "/sign-up" || location === "/privacy" || location === "/terms") {
     return <>{children}</>;
   }
 

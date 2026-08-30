@@ -28,6 +28,7 @@ import Admin from '@/pages/admin';
 import SignIn from '@/pages/sign-in';
 import SignUp from '@/pages/sign-up';
 import NotFound from '@/pages/not-found';
+import { PrivacyPolicy, TermsAndConditions } from '@/pages/legal';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +72,8 @@ function Router() {
           <Route path="/admin" component={Admin} />
           <Route path="/sign-in/*?" component={SignIn} />
           <Route path="/sign-up/*?" component={SignUp} />
+          <Route path="/privacy" component={PrivacyPolicy} />
+          <Route path="/terms" component={TermsAndConditions} />
           <Route component={NotFound} />
         </Switch>
       </RoutedErrorBoundary>

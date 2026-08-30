@@ -105,6 +105,10 @@ export default function Landing() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 py-8 text-center text-muted-foreground text-sm">
         <p>© {new Date().getFullYear()} BLASTERR Universe. All systems operational.</p>
+        <nav aria-label="Legal navigation" className="mt-3 flex justify-center gap-5">
+          <Link href="/privacy" className="transition-colors hover:text-primary">Privacy Policy</Link>
+          <Link href="/terms" className="transition-colors hover:text-primary">Terms and Conditions</Link>
+        </nav>
       </footer>
     </div>
   );
