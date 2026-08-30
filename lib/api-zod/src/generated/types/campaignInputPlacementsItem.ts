@@ -16,4 +16,5 @@ export const CampaignInputPlacementsItem = {
   trending: 'trending',
   profile: 'profile',
   clips: 'clips',
+  right_rail: 'right_rail',
 } as const;

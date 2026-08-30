@@ -9,7 +9,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
 const router: IRouter = Router();
-const placements = ["home_feed", "following_feed", "search", "trending", "profile", "clips"] as const;
+const placements = ["home_feed", "following_feed", "search", "trending", "profile", "clips", "right_rail"] as const;
 type Placement = (typeof placements)[number];
 const now = () => new Date();
 const stamp = (value: Date | null) => value?.toISOString() ?? null;

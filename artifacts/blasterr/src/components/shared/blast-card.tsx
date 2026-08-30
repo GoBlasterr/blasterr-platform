@@ -202,11 +202,24 @@ export function BlastCard({ blast, showTarget = true, showMedia = false }: { bla
           {showMedia && blast.mediaUrl && (
             <div className="mt-3 rounded-2xl overflow-hidden border border-white/10">
               {blast.mediaType === 'video' ? (
-                 <div className="aspect-video bg-black flex items-center justify-center text-muted-foreground">
-                   [Video Player Placeholder]
-                 </div>
+                <video
+                  src={blast.mediaUrl}
+                  aria-label="Video attached to Blast"
+                  className="aspect-video w-full bg-black object-contain"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  Your browser does not support video playback.
+                </video>
               ) : (
-                <img src={blast.mediaUrl} alt="Attached media" className="w-full h-auto object-cover max-h-96" />
+                <img
+                  src={blast.mediaUrl}
+                  alt="Attached media"
+                  className="w-full h-auto object-cover max-h-96"
+                  onClick={(event) => event.stopPropagation()}
+                />
               )}
             </div>
           )}

@@ -631,6 +631,7 @@ export const CampaignInputPlacementsItem = {
   trending: 'trending',
   profile: 'profile',
   clips: 'clips',
+  right_rail: 'right_rail',
 } as const;
 
 export type CampaignInputTargeting = { [key: string]: unknown };
@@ -693,6 +694,7 @@ export const AdvertisementInputPlacement = {
   trending: 'trending',
   profile: 'profile',
   clips: 'clips',
+  right_rail: 'right_rail',
 } as const;
 
 export interface AdvertisementInput {
@@ -787,6 +789,7 @@ export const AdEventInputPlacement = {
   trending: 'trending',
   profile: 'profile',
   clips: 'clips',
+  right_rail: 'right_rail',
 } as const;
 
 export interface AdEventInput {
@@ -1458,6 +1461,7 @@ export const GetAdPlacementPlacement = {
   trending: 'trending',
   profile: 'profile',
   clips: 'clips',
+  right_rail: 'right_rail',
 } as const;
 
 export type GetAdPlacement200 = {

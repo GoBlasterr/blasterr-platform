@@ -1,5 +1,5 @@
 import { useLocation, useParams } from "wouter";
-import { useGetTarget, useCreateBlast } from "@workspace/api-client-react";
+import { useGetTarget } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Target as TargetIcon, MapPin, Activity, ThumbsUp, ThumbsDown, PenSquare } from "lucide-react";
@@ -114,7 +114,7 @@ export default function TargetDetail() {
         
         {blasts?.length ? (
           blasts.map((blast: any) => (
-            <BlastCard key={blast.id} blast={blast} showTarget={false} />
+            <BlastCard key={blast.id} blast={blast} showTarget={false} showMedia />
           ))
         ) : (
           <div className="p-12 text-center text-muted-foreground">

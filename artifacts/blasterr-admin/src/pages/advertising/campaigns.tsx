@@ -24,7 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 const createCampaignSchema = z.object({
   advertiserId: z.string().min(1, "Advertiser ID is required"),
   name: z.string().min(1, "Name is required").max(160, "Name too long"),
-  placements: z.array(z.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips'])).min(1, "Select at least one placement"),
+  placements: z.array(z.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail'])).min(1, "Select at least one placement"),
   dailyBudget: z.coerce.number().min(0).optional(),
   totalBudget: z.coerce.number().min(0).optional(),
   status: z.enum(['draft', 'active', 'paused']).default('draft'),
@@ -96,6 +96,7 @@ export default function CampaignsPage() {
     { id: "trending", label: "Trending" },
     { id: "profile", label: "Profile" },
     { id: "clips", label: "Clips" },
+    { id: "right_rail", label: "Desktop right rail" },
   ] as const;
 
   return (

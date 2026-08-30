@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useClerk } from "@clerk/react";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { FeedAdPlacement } from "@/components/shared/sponsored-blast-card";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -148,14 +149,15 @@ export function Shell({ children }: ShellProps) {
           {children}
         </div>
         
-        {location === "/trending/targets" && (
-          <aside className="hidden xl:block w-[350px] p-6 sticky top-0 h-screen overflow-y-auto custom-scrollbar">
-            <div className="glass-panel p-5 rounded-2xl mb-6">
-              <h3 className="font-display font-bold text-lg mb-4 text-white">Trending Targets</h3>
-              <div className="text-sm text-muted-foreground italic">Connect API to see targets</div>
+        <aside className="hidden xl:block w-[350px] shrink-0 p-6 sticky top-0 h-screen overflow-y-auto custom-scrollbar">
+          <div className="glass-panel rounded-2xl overflow-hidden">
+            <div className="border-b border-white/10 px-5 py-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Paid advertisements</p>
+              <p className="mt-1 text-xs text-muted-foreground">Sponsored content from approved partners</p>
             </div>
-          </aside>
-        )}
+            <FeedAdPlacement placement="right_rail" />
+          </div>
+        </aside>
       </main>
 
       {/* Mobile Bottom Nav */}

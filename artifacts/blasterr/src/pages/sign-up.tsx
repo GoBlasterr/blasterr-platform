@@ -13,7 +13,7 @@ export default function SignUp() {
 
       <header className="p-6 relative z-10 flex items-center justify-between max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img src="/word-logo.png" alt="BLASTERR" className="h-14 w-auto" />
+          <img src="/logo.png" alt="BLASTERR" className="h-16 md:h-20 w-auto object-contain" />
         </Link>
         <Link href="/">
           <Button variant="ghost" className="text-muted-foreground hover:text-white rounded-full">
@@ -23,10 +23,10 @@ export default function SignUp() {
       </header>
 
       <main className="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md -translate-y-8 md:-translate-y-14">
           <div className="glass-panel p-8 md:p-10 rounded-3xl border border-white/10 shadow-2xl">
-            <h1 className="font-display font-bold text-3xl text-white mb-2">Request Clearance</h1>
-            <p className="text-muted-foreground mb-8">Join the network and start targeting.</p>
+            <h1 className="font-display font-bold text-3xl text-white mb-2 text-center">Request Clearance</h1>
+            <p className="text-muted-foreground mb-8 text-center">Join the network and start targeting.</p>
 
             <ClerkSignUp
               routing="path"

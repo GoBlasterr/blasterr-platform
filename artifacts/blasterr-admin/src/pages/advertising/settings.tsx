@@ -22,6 +22,7 @@ const placements = [
   ["trending", "Trending"],
   ["profile", "Profiles"],
   ["clips", "Clips"],
+  ["right_rail", "Desktop right rail"],
 ] as const;
 
 export default function AdvertisingSettingsPage() {

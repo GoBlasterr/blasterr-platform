@@ -100,18 +100,29 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
 
   const { name, size, contentType, purpose } = req.body ?? {};
   const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-  const uploadPurpose = purpose === "avatar" || purpose === "banner" ? purpose : "general";
+  const allowedVideoTypes = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+  const isImage = typeof contentType === "string" && allowedImageTypes.has(contentType);
+  const isVideo = typeof contentType === "string" && allowedVideoTypes.has(contentType);
+  const maxUploadSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+  const uploadPurpose =
+    purpose === "avatar" || purpose === "banner" || purpose === "blast-media"
+      ? purpose
+      : "general";
 
   if (
     typeof name !== "string" ||
     !name.trim() ||
     typeof size !== "number" ||
     size <= 0 ||
-    size > 10 * 1024 * 1024 ||
-    typeof contentType !== "string" ||
-    !allowedImageTypes.has(contentType)
+    size > maxUploadSize ||
+    (!isImage && !isVideo) ||
+    (uploadPurpose !== "blast-media" && !isImage)
   ) {
-    res.status(400).json({ error: "Upload an image up to 10 MB." });
+    res.status(400).json({
+      error: uploadPurpose === "blast-media"
+        ? "Upload a JPG, PNG, WebP, GIF up to 10 MB or an MP4, WebM, MOV up to 100 MB."
+        : "Upload an image up to 10 MB.",
+    });
     return;
   }
 

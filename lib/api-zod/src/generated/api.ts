@@ -2529,7 +2529,7 @@ export const createAdminCampaignBodyTotalBudgetMin = 0;
 export const CreateAdminCampaignBody = zod.object({
   "advertiserId": zod.string(),
   "name": zod.string().min(1).max(createAdminCampaignBodyNameMax),
-  "placements": zod.array(zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips'])).min(1),
+  "placements": zod.array(zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail'])).min(1),
   "targeting": zod.record(zod.string(), zod.unknown()).optional(),
   "dailyBudget": zod.number().min(createAdminCampaignBodyDailyBudgetMin).optional(),
   "totalBudget": zod.number().min(createAdminCampaignBodyTotalBudgetMin).optional(),
@@ -2637,7 +2637,7 @@ export const CreateAdminAdvertisementBody = zod.object({
   "adGroupId": zod.string().optional(),
   "creativeId": zod.string().optional(),
   "name": zod.string().min(1).max(createAdminAdvertisementBodyNameMax),
-  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips']),
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
   "headline": zod.string().min(1).max(createAdminAdvertisementBodyHeadlineMax),
   "body": zod.string().max(createAdminAdvertisementBodyBodyMax).optional(),
   "mediaUrl": zod.string().max(createAdminAdvertisementBodyMediaUrlMax).optional().describe('Absolute HTTP(S) URL; enforced by the API.'),
@@ -2761,7 +2761,7 @@ export const getAdPlacementQuerySessionIdMax = 200;
 
 
 export const GetAdPlacementQueryParams = zod.object({
-  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips']),
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
   "sessionId": zod.coerce.string().min(getAdPlacementQuerySessionIdMin).max(getAdPlacementQuerySessionIdMax)
 })
 
@@ -2792,7 +2792,7 @@ export const recordAdEventBodyDeliveryTokenMax = 2000;
 export const RecordAdEventBody = zod.object({
   "advertisementId": zod.string(),
   "eventType": zod.enum(['impression', 'click', 'video_view']),
-  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips']),
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
   "sessionId": zod.string().min(recordAdEventBodySessionIdMin).max(recordAdEventBodySessionIdMax),
   "deliveryToken": zod.string().min(recordAdEventBodyDeliveryTokenMin).max(recordAdEventBodyDeliveryTokenMax)
 })

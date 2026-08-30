@@ -22,7 +22,7 @@ import { useForm as useReactHookForm } from "react-hook-form";
 const createAdSchema = z.object({
   campaignId: z.string().min(1, "Campaign ID is required"),
   name: z.string().min(1, "Name is required").max(160),
-  placement: z.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips']),
+  placement: z.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
   headline: z.string().min(1, "Headline is required").max(200),
   body: z.string().max(1000).optional(),
   mediaUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
@@ -158,6 +158,7 @@ export default function AdvertisementsPage() {
                           <SelectItem value="trending">Trending Page</SelectItem>
                           <SelectItem value="profile">User Profile</SelectItem>
                           <SelectItem value="clips">Clips Feed</SelectItem>
+                          <SelectItem value="right_rail">Desktop Right Rail</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

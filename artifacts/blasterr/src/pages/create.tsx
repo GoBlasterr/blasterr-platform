@@ -23,7 +23,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Image as ImageIcon, MapPin, Target as TargetIcon, Search, 
-  Loader2, Plus, X, Eye, Flame, Zap, Crosshair, CheckCircle2, Trash 
+  Loader2, Plus, X, Eye, Flame, Zap, Crosshair, CheckCircle2, Trash, Video
 } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -138,9 +138,11 @@ export default function CreateBlast() {
   const [stage, setStage] = useState<1 | 2 | 3>(1);
   const [blastMode, setBlastMode] = useState<string>("");
   
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [imagePreview, setImagePreview] = useState("");
+  const mediaInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [mediaPreview, setMediaPreview] = useState("");
+  const [mediaPreviewType, setMediaPreviewType] = useState<"image" | "video" | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const targetImageInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingTargetImage, setIsUploadingTargetImage] = useState(false);
   const [targetImagePreview, setTargetImagePreview] = useState("");
@@ -241,18 +243,37 @@ export default function CreateBlast() {
     );
   };
 
-  const handleImageSelected = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast({ title: "Choose an image file", variant: "destructive" });
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "Images must be 10 MB or smaller", variant: "destructive" });
+  const handleMediaSelected = async (file: File) => {
+    const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+    const allowedVideoTypes = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+    const mediaType = allowedImageTypes.has(file.type)
+      ? "image"
+      : allowedVideoTypes.has(file.type)
+        ? "video"
+        : null;
+
+    if (!mediaType) {
+      toast({ title: "Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file", variant: "destructive" });
       return;
     }
 
-    setIsUploadingImage(true);
-    setImagePreview(URL.createObjectURL(file));
+    const maxSize = mediaType === "video" ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({
+        title: mediaType === "video"
+          ? "Videos must be 100 MB or smaller"
+          : "Images must be 10 MB or smaller",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    const previewUrl = URL.createObjectURL(file);
+    setIsUploadingMedia(true);
+    setUploadProgress(0);
+    setMediaPreview(previewUrl);
+    setMediaPreviewType(mediaType);
     try {
       const urlResponse = await fetch("/api/storage/uploads/request-url", {
         method: "POST",
@@ -261,33 +282,47 @@ export default function CreateBlast() {
           name: file.name,
           size: file.size,
           contentType: file.type,
+          purpose: "blast-media",
         }),
       });
       const uploadDetails = await urlResponse.json() as { uploadURL?: string; objectPath?: string; error?: string };
       if (!urlResponse.ok || !uploadDetails.uploadURL || !uploadDetails.objectPath) {
-        throw new Error(uploadDetails.error || "Could not prepare image upload");
+        throw new Error(uploadDetails.error || "Could not prepare media upload");
       }
 
-      const uploadResponse = await fetch(uploadDetails.uploadURL, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
+      await new Promise<void>((resolve, reject) => {
+        const request = new XMLHttpRequest();
+        request.open("PUT", uploadDetails.uploadURL!);
+        request.setRequestHeader("Content-Type", file.type);
+        request.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            setUploadProgress(Math.round((event.loaded / event.total) * 100));
+          }
+        };
+        request.onload = () => {
+          if (request.status >= 200 && request.status < 300) resolve();
+          else reject(new Error("Could not upload media"));
+        };
+        request.onerror = () => reject(new Error("Could not upload media"));
+        request.send(file);
       });
-      if (!uploadResponse.ok) {
-        throw new Error("Could not upload image");
-      }
 
       form.setValue("mediaUrl", `/api/storage${uploadDetails.objectPath}`, { shouldValidate: true });
-      form.setValue("mediaType", "image", { shouldValidate: true });
-      toast({ title: "Image attached to your Blast." });
+      form.setValue("mediaType", mediaType, { shouldValidate: true });
+      setUploadProgress(100);
+      toast({ title: `${mediaType === "video" ? "Video" : "Image"} attached to your Blast.` });
     } catch (error) {
-      setImagePreview("");
+      URL.revokeObjectURL(previewUrl);
+      setMediaPreview("");
+      setMediaPreviewType(null);
+      form.setValue("mediaUrl", "", { shouldValidate: true });
+      form.setValue("mediaType", undefined, { shouldValidate: true });
       toast({
-        title: error instanceof Error ? error.message : "Could not upload image",
+        title: error instanceof Error ? error.message : "Could not upload media",
         variant: "destructive",
       });
     } finally {
-      setIsUploadingImage(false);
+      setIsUploadingMedia(false);
     }
   };
 
@@ -352,10 +387,14 @@ export default function CreateBlast() {
     }
   };
 
-  const removeImage = () => {
-    setImagePreview("");
+  const removeMedia = () => {
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    setMediaPreview("");
+    setMediaPreviewType(null);
+    setUploadProgress(0);
     form.setValue("mediaUrl", "", { shouldValidate: true });
     form.setValue("mediaType", undefined, { shouldValidate: true });
+    if (mediaInputRef.current) mediaInputRef.current.value = "";
   };
 
   const handleLocation = () => {
@@ -905,7 +944,7 @@ export default function CreateBlast() {
                         />
                         
                         {/* Attachments Area */}
-                        {(imagePreview || form.watch("location")) && (
+                        {(mediaPreview || form.watch("location")) && (
                            <div className="px-5 pb-4 flex flex-wrap gap-2">
                              {form.watch("location") && (
                                <span className="inline-flex items-center gap-1.5 py-1.5 px-3 bg-white/10 text-white rounded-lg text-sm font-medium border border-white/5">
@@ -921,19 +960,38 @@ export default function CreateBlast() {
                                  </button>
                                </span>
                              )}
-                             {imagePreview && (
-                               <div className="relative group rounded-lg overflow-hidden border border-white/10 w-32 h-24">
-                                  <img src={imagePreview} alt="Blast attachment preview" className="w-full h-full object-cover" />
-                                  <div className="absolute inset-0 flex items-start justify-end p-1.5 bg-gradient-to-bl from-black/70 via-transparent to-transparent">
+                             {mediaPreview && (
+                               <div className="relative group rounded-lg overflow-hidden border border-white/10 w-40 h-28 bg-black">
+                                  {mediaPreviewType === "video" ? (
+                                    <video
+                                      src={mediaPreview}
+                                      aria-label="Blast video attachment preview"
+                                      className="w-full h-full object-contain"
+                                      controls
+                                      playsInline
+                                      preload="metadata"
+                                    />
+                                  ) : (
+                                    <img src={mediaPreview} alt="Blast attachment preview" className="w-full h-full object-cover" />
+                                  )}
+                                  <div className="absolute inset-x-0 top-0 flex items-start justify-end p-1.5 bg-gradient-to-b from-black/70 via-transparent to-transparent pointer-events-none">
                                     <button
                                       type="button"
-                                      aria-label="Remove attached image"
-                                      onClick={removeImage}
-                                      className="text-white bg-black/70 p-2 rounded-full hover:bg-destructive hover:text-white transition-colors"
+                                       aria-label={`Remove attached ${mediaPreviewType ?? "media"}`}
+                                       onClick={removeMedia}
+                                       className="text-white bg-black/70 p-2 rounded-full hover:bg-destructive hover:text-white transition-colors pointer-events-auto"
                                     >
                                      <Trash className="w-4 h-4" />
                                    </button>
                                  </div>
+                                  {isUploadingMedia && (
+                                    <div className="absolute inset-x-0 bottom-0 bg-black/80 px-2 py-1.5 text-xs font-bold text-white">
+                                      Uploading {uploadProgress}%
+                                      <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/20">
+                                        <div className="h-full bg-primary transition-all" style={{ width: `${uploadProgress}%` }} />
+                                      </div>
+                                    </div>
+                                  )}
                                </div>
                              )}
                            </div>
@@ -943,14 +1001,14 @@ export default function CreateBlast() {
                         <div className="flex items-center justify-between border-t border-white/5 bg-black/20 p-3">
                            <div className="flex items-center gap-1">
                              <input
-                               ref={imageInputRef}
+                                ref={mediaInputRef}
                                type="file"
-                               accept="image/*"
+                                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
                                className="sr-only"
                                onChange={(e) => {
                                  const file = e.target.files?.[0];
                                  e.target.value = "";
-                                 if (file) void handleImageSelected(file);
+                                  if (file) void handleMediaSelected(file);
                                }}
                              />
                              <Tooltip>
@@ -959,14 +1017,15 @@ export default function CreateBlast() {
                                    type="button"
                                    variant="ghost"
                                    size="icon"
-                                   disabled={isUploadingImage || !!imagePreview}
-                                   onClick={() => imageInputRef.current?.click()}
+                                    disabled={isUploadingMedia || !!mediaPreview}
+                                    onClick={() => mediaInputRef.current?.click()}
                                    className="rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 w-10 h-10"
+                                    aria-label="Attach image or video"
                                  >
-                                   {isUploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
+                                    {isUploadingMedia ? <Loader2 className="w-5 h-5 animate-spin" /> : <Video className="w-5 h-5" />}
                                  </Button>
                                </TooltipTrigger>
-                               <TooltipContent>Attach Image</TooltipContent>
+                                <TooltipContent>Attach Image or Video</TooltipContent>
                              </Tooltip>
 
                              <Tooltip>
@@ -1036,7 +1095,7 @@ export default function CreateBlast() {
                 <Button 
                   type="button" 
                   onClick={form.handleSubmit(onSubmit)}
-                  disabled={isUploadingImage || createMutation.isPending || form.watch("content").length > 1000}
+                  disabled={isUploadingMedia || createMutation.isPending || form.watch("content").length > 1000}
                   className="h-14 px-10 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 shadow-[0_0_30px_rgba(229,244,3,0.2)] hover:shadow-[0_0_40px_rgba(229,244,3,0.4)] disabled:opacity-50 disabled:shadow-none text-lg transition-all"
                 >
                   {createMutation.isPending ? (

@@ -984,7 +984,7 @@ paths:
       operationId: getAdPlacement
       tags: [advertising]
       parameters:
-        - { name: placement, in: query, required: true, schema: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips] } }
+        - { name: placement, in: query, required: true, schema: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] } }
         - { name: sessionId, in: query, required: true, schema: { type: string, minLength: 12, maxLength: 200 } }
       responses: { "200": { description: Eligible advertisement, content: { application/json: { schema: { type: object, required: [ad], properties: { ad: { anyOf: [{ $ref: "#/components/schemas/AdvertisementDelivery" }, { type: "null" }] } } } } } } }
   /advertising/events:
@@ -1512,7 +1512,7 @@ components:
       properties:
         advertiserId: { type: string }
         name: { type: string, minLength: 1, maxLength: 160 }
-        placements: { type: array, minItems: 1, items: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips] } }
+        placements: { type: array, minItems: 1, items: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] } }
         targeting: { type: object, additionalProperties: true }
         dailyBudget: { type: number, minimum: 0 }
         totalBudget: { type: number, minimum: 0 }
@@ -1544,7 +1544,7 @@ components:
         adGroupId: { type: string }
         creativeId: { type: string }
         name: { type: string, minLength: 1, maxLength: 160 }
-        placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips] }
+        placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] }
         headline: { type: string, minLength: 1, maxLength: 200 }
         body: { type: string, maxLength: 1000 }
         mediaUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL; enforced by the API. }
@@ -1581,7 +1581,7 @@ components:
       properties:
         advertisementId: { type: string }
         eventType: { type: string, enum: [impression, click, video_view] }
-        placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips] }
+        placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] }
         sessionId: { type: string, minLength: 12, maxLength: 200 }
         deliveryToken: { type: string, minLength: 20, maxLength: 2000 }
     AdvertisingSettings:
