@@ -15,11 +15,11 @@ export default function Nearby() {
           <Link href="/home">
             <Button
               variant="ghost"
-              size="icon"
-              className="rounded-full text-muted-foreground hover:bg-white/10 hover:text-white"
+              className="h-10 gap-2 rounded-full border border-white/15 bg-white/5 px-4 text-sm font-semibold text-white hover:bg-primary/15 hover:text-primary"
               aria-label="Back to home feed"
             >
               <ArrowLeft className="w-5 h-5" />
+              <span>Back to Feed</span>
             </Button>
           </Link>
           <h2 className="font-display font-bold text-2xl text-white flex items-center gap-2">
