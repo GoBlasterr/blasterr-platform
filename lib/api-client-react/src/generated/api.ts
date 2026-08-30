@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminClipsOverview,
   AdminOverview,
   Blast,
   BlastInput,
@@ -27,12 +28,16 @@ import type {
   BlockInput,
   BlockState,
   BookmarkState,
+  Clip,
+  ClipInput,
+  ClipUpdate,
   Comment,
   CommentInput,
   CurrentUser,
   FeedResponse,
   FollowState,
   GetFeedParams,
+  GetMyClipsParams,
   HealthStatus,
   ListTargetsParams,
   Notification,
@@ -43,6 +48,7 @@ import type {
   ReportInput,
   SearchParams,
   SearchResults,
+  ShareLink,
   Target,
   TargetDetail,
   TargetInput,
@@ -1141,6 +1147,523 @@ export const useDeleteBlast = <TError = ErrorType<unknown>,
       return useMutation(getDeleteBlastMutationOptions(options));
     }
 
+export const getGetMyClipsUrl = (params?: GetMyClipsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/clips?${stringifiedParams}` : `/api/clips`
+}
+
+/**
+ * @summary Get the current user's BLASTR Clips
+ */
+export const getMyClips = async (params?: GetMyClipsParams, options?: Parameters<typeof customFetch>[1]): Promise<Clip[]> => {
+
+  return customFetch<Clip[]>(getGetMyClipsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyClipsQueryKey = (params?: GetMyClipsParams,) => {
+    return [
+    `/api/clips`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMyClipsQueryOptions = <TData = Awaited<ReturnType<typeof getMyClips>>, TError = ErrorType<unknown>>(params?: GetMyClipsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyClips>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyClipsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyClips>>> = ({ signal }) => getMyClips(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyClips>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMyClipsQueryResult = NonNullable<Awaited<ReturnType<typeof getMyClips>>>
+export type GetMyClipsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the current user's BLASTR Clips
+ */
+
+export function useGetMyClips<TData = Awaited<ReturnType<typeof getMyClips>>, TError = ErrorType<unknown>>(
+ params?: GetMyClipsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyClips>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMyClipsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateClipUrl = () => {
+
+
+
+
+  return `/api/clips`
+}
+
+/**
+ * @summary Create a BLASTR Clip render job
+ */
+export const createClip = async (clipInput: ClipInput, options?: Parameters<typeof customFetch>[1]): Promise<Clip> => {
+
+  return customFetch<Clip>(getCreateClipUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(clipInput)
+  }
+);}
+
+
+
+
+
+export const getCreateClipMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClip>>, TError,{data: BodyType<ClipInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createClip>>, TError,{data: BodyType<ClipInput>}, TContext> => {
+
+const mutationKey = ['createClip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createClip>>, {data: BodyType<ClipInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createClip(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateClipMutationResult = NonNullable<Awaited<ReturnType<typeof createClip>>>
+    export type CreateClipMutationBody = BodyType<ClipInput>
+    export type CreateClipMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a BLASTR Clip render job
+ */
+export const useCreateClip = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClip>>, TError,{data: BodyType<ClipInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createClip>>,
+        TError,
+        {data: BodyType<ClipInput>},
+        TContext
+      > => {
+      return useMutation(getCreateClipMutationOptions(options));
+    }
+
+export const getGetClipUrl = (id: string,) => {
+
+
+
+
+  return `/api/clips/${id}`
+}
+
+/**
+ * @summary Get a BLASTR Clip
+ */
+export const getClip = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Clip> => {
+
+  return customFetch<Clip>(getGetClipUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetClipQueryKey = (id: string,) => {
+    return [
+    `/api/clips/${id}`
+    ] as const;
+    }
+
+
+export const getGetClipQueryOptions = <TData = Awaited<ReturnType<typeof getClip>>, TError = ErrorType<void>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getClip>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetClipQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getClip>>> = ({ signal }) => getClip(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getClip>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetClipQueryResult = NonNullable<Awaited<ReturnType<typeof getClip>>>
+export type GetClipQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a BLASTR Clip
+ */
+
+export function useGetClip<TData = Awaited<ReturnType<typeof getClip>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getClip>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetClipQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateClipUrl = (id: string,) => {
+
+
+
+
+  return `/api/clips/${id}`
+}
+
+/**
+ * @summary Update a draft or failed BLASTR Clip
+ */
+export const updateClip = async (id: string,
+    clipUpdate: ClipUpdate, options?: Parameters<typeof customFetch>[1]): Promise<Clip> => {
+
+  return customFetch<Clip>(getUpdateClipUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(clipUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateClipMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClip>>, TError,{id: string;data: BodyType<ClipUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateClip>>, TError,{id: string;data: BodyType<ClipUpdate>}, TContext> => {
+
+const mutationKey = ['updateClip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateClip>>, {id: string;data: BodyType<ClipUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateClip(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateClipMutationResult = NonNullable<Awaited<ReturnType<typeof updateClip>>>
+    export type UpdateClipMutationBody = BodyType<ClipUpdate>
+    export type UpdateClipMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a draft or failed BLASTR Clip
+ */
+export const useUpdateClip = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClip>>, TError,{id: string;data: BodyType<ClipUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateClip>>,
+        TError,
+        {id: string;data: BodyType<ClipUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateClipMutationOptions(options));
+    }
+
+export const getDeleteClipUrl = (id: string,) => {
+
+
+
+
+  return `/api/clips/${id}`
+}
+
+/**
+ * @summary Delete an owned BLASTR Clip
+ */
+export const deleteClip = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteClipUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteClipMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClip>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteClip>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteClip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteClip>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteClip(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteClipMutationResult = NonNullable<Awaited<ReturnType<typeof deleteClip>>>
+
+    export type DeleteClipMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an owned BLASTR Clip
+ */
+export const useDeleteClip = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClip>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteClip>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteClipMutationOptions(options));
+    }
+
+export const getRetryClipUrl = (id: string,) => {
+
+
+
+
+  return `/api/clips/${id}/retry`
+}
+
+/**
+ * @summary Retry a failed BLASTR Clip render
+ */
+export const retryClip = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Clip> => {
+
+  return customFetch<Clip>(getRetryClipUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRetryClipMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryClip>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof retryClip>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['retryClip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof retryClip>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  retryClip(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RetryClipMutationResult = NonNullable<Awaited<ReturnType<typeof retryClip>>>
+
+    export type RetryClipMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Retry a failed BLASTR Clip render
+ */
+export const useRetryClip = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryClip>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof retryClip>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRetryClipMutationOptions(options));
+    }
+
+export const getShareClipUrl = (id: string,) => {
+
+
+
+
+  return `/api/clips/${id}/share`
+}
+
+/**
+ * @summary Create a share link for a completed BLASTR Clip
+ */
+export const shareClip = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<ShareLink> => {
+
+  return customFetch<ShareLink>(getShareClipUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getShareClipMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof shareClip>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof shareClip>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['shareClip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof shareClip>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  shareClip(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ShareClipMutationResult = NonNullable<Awaited<ReturnType<typeof shareClip>>>
+
+    export type ShareClipMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a share link for a completed BLASTR Clip
+ */
+export const useShareClip = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof shareClip>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof shareClip>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getShareClipMutationOptions(options));
+    }
+
 export const getReactToBlastUrl = (id: string,) => {
 
 
@@ -1789,6 +2312,83 @@ export function useGetAdminOverview<TData = Awaited<ReturnType<typeof getAdminOv
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAdminOverviewQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAdminClipsUrl = () => {
+
+
+
+
+  return `/api/admin/clips`
+}
+
+/**
+ * @summary Get the protected BLASTR Media Center overview
+ */
+export const getAdminClips = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdminClipsOverview> => {
+
+  return customFetch<AdminClipsOverview>(getGetAdminClipsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminClipsQueryKey = () => {
+    return [
+    `/api/admin/clips`
+    ] as const;
+    }
+
+
+export const getGetAdminClipsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminClips>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminClips>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminClipsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminClips>>> = ({ signal }) => getAdminClips({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminClips>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminClipsQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminClips>>>
+export type GetAdminClipsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the protected BLASTR Media Center overview
+ */
+
+export function useGetAdminClips<TData = Awaited<ReturnType<typeof getAdminClips>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminClips>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminClipsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

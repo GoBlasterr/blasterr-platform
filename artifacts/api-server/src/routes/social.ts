@@ -337,7 +337,7 @@ const targets: TargetRecord[] = [
 ];
 
 type Reaction = "blast" | "facts" | "cap" | "funny" | "watching";
-type Blast = {
+export type Blast = {
   id: string;
   content: string;
   createdAt: string;
@@ -353,9 +353,12 @@ type Blast = {
   isBookmarked: boolean;
   isBlastBack?: boolean;
   originalBlastId?: string | null;
+  allowClipCreation?: boolean;
+  allowExternalSharing?: boolean;
+  allowPromotionalUse?: boolean;
 };
 
-const blasts: Blast[] = [
+export const blasts: Blast[] = [
   {
     id: "blast-1",
     content: "The lemon-pepper glaze here has no business being this good. Midnight Wings just reset the late-night food ranking.",
@@ -370,6 +373,9 @@ const blasts: Blast[] = [
     shareCount: 64,
     viewCount: 18400,
     isBookmarked: true,
+    allowClipCreation: true,
+    allowExternalSharing: true,
+    allowPromotionalUse: false,
   },
   {
     id: "blast-2",
@@ -385,6 +391,9 @@ const blasts: Blast[] = [
     shareCount: 218,
     viewCount: 84200,
     isBookmarked: false,
+    allowClipCreation: true,
+    allowExternalSharing: true,
+    allowPromotionalUse: false,
   },
   {
     id: "blast-3",
@@ -400,6 +409,9 @@ const blasts: Blast[] = [
     shareCount: 77,
     viewCount: 31900,
     isBookmarked: false,
+    allowClipCreation: true,
+    allowExternalSharing: true,
+    allowPromotionalUse: false,
   },
   {
     id: "blast-4",
@@ -415,6 +427,9 @@ const blasts: Blast[] = [
     shareCount: 29,
     viewCount: 12600,
     isBookmarked: false,
+    allowClipCreation: true,
+    allowExternalSharing: true,
+    allowPromotionalUse: false,
   },
 ];
 

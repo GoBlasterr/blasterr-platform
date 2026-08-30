@@ -10,7 +10,8 @@ import {
   Settings, 
   User,
   LogOut,
-  LogIn
+  LogIn,
+  Film
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useClerk } from "@clerk/react";
@@ -38,6 +39,7 @@ export function Shell({ children }: ShellProps) {
     navItems.push(
       { icon: Bell, label: "Notifications", href: "/notifications" },
       { icon: Bookmark, label: "Bookmarks", href: "/bookmarks" },
+      { icon: Film, label: "My Clips", href: "/clips" },
       { icon: User, label: "Profile", href: `/profile/${user.username}` },
       { icon: Settings, label: "Settings", href: "/settings" }
     );

@@ -361,6 +361,186 @@ export interface AdminOverview {
   chart: AdminOverviewChartItem[];
 }
 
+export type ClipStyle = typeof ClipStyle[keyof typeof ClipStyle];
+
+
+export const ClipStyle = {
+  BREAKING: 'BREAKING',
+  FUNNY: 'FUNNY',
+  DRAMATIC: 'DRAMATIC',
+  RECEIPTS: 'RECEIPTS',
+  DEBATE: 'DEBATE',
+  STORY: 'STORY',
+} as const;
+
+export type ClipAspectRatio = typeof ClipAspectRatio[keyof typeof ClipAspectRatio];
+
+
+export const ClipAspectRatio = {
+  '9:16': '9:16',
+} as const;
+
+export type ClipRenderStatus = typeof ClipRenderStatus[keyof typeof ClipRenderStatus];
+
+
+export const ClipRenderStatus = {
+  DRAFT: 'DRAFT',
+  QUEUED: 'QUEUED',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  SHARED: 'SHARED',
+} as const;
+
+export interface ClipSettings {
+  captionStyle: string;
+  captionPosition: string;
+  captionAnimation: string;
+  background: string;
+  brandingStyle: string;
+  ctaText: string;
+}
+
+export interface Clip {
+  id: string;
+  blastId: string;
+  creatorId: string;
+  style: ClipStyle;
+  title: string;
+  description: string;
+  duration: number;
+  aspectRatio: ClipAspectRatio;
+  renderStatus: ClipRenderStatus;
+  /** @nullable */
+  videoUrl: string | null;
+  /** @nullable */
+  thumbnailUrl: string | null;
+  /** @nullable */
+  errorMessage?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  blast: Blast;
+  creator: User;
+  settings: ClipSettings;
+}
+
+export type ClipInputStyle = typeof ClipInputStyle[keyof typeof ClipInputStyle];
+
+
+export const ClipInputStyle = {
+  BREAKING: 'BREAKING',
+  FUNNY: 'FUNNY',
+  DRAMATIC: 'DRAMATIC',
+  RECEIPTS: 'RECEIPTS',
+  DEBATE: 'DEBATE',
+  STORY: 'STORY',
+} as const;
+
+export type ClipInputCaptionStyle = typeof ClipInputCaptionStyle[keyof typeof ClipInputCaptionStyle];
+
+
+export const ClipInputCaptionStyle = {
+  bold: 'bold',
+  minimal: 'minimal',
+  breaking: 'breaking',
+  meme: 'meme',
+  cinematic: 'cinematic',
+  story: 'story',
+} as const;
+
+export type ClipInputCaptionPosition = typeof ClipInputCaptionPosition[keyof typeof ClipInputCaptionPosition];
+
+
+export const ClipInputCaptionPosition = {
+  top: 'top',
+  center: 'center',
+  bottom: 'bottom',
+} as const;
+
+export type ClipInputCaptionAnimation = typeof ClipInputCaptionAnimation[keyof typeof ClipInputCaptionAnimation];
+
+
+export const ClipInputCaptionAnimation = {
+  pop: 'pop',
+  slide: 'slide',
+  fade: 'fade',
+  'word-by-word': 'word-by-word',
+  highlight: 'highlight',
+} as const;
+
+export type ClipInputDuration = typeof ClipInputDuration[keyof typeof ClipInputDuration];
+
+
+export const ClipInputDuration = {
+  NUMBER_15: 15,
+  NUMBER_30: 30,
+  NUMBER_45: 45,
+  NUMBER_60: 60,
+} as const;
+
+export type ClipInputBrandingStyle = typeof ClipInputBrandingStyle[keyof typeof ClipInputBrandingStyle];
+
+
+export const ClipInputBrandingStyle = {
+  minimal: 'minimal',
+  full: 'full',
+} as const;
+
+export interface ClipInput {
+  blastId: string;
+  style: ClipInputStyle;
+  /** @maxLength 120 */
+  title?: string;
+  /** @maxLength 500 */
+  description?: string;
+  captionStyle?: ClipInputCaptionStyle;
+  captionPosition?: ClipInputCaptionPosition;
+  captionAnimation?: ClipInputCaptionAnimation;
+  /** @maxLength 80 */
+  background?: string;
+  duration?: ClipInputDuration;
+  brandingStyle?: ClipInputBrandingStyle;
+  /** @maxLength 120 */
+  ctaText?: string;
+}
+
+export type ClipUpdateDuration = typeof ClipUpdateDuration[keyof typeof ClipUpdateDuration];
+
+
+export const ClipUpdateDuration = {
+  NUMBER_15: 15,
+  NUMBER_30: 30,
+  NUMBER_45: 45,
+  NUMBER_60: 60,
+} as const;
+
+export interface ClipUpdate {
+  /** @maxLength 120 */
+  title?: string;
+  /** @maxLength 500 */
+  description?: string;
+  captionStyle?: string;
+  captionPosition?: string;
+  captionAnimation?: string;
+  background?: string;
+  duration?: ClipUpdateDuration;
+  brandingStyle?: string;
+  /** @maxLength 120 */
+  ctaText?: string;
+}
+
+export interface ShareLink {
+  url: string;
+}
+
+export interface AdminClipsOverview {
+  clipCount: number;
+  completedCount: number;
+  failedCount: number;
+  activeRenders: number;
+  clips: Clip[];
+}
+
 export type PageParameter = number;
 
 export type FeedTabParameter = typeof FeedTabParameter[keyof typeof FeedTabParameter];
@@ -437,5 +617,22 @@ export const ListTargetsType = {
   sports: 'sports',
   gaming: 'gaming',
   other: 'other',
+} as const;
+
+export type GetMyClipsParams = {
+status?: GetMyClipsStatus;
+};
+
+export type GetMyClipsStatus = typeof GetMyClipsStatus[keyof typeof GetMyClipsStatus];
+
+
+export const GetMyClipsStatus = {
+  all: 'all',
+  DRAFT: 'DRAFT',
+  QUEUED: 'QUEUED',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  SHARED: 'SHARED',
 } as const;
 

@@ -731,6 +731,556 @@ export const DeleteBlastResponse = zod.void()
 
 
 /**
+ * @summary Get the current user's BLASTR Clips
+ */
+export const getMyClipsQueryStatusDefault = `all`;
+
+export const GetMyClipsQueryParams = zod.object({
+  "status": zod.enum(['all', 'DRAFT', 'QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'SHARED']).default(getMyClipsQueryStatusDefault)
+})
+
+export const GetMyClipsResponseItem = zod.object({
+  "id": zod.string(),
+  "blastId": zod.string(),
+  "creatorId": zod.string(),
+  "style": zod.enum(['BREAKING', 'FUNNY', 'DRAMATIC', 'RECEIPTS', 'DEBATE', 'STORY']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "duration": zod.number(),
+  "aspectRatio": zod.enum(['9:16']),
+  "renderStatus": zod.enum(['DRAFT', 'QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'SHARED']),
+  "videoUrl": zod.string().nullable(),
+  "thumbnailUrl": zod.string().nullable(),
+  "errorMessage": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "blast": zod.object({
+  "id": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string(),
+  "author": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "target": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string()
+}),
+  "location": zod.string(),
+  "mediaUrl": zod.string(),
+  "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
+  "reactions": zod.object({
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
+  "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
+}),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
+  "isBookmarked": zod.boolean(),
+  "isBlastBack": zod.boolean().optional(),
+  "originalBlastId": zod.string().nullish()
+}),
+  "creator": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "settings": zod.object({
+  "captionStyle": zod.string(),
+  "captionPosition": zod.string(),
+  "captionAnimation": zod.string(),
+  "background": zod.string(),
+  "brandingStyle": zod.string(),
+  "ctaText": zod.string()
+})
+})
+export const GetMyClipsResponse = zod.array(GetMyClipsResponseItem)
+
+
+/**
+ * @summary Create a BLASTR Clip render job
+ */
+export const createClipBodyTitleMax = 120;
+
+export const createClipBodyDescriptionMax = 500;
+
+export const createClipBodyBackgroundMax = 80;
+
+export const createClipBodyCtaTextMax = 120;
+
+
+
+export const CreateClipBody = zod.object({
+  "blastId": zod.string(),
+  "style": zod.enum(['BREAKING', 'FUNNY', 'DRAMATIC', 'RECEIPTS', 'DEBATE', 'STORY']),
+  "title": zod.string().max(createClipBodyTitleMax).optional(),
+  "description": zod.string().max(createClipBodyDescriptionMax).optional(),
+  "captionStyle": zod.enum(['bold', 'minimal', 'breaking', 'meme', 'cinematic', 'story']).optional(),
+  "captionPosition": zod.enum(['top', 'center', 'bottom']).optional(),
+  "captionAnimation": zod.enum(['pop', 'slide', 'fade', 'word-by-word', 'highlight']).optional(),
+  "background": zod.string().max(createClipBodyBackgroundMax).optional(),
+  "duration": zod.union([zod.literal(15),zod.literal(30),zod.literal(45),zod.literal(60)]).optional(),
+  "brandingStyle": zod.enum(['minimal', 'full']).optional(),
+  "ctaText": zod.string().max(createClipBodyCtaTextMax).optional()
+})
+
+export const CreateClipResponse = zod.object({
+  "id": zod.string(),
+  "blastId": zod.string(),
+  "creatorId": zod.string(),
+  "style": zod.enum(['BREAKING', 'FUNNY', 'DRAMATIC', 'RECEIPTS', 'DEBATE', 'STORY']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "duration": zod.number(),
+  "aspectRatio": zod.enum(['9:16']),
+  "renderStatus": zod.enum(['DRAFT', 'QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'SHARED']),
+  "videoUrl": zod.string().nullable(),
+  "thumbnailUrl": zod.string().nullable(),
+  "errorMessage": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "blast": zod.object({
+  "id": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string(),
+  "author": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "target": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string()
+}),
+  "location": zod.string(),
+  "mediaUrl": zod.string(),
+  "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
+  "reactions": zod.object({
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
+  "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
+}),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
+  "isBookmarked": zod.boolean(),
+  "isBlastBack": zod.boolean().optional(),
+  "originalBlastId": zod.string().nullish()
+}),
+  "creator": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "settings": zod.object({
+  "captionStyle": zod.string(),
+  "captionPosition": zod.string(),
+  "captionAnimation": zod.string(),
+  "background": zod.string(),
+  "brandingStyle": zod.string(),
+  "ctaText": zod.string()
+})
+})
+
+
+/**
+ * @summary Get a BLASTR Clip
+ */
+export const GetClipParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetClipResponse = zod.object({
+  "id": zod.string(),
+  "blastId": zod.string(),
+  "creatorId": zod.string(),
+  "style": zod.enum(['BREAKING', 'FUNNY', 'DRAMATIC', 'RECEIPTS', 'DEBATE', 'STORY']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "duration": zod.number(),
+  "aspectRatio": zod.enum(['9:16']),
+  "renderStatus": zod.enum(['DRAFT', 'QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'SHARED']),
+  "videoUrl": zod.string().nullable(),
+  "thumbnailUrl": zod.string().nullable(),
+  "errorMessage": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "blast": zod.object({
+  "id": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string(),
+  "author": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "target": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string()
+}),
+  "location": zod.string(),
+  "mediaUrl": zod.string(),
+  "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
+  "reactions": zod.object({
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
+  "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
+}),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
+  "isBookmarked": zod.boolean(),
+  "isBlastBack": zod.boolean().optional(),
+  "originalBlastId": zod.string().nullish()
+}),
+  "creator": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "settings": zod.object({
+  "captionStyle": zod.string(),
+  "captionPosition": zod.string(),
+  "captionAnimation": zod.string(),
+  "background": zod.string(),
+  "brandingStyle": zod.string(),
+  "ctaText": zod.string()
+})
+})
+
+
+/**
+ * @summary Update a draft or failed BLASTR Clip
+ */
+export const UpdateClipParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateClipBodyTitleMax = 120;
+
+export const updateClipBodyDescriptionMax = 500;
+
+export const updateClipBodyCtaTextMax = 120;
+
+
+
+export const UpdateClipBody = zod.object({
+  "title": zod.string().max(updateClipBodyTitleMax).optional(),
+  "description": zod.string().max(updateClipBodyDescriptionMax).optional(),
+  "captionStyle": zod.string().optional(),
+  "captionPosition": zod.string().optional(),
+  "captionAnimation": zod.string().optional(),
+  "background": zod.string().optional(),
+  "duration": zod.union([zod.literal(15),zod.literal(30),zod.literal(45),zod.literal(60)]).optional(),
+  "brandingStyle": zod.string().optional(),
+  "ctaText": zod.string().max(updateClipBodyCtaTextMax).optional()
+})
+
+export const UpdateClipResponse = zod.object({
+  "id": zod.string(),
+  "blastId": zod.string(),
+  "creatorId": zod.string(),
+  "style": zod.enum(['BREAKING', 'FUNNY', 'DRAMATIC', 'RECEIPTS', 'DEBATE', 'STORY']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "duration": zod.number(),
+  "aspectRatio": zod.enum(['9:16']),
+  "renderStatus": zod.enum(['DRAFT', 'QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'SHARED']),
+  "videoUrl": zod.string().nullable(),
+  "thumbnailUrl": zod.string().nullable(),
+  "errorMessage": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "blast": zod.object({
+  "id": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string(),
+  "author": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "target": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string()
+}),
+  "location": zod.string(),
+  "mediaUrl": zod.string(),
+  "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
+  "reactions": zod.object({
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
+  "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
+}),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
+  "isBookmarked": zod.boolean(),
+  "isBlastBack": zod.boolean().optional(),
+  "originalBlastId": zod.string().nullish()
+}),
+  "creator": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "settings": zod.object({
+  "captionStyle": zod.string(),
+  "captionPosition": zod.string(),
+  "captionAnimation": zod.string(),
+  "background": zod.string(),
+  "brandingStyle": zod.string(),
+  "ctaText": zod.string()
+})
+})
+
+
+/**
+ * @summary Delete an owned BLASTR Clip
+ */
+export const DeleteClipParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteClipResponse = zod.void()
+
+
+/**
+ * @summary Retry a failed BLASTR Clip render
+ */
+export const RetryClipParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const RetryClipResponse = zod.object({
+  "id": zod.string(),
+  "blastId": zod.string(),
+  "creatorId": zod.string(),
+  "style": zod.enum(['BREAKING', 'FUNNY', 'DRAMATIC', 'RECEIPTS', 'DEBATE', 'STORY']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "duration": zod.number(),
+  "aspectRatio": zod.enum(['9:16']),
+  "renderStatus": zod.enum(['DRAFT', 'QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'SHARED']),
+  "videoUrl": zod.string().nullable(),
+  "thumbnailUrl": zod.string().nullable(),
+  "errorMessage": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "blast": zod.object({
+  "id": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string(),
+  "author": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "target": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string()
+}),
+  "location": zod.string(),
+  "mediaUrl": zod.string(),
+  "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
+  "reactions": zod.object({
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
+  "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
+}),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
+  "isBookmarked": zod.boolean(),
+  "isBlastBack": zod.boolean().optional(),
+  "originalBlastId": zod.string().nullish()
+}),
+  "creator": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "settings": zod.object({
+  "captionStyle": zod.string(),
+  "captionPosition": zod.string(),
+  "captionAnimation": zod.string(),
+  "background": zod.string(),
+  "brandingStyle": zod.string(),
+  "ctaText": zod.string()
+})
+})
+
+
+/**
+ * @summary Create a share link for a completed BLASTR Clip
+ */
+export const ShareClipParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const ShareClipResponse = zod.object({
+  "url": zod.string()
+})
+
+
+/**
  * @summary Set or remove a reaction
  */
 export const ReactToBlastParams = zod.object({
@@ -1002,6 +1552,105 @@ export const GetAdminOverviewResponse = zod.object({
   "users": zod.number(),
   "blasts": zod.number(),
   "engagement": zod.number()
+}))
+})
+
+
+/**
+ * @summary Get the protected BLASTR Media Center overview
+ */
+export const GetAdminClipsResponse = zod.object({
+  "clipCount": zod.number(),
+  "completedCount": zod.number(),
+  "failedCount": zod.number(),
+  "activeRenders": zod.number(),
+  "clips": zod.array(zod.object({
+  "id": zod.string(),
+  "blastId": zod.string(),
+  "creatorId": zod.string(),
+  "style": zod.enum(['BREAKING', 'FUNNY', 'DRAMATIC', 'RECEIPTS', 'DEBATE', 'STORY']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "duration": zod.number(),
+  "aspectRatio": zod.enum(['9:16']),
+  "renderStatus": zod.enum(['DRAFT', 'QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'SHARED']),
+  "videoUrl": zod.string().nullable(),
+  "thumbnailUrl": zod.string().nullable(),
+  "errorMessage": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "blast": zod.object({
+  "id": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string(),
+  "author": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "target": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string()
+}),
+  "location": zod.string(),
+  "mediaUrl": zod.string(),
+  "mediaType": zod.union([zod.literal('image'),zod.literal('video'),zod.literal(null)]).nullish(),
+  "reactions": zod.object({
+  "blast": zod.number(),
+  "facts": zod.number(),
+  "cap": zod.number(),
+  "funny": zod.number(),
+  "watching": zod.number(),
+  "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
+}),
+  "commentCount": zod.number(),
+  "shareCount": zod.number(),
+  "viewCount": zod.number(),
+  "isBookmarked": zod.boolean(),
+  "isBlastBack": zod.boolean().optional(),
+  "originalBlastId": zod.string().nullish()
+}),
+  "creator": zod.object({
+  "id": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "avatarUrl": zod.string(),
+  "bio": zod.string(),
+  "location": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "coverUrl": zod.string().optional(),
+  "followers": zod.number(),
+  "following": zod.number(),
+  "blastCount": zod.number(),
+  "joinedAt": zod.string(),
+  "isFollowing": zod.boolean().optional()
+}),
+  "settings": zod.object({
+  "captionStyle": zod.string(),
+  "captionPosition": zod.string(),
+  "captionAnimation": zod.string(),
+  "background": zod.string(),
+  "brandingStyle": zod.string(),
+  "ctaText": zod.string()
+})
 }))
 })
 

@@ -66,6 +66,9 @@ export const blastsTable = pgTable(
     location: text("location").notNull().default(""),
     visibility: text("visibility").notNull().default("public"),
     status: text("status").notNull().default("active"),
+    allowClipCreation: boolean("allow_clip_creation").notNull().default(true),
+    allowExternalSharing: boolean("allow_external_sharing").notNull().default(false),
+    allowPromotionalUse: boolean("allow_promotional_use").notNull().default(false),
     viewCount: integer("view_count").notNull().default(0),
     shareCount: integer("share_count").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -76,6 +79,105 @@ export const blastsTable = pgTable(
     index("blasts_target_created_idx").on(table.targetId, table.createdAt),
   ],
 );
+
+export const clipsTable = pgTable(
+  "clips",
+  {
+    id: text("id").primaryKey().$defaultFn(randomUUID),
+    blastId: text("blast_id").notNull().references(() => blastsTable.id),
+    creatorId: text("creator_id").notNull().references(() => usersTable.id),
+    style: text("style").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    duration: integer("duration").notNull().default(30),
+    aspectRatio: text("aspect_ratio").notNull().default("9:16"),
+    renderStatus: text("render_status").notNull().default("DRAFT"),
+    videoUrl: text("video_url"),
+    thumbnailUrl: text("thumbnail_url"),
+    errorMessage: text("error_message"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("clips_creator_created_idx").on(table.creatorId, table.createdAt),
+    index("clips_blast_idx").on(table.blastId),
+    index("clips_status_idx").on(table.renderStatus),
+  ],
+);
+
+export const clipAssetsTable = pgTable(
+  "clip_assets",
+  {
+    id: text("id").primaryKey().$defaultFn(randomUUID),
+    clipId: text("clip_id").notNull().references(() => clipsTable.id),
+    assetType: text("asset_type").notNull(),
+    assetUrl: text("asset_url").notNull(),
+    assetOrder: integer("asset_order").notNull().default(0),
+    duration: integer("duration"),
+  },
+  (table) => [index("clip_assets_clip_idx").on(table.clipId)],
+);
+
+export const clipSettingsTable = pgTable("clip_settings", {
+  clipId: text("clip_id").primaryKey().references(() => clipsTable.id),
+  captionStyle: text("caption_style").notNull().default("bold"),
+  captionPosition: text("caption_position").notNull().default("center"),
+  captionAnimation: text("caption_animation").notNull().default("pop"),
+  brandingStyle: text("branding_style").notNull().default("full"),
+  musicId: text("music_id"),
+  voiceoverEnabled: boolean("voiceover_enabled").notNull().default(false),
+  ctaText: text("cta_text").notNull().default("See the full Blast on BLASTERR"),
+  background: text("background").notNull().default("cosmic"),
+  duration: integer("duration").notNull().default(30),
+});
+
+export const clipDistributionTable = pgTable(
+  "clip_distribution",
+  {
+    id: text("id").primaryKey().$defaultFn(randomUUID),
+    clipId: text("clip_id").notNull().references(() => clipsTable.id),
+    platform: text("platform").notNull(),
+    status: text("status").notNull().default("NOT_CONNECTED"),
+    externalPostId: text("external_post_id"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    errorMessage: text("error_message"),
+  },
+  (table) => [index("clip_distribution_clip_idx").on(table.clipId)],
+);
+
+export const musicAssetsTable = pgTable("music_assets", {
+  id: text("id").primaryKey().$defaultFn(randomUUID),
+  title: text("title").notNull(),
+  artist: text("artist").notNull().default("BLASTERR"),
+  licenseType: text("license_type").notNull(),
+  audioUrl: text("audio_url").notNull(),
+  duration: integer("duration").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+});
+
+export const clipAnalyticsTable = pgTable(
+  "clip_analytics",
+  {
+    id: text("id").primaryKey().$defaultFn(randomUUID),
+    clipId: text("clip_id").notNull().references(() => clipsTable.id),
+    platform: text("platform").notNull(),
+    views: integer("views").notNull().default(0),
+    likes: integer("likes").notNull().default(0),
+    comments: integer("comments").notNull().default(0),
+    shares: integer("shares").notNull().default(0),
+    clicks: integer("clicks").notNull().default(0),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("clip_analytics_clip_recorded_idx").on(table.clipId, table.recordedAt)],
+);
+
+export const contentPermissionsTable = pgTable("content_permissions", {
+  blastId: text("blast_id").primaryKey().references(() => blastsTable.id),
+  allowClipCreation: boolean("allow_clip_creation").notNull().default(true),
+  allowExternalSharing: boolean("allow_external_sharing").notNull().default(false),
+  allowPromotionalUse: boolean("allow_promotional_use").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const commentsTable = pgTable("comments", {
   id: text("id").primaryKey().$defaultFn(randomUUID),
@@ -154,7 +256,9 @@ export const insertTargetSchema = createInsertSchema(targetsTable);
 export const insertBlastSchema = createInsertSchema(blastsTable);
 export const insertCommentSchema = createInsertSchema(commentsTable);
 export const insertReportSchema = createInsertSchema(reportsTable);
+export const insertClipSchema = createInsertSchema(clipsTable);
 
 export type UserRow = typeof usersTable.$inferSelect;
 export type TargetRow = typeof targetsTable.$inferSelect;
 export type BlastRow = typeof blastsTable.$inferSelect;
+export type ClipRow = typeof clipsTable.$inferSelect;

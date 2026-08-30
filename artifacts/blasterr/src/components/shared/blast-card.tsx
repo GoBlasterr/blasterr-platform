@@ -39,7 +39,8 @@ import {
   CheckCircle2, // Facts
   AlertOctagon, // Cap
   Laugh, // Funny
-  Eye as EyeIcon // Watching
+  Eye as EyeIcon, // Watching
+  Film
 } from "lucide-react";
 
 // --- Types & Constants ---
@@ -163,11 +164,24 @@ export function BlastCard({ blast, showTarget = true }: { blast: any, showTarget
             </div>
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white -mt-1 -mr-2 shrink-0" onClick={e => e.stopPropagation()}>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
+              <div className="flex items-center gap-1">
+                {canDelete && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-primary border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:text-primary"
+                    onClick={(e) => { e.stopPropagation(); setLocation(`/clips/create/${blast.id}`); }}
+                  >
+                    <Film className="h-3.5 w-3.5 mr-1.5" />
+                    <span className="text-xs font-bold tracking-wide">CLIP</span>
+                  </Button>
+                )}
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white shrink-0" onClick={e => e.stopPropagation()}>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </div>
               <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl border-white/10">
                  {canDelete && (
                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer" onClick={(e) => { e.stopPropagation(); handleDelete(); }}>

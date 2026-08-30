@@ -248,6 +248,117 @@ paths:
       responses:
         "204":
           description: Deleted
+  /clips:
+    get:
+      operationId: getMyClips
+      tags: [clips]
+      summary: Get the current user's BLASTR Clips
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, DRAFT, QUEUED, PROCESSING, COMPLETED, FAILED, SHARED]
+            default: all
+      responses:
+        "200":
+          description: Clip library
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Clip" }
+    post:
+      operationId: createClip
+      tags: [clips]
+      summary: Create a BLASTR Clip render job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClipInput"
+      responses:
+        "201":
+          description: Queued clip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Clip"
+        "403":
+          description: Clip creation is not permitted
+  /clips/{id}:
+    get:
+      operationId: getClip
+      tags: [clips]
+      summary: Get a BLASTR Clip
+      parameters:
+        - $ref: "#/components/parameters/ClipId"
+      responses:
+        "200":
+          description: Clip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Clip"
+        "404":
+          description: Clip not found
+    patch:
+      operationId: updateClip
+      tags: [clips]
+      summary: Update a draft or failed BLASTR Clip
+      parameters:
+        - $ref: "#/components/parameters/ClipId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClipUpdate"
+      responses:
+        "200":
+          description: Updated clip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Clip"
+    delete:
+      operationId: deleteClip
+      tags: [clips]
+      summary: Delete an owned BLASTR Clip
+      parameters:
+        - $ref: "#/components/parameters/ClipId"
+      responses:
+        "204":
+          description: Deleted
+  /clips/{id}/retry:
+    post:
+      operationId: retryClip
+      tags: [clips]
+      summary: Retry a failed BLASTR Clip render
+      parameters:
+        - $ref: "#/components/parameters/ClipId"
+      responses:
+        "200":
+          description: Requeued clip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Clip"
+  /clips/{id}/share:
+    post:
+      operationId: shareClip
+      tags: [clips]
+      summary: Create a share link for a completed BLASTR Clip
+      parameters:
+        - $ref: "#/components/parameters/ClipId"
+      responses:
+        "200":
+          description: Share link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShareLink"
   /blasts/{id}/reactions:
     post:
       operationId: reactToBlast
@@ -398,6 +509,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminOverview"
+  /admin/clips:
+    get:
+      operationId: getAdminClips
+      tags: [admin, clips]
+      summary: Get the protected BLASTR Media Center overview
+      responses:
+        "200":
+          description: Media Center overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminClipsOverview"
+        "403":
+          description: Admin access required
 components:
   parameters:
     Page:
@@ -437,6 +562,12 @@ components:
         maximum: 100
         default: 20
     BlastId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    ClipId:
       name: id
       in: path
       required: true
@@ -728,3 +859,96 @@ components:
               users: { type: number }
               blasts: { type: number }
               engagement: { type: number }
+    Clip:
+      type: object
+      required: [id, blastId, creatorId, style, title, description, duration, aspectRatio, renderStatus, videoUrl, thumbnailUrl, createdAt, updatedAt, blast, creator, settings]
+      properties:
+        id: { type: string }
+        blastId: { type: string }
+        creatorId: { type: string }
+        style:
+          type: string
+          enum: [BREAKING, FUNNY, DRAMATIC, RECEIPTS, DEBATE, STORY]
+        title: { type: string }
+        description: { type: string }
+        duration: { type: number }
+        aspectRatio: { type: string, enum: ["9:16"] }
+        renderStatus:
+          type: string
+          enum: [DRAFT, QUEUED, PROCESSING, COMPLETED, FAILED, SHARED]
+        videoUrl:
+          type: [string, "null"]
+        thumbnailUrl:
+          type: [string, "null"]
+        errorMessage:
+          type: [string, "null"]
+        createdAt: { type: string }
+        updatedAt: { type: string }
+        blast: { $ref: "#/components/schemas/Blast" }
+        creator: { $ref: "#/components/schemas/User" }
+        settings: { $ref: "#/components/schemas/ClipSettings" }
+    ClipInput:
+      type: object
+      required: [blastId, style]
+      properties:
+        blastId: { type: string }
+        style:
+          type: string
+          enum: [BREAKING, FUNNY, DRAMATIC, RECEIPTS, DEBATE, STORY]
+        title: { type: string, maxLength: 120 }
+        description: { type: string, maxLength: 500 }
+        captionStyle:
+          type: string
+          enum: [bold, minimal, breaking, meme, cinematic, story]
+        captionPosition:
+          type: string
+          enum: [top, center, bottom]
+        captionAnimation:
+          type: string
+          enum: [pop, slide, fade, word-by-word, highlight]
+        background: { type: string, maxLength: 80 }
+        duration:
+          type: number
+          enum: [15, 30, 45, 60]
+        brandingStyle:
+          type: string
+          enum: [minimal, full]
+        ctaText: { type: string, maxLength: 120 }
+    ClipUpdate:
+      type: object
+      properties:
+        title: { type: string, maxLength: 120 }
+        description: { type: string, maxLength: 500 }
+        captionStyle: { type: string }
+        captionPosition: { type: string }
+        captionAnimation: { type: string }
+        background: { type: string }
+        duration: { type: number, enum: [15, 30, 45, 60] }
+        brandingStyle: { type: string }
+        ctaText: { type: string, maxLength: 120 }
+    ClipSettings:
+      type: object
+      required: [captionStyle, captionPosition, captionAnimation, background, brandingStyle, ctaText]
+      properties:
+        captionStyle: { type: string }
+        captionPosition: { type: string }
+        captionAnimation: { type: string }
+        background: { type: string }
+        brandingStyle: { type: string }
+        ctaText: { type: string }
+    ShareLink:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+    AdminClipsOverview:
+      type: object
+      required: [clipCount, completedCount, failedCount, activeRenders, clips]
+      properties:
+        clipCount: { type: number }
+        completedCount: { type: number }
+        failedCount: { type: number }
+        activeRenders: { type: number }
+        clips:
+          type: array
+          items: { $ref: "#/components/schemas/Clip" }

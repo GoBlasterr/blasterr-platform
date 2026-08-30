@@ -3,9 +3,10 @@ import {
   useDeleteBlast,
   useGetAdminOverview,
   useGetFeed,
+  useGetAdminClips
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ShieldAlert, Users, Target, Activity, ArrowUpRight, Trash2, Loader2 } from "lucide-react";
+import { ShieldAlert, Users, Target, Activity, ArrowUpRight, Trash2, Loader2, Clapperboard, Video, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,9 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 export default function Admin() {
   const { data: overview, isLoading } = useGetAdminOverview();
   const { data: feedData, isLoading: isLoadingBlasts } = useGetFeed({ page: 1, tab: "for-you" });
+  const { data: adminClips, isLoading: isLoadingClips } = useGetAdminClips({
+    request: { headers: { "X-Blasterr-Admin-Action": "true" } }
+  });
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const deleteMutation = useDeleteBlast({
@@ -110,6 +114,68 @@ export default function Admin() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="bg-card border-white/10 shadow-none mb-8 border-primary/20 relative overflow-hidden">
+        <div className="absolute inset-0 cosmic-noise opacity-20 pointer-events-none"></div>
+        <CardHeader>
+          <CardTitle className="text-lg text-white flex items-center gap-2 relative z-10">
+            <Clapperboard className="w-5 h-5 text-primary" /> BLASTR Media Center
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="relative z-10">
+          {isLoadingClips ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Skeleton className="h-20 bg-white/5" />
+              <Skeleton className="h-20 bg-white/5" />
+            </div>
+          ) : adminClips ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-black/50 border border-white/10 rounded-xl p-4">
+                  <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Total Clips</div>
+                  <div className="text-2xl font-display font-bold text-white">{adminClips.clipCount}</div>
+                </div>
+                <div className="bg-black/50 border border-white/10 rounded-xl p-4">
+                  <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Completed</div>
+                  <div className="text-2xl font-display font-bold text-green-400">{adminClips.completedCount}</div>
+                </div>
+                <div className="bg-black/50 border border-white/10 rounded-xl p-4">
+                  <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Active Renders</div>
+                  <div className="text-2xl font-display font-bold text-primary">{adminClips.activeRenders}</div>
+                </div>
+                <div className="bg-black/50 border border-white/10 rounded-xl p-4">
+                  <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Failed</div>
+                  <div className="text-2xl font-display font-bold text-destructive">{adminClips.failedCount}</div>
+                </div>
+              </div>
+
+              {adminClips.clips && adminClips.clips.length > 0 && (
+                <div className="space-y-3 pt-4 border-t border-white/10">
+                  <h4 className="text-sm font-bold text-white mb-3">Recent Renders</h4>
+                  {adminClips.clips.slice(0, 5).map(clip => (
+                    <div key={clip.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded bg-black flex items-center justify-center border border-white/10">
+                          {clip.renderStatus === 'FAILED' ? <AlertCircle className="w-4 h-4 text-destructive" /> : <Video className="w-4 h-4 text-primary" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-white">{clip.title || "Untitled"}</p>
+                          <p className="text-xs text-muted-foreground">@{clip.creator?.username}</p>
+                        </div>
+                      </div>
+                      <div className="text-xs font-bold px-2 py-1 rounded bg-white/5 border border-white/10 uppercase">
+                        {clip.renderStatus}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">Media stats unavailable</div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="bg-card border-white/10 shadow-none mb-8">
         <CardHeader>

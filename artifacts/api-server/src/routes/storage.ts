@@ -7,7 +7,7 @@ const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 const signedGetUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const signedGetUrlRequests = new Map<string, Promise<string>>();
 
-function getPrivateObjectPath(): { bucketName: string; prefix: string } {
+export function getPrivateObjectPath(): { bucketName: string; prefix: string } {
   const rawPath = process.env.PRIVATE_OBJECT_DIR?.replace(/^\/+|\/+$/g, "");
   if (!rawPath) {
     throw new Error("PRIVATE_OBJECT_DIR is not configured");
@@ -21,7 +21,7 @@ function getPrivateObjectPath(): { bucketName: string; prefix: string } {
   return { bucketName, prefix: prefixParts.join("/") };
 }
 
-async function getSignedObjectUrl({
+export async function getSignedObjectUrl({
   bucketName,
   objectName,
   method,

@@ -28,6 +28,8 @@ import Admin from '@/pages/admin';
 import SignIn from '@/pages/sign-in';
 import SignUp from '@/pages/sign-up';
 import NotFound from '@/pages/not-found';
+import ClipsLibrary from '@/pages/clips/index';
+import CreateClip from '@/pages/clips/create';
 import { PrivacyPolicy, TermsAndConditions } from '@/pages/legal';
 
 const queryClient = new QueryClient({
@@ -68,6 +70,8 @@ function Router() {
           <Route path="/profile/:username" component={Profile} />
           <Route path="/notifications" component={Notifications} />
           <Route path="/bookmarks" component={Bookmarks} />
+          <Route path="/clips" component={ClipsLibrary} />
+          <Route path="/clips/create/:blastId" component={CreateClip} />
           <Route path="/settings" component={Settings} />
           <Route path="/admin" component={Admin} />
           <Route path="/sign-in/*?" component={SignIn} />
