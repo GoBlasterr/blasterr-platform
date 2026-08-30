@@ -66,7 +66,16 @@ export default function Profile() {
 
       {/* Cover */}
       <div className="h-32 sm:h-48 w-full bg-card relative">
-        {profile.coverUrl && <img src={profile.coverUrl} className="w-full h-full object-cover opacity-80" />}
+        {profile.coverUrl && (
+          <img
+            src={profile.coverUrl}
+            alt={`${profile.displayName} profile banner`}
+            className="w-full h-full object-cover opacity-80"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
+        )}
       </div>
 
       {/* Profile Info */}

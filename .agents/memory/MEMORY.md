@@ -1,1 +1,2 @@
 - [Preview video compatibility](preview-video-compatibility.md) — provide WebM before MP4 when Replit preview browsers may not decode otherwise-valid H.264/AAC.
+- [Profile media signing](profile-media-signing.md) — cache and deduplicate signed GET URLs because sidecar signing can stall and duplicate during concurrent image loads.

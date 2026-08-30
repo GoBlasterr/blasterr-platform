@@ -256,9 +256,9 @@ export default function CreateBlast() {
                   
                   {/* Dropdown results mock */}
                   {(targetQuery.length > 2 || isCreatingTarget) && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-white/10 rounded-xl shadow-xl z-50 overflow-visible">
                       {isCreatingTarget ? (
-                        <div className="p-4 space-y-4">
+                        <div className="p-6 space-y-5">
                           <div>
                             <p className="font-bold text-white">Create a new Target</p>
                             <p className="text-xs text-muted-foreground mt-1">
@@ -410,6 +410,32 @@ export default function CreateBlast() {
                   </FormItem>
                 )}
               />
+              {imagePreview && (
+                <div className="relative overflow-hidden rounded-xl border border-primary/30 bg-card/60">
+                  <img
+                    src={imagePreview}
+                    alt="Attached Blast image preview"
+                    className="max-h-72 w-full object-cover"
+                  />
+                  <div className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 text-sm text-muted-foreground">
+                    <span>{isUploadingImage ? "Uploading image..." : "Image attached to this Blast"}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={isUploadingImage}
+                      onClick={() => {
+                        setImagePreview("");
+                        form.setValue("mediaUrl", "");
+                        form.setValue("mediaType", undefined);
+                      }}
+                      className="text-muted-foreground hover:text-white"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
           </form>
@@ -420,10 +446,29 @@ export default function CreateBlast() {
       <div className="sticky bottom-0 border-t border-white/10 bg-background/80 backdrop-blur-xl p-4 md:px-6">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="text-primary hover:text-primary hover:bg-primary/10 rounded-full h-10 w-10">
-              <ImageIcon className="w-5 h-5" />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Attach an image"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={isUploadingImage}
+              className="text-primary hover:text-primary hover:bg-primary/10 rounded-full h-10 w-10"
+            >
+              {isUploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
             </Button>
-            <Button variant="ghost" size="icon" className="text-primary hover:text-primary hover:bg-primary/10 rounded-full h-10 w-10">
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void handleImageSelected(file);
+              }}
+            />
+            <Button type="button" variant="ghost" size="icon" className="text-primary hover:text-primary hover:bg-primary/10 rounded-full h-10 w-10">
               <MapPin className="w-5 h-5" />
             </Button>
           </div>

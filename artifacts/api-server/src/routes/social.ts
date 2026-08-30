@@ -175,6 +175,7 @@ const users = [
 
 const authenticatedProfiles = new Map<string, (typeof users)[number]>();
 const demoProfilePath = resolve(process.cwd(), "../../.local/state/blasterr-demo-profile.json");
+let demoZipCode = "";
 const demoProfileFields = [
   "displayName",
   "username",
@@ -187,12 +188,16 @@ const demoProfileFields = [
 ] as const;
 
 async function loadDemoProfile(): Promise<(typeof users)[number]> {
+  demoZipCode = "";
   try {
     const saved = JSON.parse(await readFile(demoProfilePath, "utf8")) as Record<string, unknown>;
     for (const field of demoProfileFields) {
       if (typeof saved[field] === "string") {
         users[0][field] = saved[field];
       }
+    }
+    if (typeof saved.zipCode === "string") {
+      demoZipCode = saved.zipCode;
     }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
@@ -203,10 +208,11 @@ async function loadDemoProfile(): Promise<(typeof users)[number]> {
   return users[0];
 }
 
-async function saveDemoProfile(profile: (typeof users)[number]): Promise<void> {
+async function saveDemoProfile(profile: (typeof users)[number], zipCode: string): Promise<void> {
   const persisted = Object.fromEntries(
     demoProfileFields.map((field) => [field, profile[field]]),
   );
+  persisted.zipCode = zipCode;
   await mkdir(dirname(demoProfilePath), { recursive: true });
   await writeFile(demoProfilePath, JSON.stringify(persisted, null, 2), "utf8");
 }
@@ -252,6 +258,20 @@ async function loadAuthenticatedProfile(userId: string): Promise<{
       ? clerkUser.privateMetadata.zipCode
       : "",
   };
+}
+
+async function isAdminUser(userId: string | null | undefined): Promise<boolean> {
+  if (!userId) {
+    return false;
+  }
+
+  try {
+    const clerkUser = await clerkClient.users.getUser(userId);
+    const metadata = clerkUser.publicMetadata as Record<string, unknown>;
+    return metadata.role === "admin" || metadata.isAdmin === true;
+  } catch {
+    return false;
+  }
 }
 
 type TargetRecord = {
@@ -435,7 +455,7 @@ router.get("/me", async (req, res): Promise<void> => {
 
     try {
       const profile = await loadDemoProfile();
-      res.json(GetCurrentUserResponse.parse({ ...profile, zipCode: "" }));
+      res.json(GetCurrentUserResponse.parse({ ...profile, zipCode: demoZipCode }));
     } catch (error) {
       req.log.error({ err: error }, "Unable to load development preview profile");
       res.status(500).json({ error: "Profile settings could not be loaded. Please try again." });
@@ -471,7 +491,7 @@ router.patch("/me", async (req, res): Promise<void> => {
   try {
     const { profile: current, zipCode: storedZipCode } = userId
       ? await loadAuthenticatedProfile(userId)
-      : { profile: await loadDemoProfile(), zipCode: "" };
+      : { profile: await loadDemoProfile(), zipCode: demoZipCode };
     const normalizedProfileLocation = normalizeProfileLocation(
       parsed.data.city ?? current.city,
       parsed.data.state ?? current.state,
@@ -494,7 +514,7 @@ router.patch("/me", async (req, res): Promise<void> => {
       avatarUrl: parsed.data.avatarUrl ?? current.avatarUrl,
       coverUrl: parsed.data.coverUrl ?? current.coverUrl,
     };
-    const zipCode = userId ? parsed.data.zipCode ?? storedZipCode : "";
+    const zipCode = parsed.data.zipCode ?? storedZipCode;
 
     Object.assign(current, next);
     if (userId) {
@@ -504,7 +524,7 @@ router.patch("/me", async (req, res): Promise<void> => {
       });
       authenticatedProfiles.set(userId, current);
     } else {
-      await saveDemoProfile(current);
+      await saveDemoProfile(current, zipCode);
     }
     res.json(UpdateCurrentUserResponse.parse({ ...current, zipCode }));
   } catch (error) {
@@ -650,9 +670,14 @@ router.get("/users/:username", async (req, res): Promise<void> => {
   let requestProfile: (typeof users)[number] | undefined;
   try {
     if (userId) {
-      const authenticatedProfile = await loadAuthenticatedProfile(userId);
-      if (authenticatedProfile.profile.username === parsed.data.username) {
-        requestProfile = authenticatedProfile.profile;
+      const cachedProfile = authenticatedProfiles.get(userId);
+      if (cachedProfile?.username === parsed.data.username) {
+        requestProfile = cachedProfile;
+      } else {
+        const authenticatedProfile = await loadAuthenticatedProfile(userId);
+        if (authenticatedProfile.profile.username === parsed.data.username) {
+          requestProfile = authenticatedProfile.profile;
+        }
       }
     } else if (process.env.NODE_ENV === "development") {
       const demoProfile = await loadDemoProfile();
@@ -690,7 +715,7 @@ router.post("/users/:username/follow", (req, res): void => {
   res.json(ToggleFollowResponse.parse({ isFollowing: user.isFollowing, followerCount: user.followers }));
 });
 
-router.post("/blasts", (req, res): void => {
+router.post("/blasts", async (req, res): Promise<void> => {
   const parsed = CreateBlastBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -701,11 +726,17 @@ router.post("/blasts", (req, res): void => {
     res.status(400).json({ error: "Target is required" });
     return;
   }
+  const { userId } = getAuth(req);
+  const author = userId
+    ? (await loadAuthenticatedProfile(userId)).profile
+    : process.env.NODE_ENV === "development"
+      ? await loadDemoProfile()
+      : users[0];
   const blast: Blast = {
     id: randomUUID(),
     content: parsed.data.content,
     createdAt: new Date().toISOString(),
-    author: users[0],
+    author,
     target,
     location: parsed.data.location ?? users[0].location,
     mediaUrl: parsed.data.mediaUrl ?? "",
@@ -737,7 +768,7 @@ router.patch("/blasts/:id", (req, res): void => {
   res.json(UpdateBlastResponse.parse(blast));
 });
 
-router.delete("/blasts/:id", (req, res): void => {
+router.delete("/blasts/:id", async (req, res): Promise<void> => {
   const parsed = DeleteBlastParams.safeParse(req.params);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -746,6 +777,21 @@ router.delete("/blasts/:id", (req, res): void => {
   const index = blasts.findIndex((item) => item.id === parsed.data.id);
   if (index < 0) {
     res.status(404).json({ error: "Blast not found" });
+    return;
+  }
+  const { userId } = getAuth(req);
+  const blast = blasts[index];
+  const isOwner = userId
+    ? blast.author.id === userId
+    : process.env.NODE_ENV === "development" && blast.author.id === users[0].id;
+  const isDevelopmentAdminAction = (
+    !userId &&
+    process.env.NODE_ENV === "development" &&
+    req.get("x-blasterr-admin-action") === "true"
+  );
+  const canDelete = isOwner || isDevelopmentAdminAction || await isAdminUser(userId);
+  if (!canDelete) {
+    res.status(403).json({ error: "Only the Blast creator or an admin can delete this Blast." });
     return;
   }
   blasts.splice(index, 1);
@@ -873,7 +919,13 @@ router.post("/blocks", (req, res): void => {
   res.json(ToggleBlockResponse.parse({ isBlocked: true }));
 });
 
-router.get("/admin/overview", (_req, res): void => {
+router.get("/admin/overview", async (req, res): Promise<void> => {
+  const { userId } = getAuth(req);
+  const isDevelopmentPreview = !userId && process.env.NODE_ENV === "development";
+  if (!isDevelopmentPreview && !await isAdminUser(userId)) {
+    res.status(403).json({ error: "Admin access required." });
+    return;
+  }
   res.json(GetAdminOverviewResponse.parse({
     usersOnline: 2543,
     blastsToday: 12842,

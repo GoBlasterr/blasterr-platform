@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -62,6 +63,8 @@ export function BlastCard({ blast, showTarget = true }: { blast: any, showTarget
   const bookmarkMutation = useToggleBookmark();
   const deleteMutation = useDeleteBlast();
   const blastBackMutation = useCreateBlastBack();
+  const { data: currentUser } = useCurrentUser();
+  const canDelete = currentUser?.id === blast.author?.id;
 
   const handleReact = (type: ReactionInputType) => {
     reactMutation.mutate(
@@ -166,10 +169,11 @@ export function BlastCard({ blast, showTarget = true }: { blast: any, showTarget
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl border-white/10">
-                 {/* In a real app we'd check if current user matches blast author */}
-                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer" onClick={(e) => { e.stopPropagation(); handleDelete(); }}>
-                  <Trash2 className="h-4 w-4 mr-2" /> Delete Blast
-                </DropdownMenuItem>
+                 {canDelete && (
+                   <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer" onClick={(e) => { e.stopPropagation(); handleDelete(); }}>
+                     <Trash2 className="h-4 w-4 mr-2" /> Delete Blast
+                   </DropdownMenuItem>
+                 )}
                 <DropdownMenuItem className="cursor-pointer" onClick={(e) => { e.stopPropagation(); }}>
                   <Flag className="h-4 w-4 mr-2" /> Report
                 </DropdownMenuItem>

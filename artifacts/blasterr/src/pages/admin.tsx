@@ -1,11 +1,42 @@
-import { useGetAdminOverview } from "@workspace/api-client-react";
-import { ShieldAlert, Users, Target, Activity, ArrowUpRight } from "lucide-react";
+import {
+  getGetFeedQueryKey,
+  useDeleteBlast,
+  useGetAdminOverview,
+  useGetFeed,
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ShieldAlert, Users, Target, Activity, ArrowUpRight, Trash2, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 export default function Admin() {
   const { data: overview, isLoading } = useGetAdminOverview();
+  const { data: feedData, isLoading: isLoadingBlasts } = useGetFeed({ page: 1, tab: "for-you" });
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const deleteMutation = useDeleteBlast({
+    request: {
+      headers: { "X-Blasterr-Admin-Action": "true" },
+    },
+  });
+
+  const deleteBlast = (id: string) => {
+    deleteMutation.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
+          toast({ title: "Blast removed by admin." });
+        },
+        onError: () => {
+          toast({ title: "Admin could not delete this Blast.", variant: "destructive" });
+        },
+      },
+    );
+  };
 
   if (isLoading) {
     return (
@@ -100,6 +131,43 @@ export default function Admin() {
               </LineChart>
             </ResponsiveContainer>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-white/10 shadow-none mb-8">
+        <CardHeader>
+          <CardTitle className="text-lg text-white">Blast Moderation</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {isLoadingBlasts ? (
+            <Skeleton className="h-24 w-full bg-white/5" />
+          ) : feedData?.items?.length ? (
+            feedData.items.map((blast) => (
+              <div key={blast.id} className="flex items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                <div className="min-w-0">
+                  <p className="font-semibold text-white">@{blast.author.username}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{blast.content}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => deleteBlast(blast.id)}
+                  className="shrink-0"
+                >
+                  {deleteMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  <span className="ml-2">Delete</span>
+                </Button>
+              </div>
+            ))
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">No Blasts to moderate.</div>
+          )}
         </CardContent>
       </Card>
       

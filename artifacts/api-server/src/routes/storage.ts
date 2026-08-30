@@ -4,6 +4,8 @@ import { getAuth } from "@clerk/express";
 
 const router: IRouter = Router();
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
+const signedGetUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const signedGetUrlRequests = new Map<string, Promise<string>>();
 
 function getPrivateObjectPath(): { bucketName: string; prefix: string } {
   const rawPath = process.env.PRIVATE_OBJECT_DIR?.replace(/^\/+|\/+$/g, "");
@@ -28,28 +30,62 @@ async function getSignedObjectUrl({
   objectName: string;
   method: "GET" | "PUT";
 }): Promise<string> {
-  const response = await fetch(`${REPLIT_SIDECAR_ENDPOINT}/object-storage/signed-object-url`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      bucket_name: bucketName,
-      object_name: objectName,
-      method,
-      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-    }),
-    signal: AbortSignal.timeout(30_000),
-  });
+  const cacheKey = `${bucketName}/${objectName}`;
+  if (method === "GET") {
+    const cached = signedGetUrlCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.url;
+    }
 
-  if (!response.ok) {
-    throw new Error(`Failed to sign object URL: ${response.status}`);
+    const pending = signedGetUrlRequests.get(cacheKey);
+    if (pending) {
+      return pending;
+    }
   }
 
-  const payload = await response.json() as { signed_url?: string };
-  if (!payload.signed_url) {
-    throw new Error("Object storage returned no signed URL");
+  const request = (async () => {
+    const response = await fetch(`${REPLIT_SIDECAR_ENDPOINT}/object-storage/signed-object-url`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bucket_name: bucketName,
+        object_name: objectName,
+        method,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      }),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to sign object URL: ${response.status}`);
+    }
+
+    const payload = await response.json() as { signed_url?: string };
+    if (!payload.signed_url) {
+      throw new Error("Object storage returned no signed URL");
+    }
+
+    if (method === "GET") {
+      signedGetUrlCache.set(cacheKey, {
+        url: payload.signed_url,
+        expiresAt: Date.now() + 10 * 60 * 1000,
+      });
+    }
+
+    return payload.signed_url;
+  })();
+
+  if (method === "GET") {
+    signedGetUrlRequests.set(cacheKey, request);
   }
 
-  return payload.signed_url;
+  try {
+    return await request;
+  } finally {
+    if (method === "GET") {
+      signedGetUrlRequests.delete(cacheKey);
+    }
+  }
 }
 
 router.post("/storage/uploads/request-url", async (req: Request, res: Response) => {
@@ -116,6 +152,7 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
       method: "GET",
     });
 
+    res.set("Cache-Control", "public, max-age=600, immutable");
     res.redirect(signedURL);
   } catch (error) {
     req.log.error({ err: error }, "Error serving object");
