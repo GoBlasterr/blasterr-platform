@@ -160,10 +160,6 @@ function SignInPage() {
           <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.22em] text-[#e5f403]">
             Restricted control center
           </p>
-          <h1 className="text-center font-mono text-3xl font-bold tracking-tight text-white">Staff sign in</h1>
-          <p className="mt-4 text-center text-sm leading-6 text-white">
-            Use your authorized BLASTERR staff credentials.
-          </p>
           <form className="mt-8 space-y-5" onSubmit={submit}>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white" htmlFor="staff-username">Username</label>
