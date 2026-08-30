@@ -1,0 +1,1 @@
+- [Preview video compatibility](preview-video-compatibility.md) — provide WebM before MP4 when Replit preview browsers may not decode otherwise-valid H.264/AAC.

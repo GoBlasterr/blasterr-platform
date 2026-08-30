@@ -40,7 +40,6 @@ export default function Splash() {
       <video
         ref={videoRef}
         className="absolute inset-0 h-full w-full object-cover"
-        src="/blasterr-intro.mp4"
         autoPlay
         playsInline
         preload="auto"
@@ -49,7 +48,10 @@ export default function Splash() {
         onEnded={() => setLocation("/home")}
         onError={() => setHasError(true)}
         aria-label="BLASTERR introduction"
-      />
+      >
+        <source src="/blasterr-intro.webm" type="video/webm" />
+        <source src="/blasterr-intro.mp4" type="video/mp4" />
+      </video>
 
       <div className="absolute inset-0 bg-black/25" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-transparent to-black/80" />
