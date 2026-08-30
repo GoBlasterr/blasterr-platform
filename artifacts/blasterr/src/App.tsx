@@ -12,7 +12,6 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Shell } from '@/components/layout/shell';
 
 // Pages
-import Landing from '@/pages/landing';
 import Splash from '@/pages/splash';
 import Home from '@/pages/home';
 import CreateBlast from '@/pages/create';
@@ -57,7 +56,7 @@ function Router() {
     <Shell>
       <RoutedErrorBoundary>
         <Switch>
-          <Route path="/" component={Landing} />
+          <Route path="/" component={Home} />
           <Route path="/splash" component={Splash} />
           <Route path="/home" component={Home} />
           <Route path="/create" component={CreateBlast} />

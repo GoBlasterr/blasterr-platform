@@ -22,7 +22,7 @@ export default function Landing() {
         </Link>
         <div className="ml-auto flex items-center gap-4">
           {isLoading ? null : user ? (
-            <Link href="/splash" className="flex items-center">
+            <Link href="/home" className="flex items-center">
               <Button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-full px-3 md:px-6 text-sm md:text-base">
                 Go to App
               </Button>
