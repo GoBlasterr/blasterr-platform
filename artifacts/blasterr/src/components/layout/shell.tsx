@@ -51,7 +51,7 @@ export function Shell({ children }: ShellProps) {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col md:flex-row relative z-0">
+    <div className={`min-h-[100dvh] bg-background text-foreground flex flex-col md:flex-row relative z-0 ${location === "/home" ? "home-icons-unified" : ""}`}>
       
       <div className="cosmic-noise pointer-events-none fixed inset-0 z-[-1] opacity-30"></div>
 
@@ -59,7 +59,7 @@ export function Shell({ children }: ShellProps) {
       <aside className="hidden md:flex w-72 flex-col justify-between p-6 border-r border-white/5 glass-panel sticky top-0 h-screen">
         <div>
           <Link href="/" className="flex items-center gap-3 mb-10 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
-            <img src="/logo.png" alt="BLASTERR" className="h-14 w-auto" />
+            <img src="/word-logo.png" alt="BLASTERR" className="h-14 w-auto" />
           </Link>
 
           <nav className="flex flex-col gap-2">

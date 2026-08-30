@@ -12,7 +12,7 @@ export default function SignIn() {
 
       <header className="p-6 relative z-10 flex items-center justify-between max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img src="/logo.png" alt="BLASTERR" className="h-12 w-auto" />
+          <img src="/word-logo.png" alt="BLASTERR" className="h-14 w-auto" />
         </Link>
         <Link href="/">
           <Button variant="ghost" className="text-muted-foreground hover:text-white rounded-full">

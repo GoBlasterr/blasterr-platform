@@ -18,7 +18,7 @@ export default function Landing() {
       {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between p-6 max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
-          <img src="/logo.png" alt="BLASTERR" className="h-12 md:h-16 w-auto" />
+          <img src="/word-logo.png" alt="BLASTERR" className="h-14 md:h-20 w-auto" />
         </Link>
         <div className="flex items-center gap-4">
           {isLoading ? null : user ? (
@@ -71,8 +71,8 @@ export default function Landing() {
       <section className="relative z-10 bg-black/40 border-t border-white/5 py-24 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="glass-panel p-8 rounded-3xl flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
-              <Crosshair className="w-8 h-8 text-primary" />
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
+              <Crosshair className="w-14 h-14 text-primary" />
             </div>
             <h3 className="font-display text-2xl font-bold text-white mb-3">Lock On Targets</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -81,8 +81,8 @@ export default function Landing() {
           </div>
           
           <div className="glass-panel p-8 rounded-3xl flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
-              <Globe className="w-8 h-8 text-blue-400" />
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
+              <Globe className="w-14 h-14 text-primary" />
             </div>
             <h3 className="font-display text-2xl font-bold text-white mb-3">Global & Nearby</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -91,8 +91,8 @@ export default function Landing() {
           </div>
 
           <div className="glass-panel p-8 rounded-3xl flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20">
-              <Users className="w-8 h-8 text-purple-400" />
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
+              <Users className="w-14 h-14 text-primary" />
             </div>
             <h3 className="font-display text-2xl font-bold text-white mb-3">Blast Back</h3>
             <p className="text-muted-foreground leading-relaxed">

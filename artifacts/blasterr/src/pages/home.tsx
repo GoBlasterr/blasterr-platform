@@ -20,7 +20,7 @@ export default function Home() {
       {/* Mobile Header */}
       <header className="md:hidden sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
-          <img src="/logo.png" alt="BLASTERR" className="h-12 w-auto" />
+          <img src="/word-logo.png" alt="BLASTERR" className="h-14 w-auto" />
         </Link>
       </header>
 

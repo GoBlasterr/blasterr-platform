@@ -39,7 +39,7 @@ export default function Splash() {
     <main className="relative min-h-[100dvh] overflow-hidden bg-black text-white">
       <video
         ref={videoRef}
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute left-1/2 top-1/2 h-auto max-h-[72dvh] w-[88vw] max-w-5xl -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-primary/20 object-contain shadow-[0_0_80px_rgba(229,244,3,0.12)]"
         autoPlay
         playsInline
         preload="auto"
@@ -58,7 +58,7 @@ export default function Splash() {
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col justify-between p-6 sm:p-10">
         <Link href="/" className="w-fit hover:opacity-80 transition-opacity" aria-label="Return to BLASTERR home">
-          <img src="/logo.png" alt="BLASTERR" className="h-14 w-auto sm:h-20" />
+          <img src="/word-logo.png" alt="BLASTERR" className="h-16 w-auto sm:h-24" />
         </Link>
 
         <div className="mx-auto flex w-full max-w-md flex-col items-center gap-5 text-center">
