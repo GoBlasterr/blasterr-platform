@@ -13,6 +13,7 @@ export interface User {
   avatarUrl: string;
   bio: string;
   location: string;
+  coverUrl?: string;
   followers: number;
   following: number;
   blastCount: number;

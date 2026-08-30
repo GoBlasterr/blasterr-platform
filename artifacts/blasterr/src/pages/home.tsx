@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Mobile Header */}
-      <header className="md:hidden sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-center">
+      <header className={`md:hidden sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center ${isStandaloneFeed ? "justify-end" : "justify-center"}`}>
         {isStandaloneFeed && (
           <Link
             href="/home"
@@ -35,7 +35,7 @@ export default function Home() {
           </Link>
         )}
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
-          <img src="/word-logo.png" alt="BLASTERR" className="h-14 w-auto" />
+          <img src="/word-logo.png" alt="BLASTERR" className="relative top-2 h-16 w-auto" />
         </Link>
       </header>
 

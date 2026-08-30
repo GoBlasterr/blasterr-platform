@@ -40,6 +40,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateCurrentUser
+      tags: [people]
+      summary: Update the current signed-in profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Authentication required
   /feed:
     get:
       operationId: getFeed
@@ -441,11 +460,21 @@ components:
         avatarUrl: { type: string }
         bio: { type: string }
         location: { type: string }
+        coverUrl: { type: string }
         followers: { type: number }
         following: { type: number }
         blastCount: { type: number }
         joinedAt: { type: string }
         isFollowing: { type: boolean }
+    UserUpdate:
+      type: object
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+        username: { type: string, pattern: "^[a-zA-Z0-9_]{3,30}$" }
+        bio: { type: string, maxLength: 280 }
+        location: { type: string, maxLength: 120 }
+        avatarUrl: { type: string, maxLength: 500 }
+        coverUrl: { type: string, maxLength: 500 }
     Profile:
       allOf:
         - $ref: "#/components/schemas/User"

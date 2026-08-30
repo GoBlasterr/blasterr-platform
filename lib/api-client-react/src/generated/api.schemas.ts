@@ -16,11 +16,30 @@ export interface User {
   avatarUrl: string;
   bio: string;
   location: string;
+  coverUrl?: string;
   followers: number;
   following: number;
   blastCount: number;
   joinedAt: string;
   isFollowing?: boolean;
+}
+
+export interface UserUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  displayName?: string;
+  /** @pattern ^[a-zA-Z0-9_]{3,30}$ */
+  username?: string;
+  /** @maxLength 280 */
+  bio?: string;
+  /** @maxLength 120 */
+  location?: string;
+  /** @maxLength 500 */
+  avatarUrl?: string;
+  /** @maxLength 500 */
+  coverUrl?: string;
 }
 
 export type TargetType = typeof TargetType[keyof typeof TargetType];
@@ -333,6 +352,10 @@ export const FeedTabParameter = {
   trending: 'trending',
   nearby: 'nearby',
 } as const;
+
+export type LatitudeParameter = number;
+
+export type LongitudeParameter = number;
 
 export type GetFeedParams = {
 tab?: FeedTabParameter;
