@@ -56,7 +56,7 @@ export function Shell({ children }: ShellProps) {
       <div className="cosmic-noise pointer-events-none fixed inset-0 z-[-1] opacity-30"></div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-72 flex-col justify-between p-6 border-r border-white/5 glass-panel sticky top-0 h-screen">
+      <aside className="hidden md:flex w-72 min-h-0 flex-col justify-between overflow-y-auto custom-scrollbar p-6 border-r border-white/5 glass-panel sticky top-0 h-screen">
         <div>
           <Link href="/" className="flex items-center justify-center gap-3 mb-10 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
             <img src="/sidebar-logo.png" alt="BLASTERR" className="relative top-4 h-20 w-auto object-contain object-left" />
