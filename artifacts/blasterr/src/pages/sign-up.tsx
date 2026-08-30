@@ -32,7 +32,7 @@ export default function SignUp() {
               routing="path"
               path={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/sign-up`}
               signInUrl={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/sign-in`}
-              forceRedirectUrl={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/home`}
+              forceRedirectUrl={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/splash`}
             />
           </div>
         </div>

@@ -22,7 +22,7 @@ export default function Landing() {
         </Link>
         <div className="flex items-center gap-4">
           {isLoading ? null : user ? (
-            <Link href="/home" className="flex items-center">
+            <Link href="/splash" className="flex items-center">
               <Button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-full px-6">
                 Go to App
               </Button>
@@ -59,7 +59,7 @@ export default function Landing() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full justify-center max-w-md">
-          <Link href={user ? "/home" : "/sign-up"} className="w-full">
+          <Link href={user ? "/splash" : "/sign-up"} className="w-full">
             <Button size="lg" className="w-full h-16 rounded-full text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_rgba(229,244,3,0.4)] transition-transform hover:scale-105">
               Launch Comm Link <ArrowRight className="ml-2 w-6 h-6" />
             </Button>

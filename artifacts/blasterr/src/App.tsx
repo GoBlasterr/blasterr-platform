@@ -13,6 +13,7 @@ import { Shell } from '@/components/layout/shell';
 
 // Pages
 import Landing from '@/pages/landing';
+import Splash from '@/pages/splash';
 import Home from '@/pages/home';
 import CreateBlast from '@/pages/create';
 import Trending from '@/pages/trending';
@@ -56,6 +57,7 @@ function Router() {
       <RoutedErrorBoundary>
         <Switch>
           <Route path="/" component={Landing} />
+          <Route path="/splash" component={Splash} />
           <Route path="/home" component={Home} />
           <Route path="/create" component={CreateBlast} />
           <Route path="/trending" component={Trending} />
