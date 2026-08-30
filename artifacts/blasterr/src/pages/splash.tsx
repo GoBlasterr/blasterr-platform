@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { ArrowRight, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -7,7 +7,6 @@ export default function Splash() {
   const [, setLocation] = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [needsInteraction, setNeedsInteraction] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   const attemptPlayback = () => {
@@ -17,7 +16,6 @@ export default function Splash() {
     video.muted = false;
     void video.play()
       .then(() => {
-        setHasStarted(true);
         setNeedsInteraction(false);
       })
       .catch(() => {
@@ -44,7 +42,6 @@ export default function Splash() {
         playsInline
         preload="auto"
         onCanPlay={attemptPlayback}
-        onPlay={() => setHasStarted(true)}
         onEnded={() => setLocation("/home")}
         onError={() => setHasError(true)}
         aria-label="BLASTERR introduction"
@@ -57,10 +54,6 @@ export default function Splash() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-transparent to-black/80" />
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col justify-between p-6 sm:p-10">
-        <Link href="/" className="w-fit hover:opacity-80 transition-opacity" aria-label="Return to BLASTERR home">
-          <img src="/word-logo.png" alt="BLASTERR" className="h-16 w-auto sm:h-24" />
-        </Link>
-
         <div className="mx-auto flex w-full max-w-md flex-col items-center gap-5 text-center">
           {hasError ? (
             <div className="rounded-2xl border border-primary/30 bg-black/70 px-6 py-5 backdrop-blur-md">
@@ -80,17 +73,10 @@ export default function Splash() {
               </Button>
               <p className="text-xs text-white/65">Sound is part of the BLASTERR transmission.</p>
             </div>
-          ) : (
-            <p className="text-xs font-medium uppercase tracking-[0.3em] text-white/70">
-              {hasStarted ? "Transmission in progress" : "Connecting to transmission"}
-            </p>
-          )}
+          ) : null}
         </div>
 
-        <div className="flex items-end justify-between gap-4 text-xs uppercase tracking-[0.2em] text-white/55">
-          <span>BLASTERR // INTRO</span>
-          <span>Stand by</span>
-        </div>
+        <div aria-hidden="true" className="h-4" />
       </div>
     </main>
   );

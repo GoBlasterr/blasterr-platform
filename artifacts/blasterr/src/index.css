@@ -219,6 +219,8 @@
   fill: transparent !important;
   stroke: transparent !important;
   flex-shrink: 0;
+  transform: scale(1.3);
+  transform-origin: center;
 }
 
 .animate-float {
@@ -238,6 +240,15 @@
       radial-gradient(circle at 72% 64%, rgb(255 255 255 / 0.12) 0 1px, transparent 1.5px);
     background-size: 87px 87px, 133px 133px;
   }
+
+.site-stars {
+  background-image:
+    radial-gradient(circle at 12px 24px, rgb(229 244 3 / 0.26) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 82px 116px, rgb(255 255 255 / 0.2) 0 0.8px, transparent 1.2px),
+    radial-gradient(circle at 48px 172px, rgb(255 255 255 / 0.14) 0 0.7px, transparent 1.1px);
+  background-size: 149px 149px, 211px 211px, 263px 263px;
+  opacity: 0.42;
+}
 
   input[type='search']::-webkit-search-cancel-button { @apply hidden; }
   [contenteditable][data-placeholder]:empty::before {

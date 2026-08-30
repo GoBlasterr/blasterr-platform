@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Mobile Header */}
-      <header className="md:hidden sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-between">
+      <header className="md:hidden sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-center">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
           <img src="/word-logo.png" alt="BLASTERR" className="h-14 w-auto" />
         </Link>
@@ -26,7 +26,12 @@ export default function Home() {
 
       {/* Desktop Header / Tabs */}
       <div className="sticky top-0 md:top-0 z-20 glass-panel border-b border-white/10 pt-4 px-4 pb-0">
-        <h2 className="hidden md:block font-display font-bold text-2xl text-white mb-4 px-2">Home</h2>
+        <div className="relative flex items-center justify-center mb-3">
+          <h2 className="hidden md:block absolute left-2 font-display font-bold text-2xl text-white">Home</h2>
+          <Link href="/" className="hidden md:flex hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
+            <img src="/word-logo.png" alt="BLASTERR" className="h-10 w-auto" />
+          </Link>
+        </div>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
           <TabsList className="w-full grid grid-cols-2 bg-transparent p-0 h-auto gap-0 rounded-none border-b border-transparent">
             <TabsTrigger 

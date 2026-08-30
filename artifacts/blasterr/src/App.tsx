@@ -138,6 +138,7 @@ function AppContent() {
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
         <TooltipProvider>
+          <div className="site-stars pointer-events-none fixed inset-0 z-[2]" aria-hidden="true" />
           <Router />
           <Toaster />
         </TooltipProvider>
