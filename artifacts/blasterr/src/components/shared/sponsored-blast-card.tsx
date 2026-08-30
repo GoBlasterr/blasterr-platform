@@ -113,14 +113,12 @@ export function SponsoredBlastCard({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start mb-1">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-white truncate text-lg">
-                {ad.headline}
-              </span>
-            </div>
+          <div className="flex justify-between items-start gap-2 mb-1">
+            <span className="min-w-0 flex-1 font-bold text-white text-lg leading-tight break-words">
+              {ad.headline}
+            </span>
             
-            <div className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded text-[10px] uppercase font-bold text-muted-foreground tracking-wider border border-white/5">
+            <div className="shrink-0 flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded text-[10px] uppercase font-bold text-muted-foreground tracking-wider border border-white/5">
               <span>Sponsored</span>
             </div>
           </div>

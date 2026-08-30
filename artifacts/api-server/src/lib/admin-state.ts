@@ -12,7 +12,7 @@ import {
   type AdminReportRow,
 } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
-import { shouldSeedDevelopmentState } from "./admin-seeding";
+import { seedDevelopmentAdvertising, shouldSeedDevelopmentState } from "./admin-seeding";
 
 export { shouldSeedDevelopmentState } from "./admin-seeding";
 
@@ -242,6 +242,7 @@ async function refreshCache(): Promise<void> {
 async function seedDevelopmentState(): Promise<void> {
   if (!shouldSeedDevelopmentState()) return;
 
+  await seedDevelopmentAdvertising();
   await db.insert(adminReportsTable).values([...developmentReports]).onConflictDoNothing();
   await db.insert(adminAuditEventsTable).values([...developmentAuditEvents]).onConflictDoNothing();
   await db.insert(adminContentStatusesTable).values([...developmentContentStatuses]).onConflictDoNothing();
