@@ -71,7 +71,7 @@ export default function Home() {
               <span>Home Feed</span>
             </Link>
           )}
-          <div className="hidden md:flex absolute left-4 translate-y-2 items-center gap-3 max-w-[calc(100%-1rem)]">
+          <div className="hidden md:flex absolute left-4 translate-y-4 items-center gap-3 max-w-[calc(100%-1rem)]">
             <Avatar className="h-14 w-14 shrink-0 border-2 border-primary/60 shadow-[0_0_12px_rgba(229,244,3,0.25)]">
               <AvatarImage src={user?.avatarUrl || undefined} alt={`${welcomeName} profile image`} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">
