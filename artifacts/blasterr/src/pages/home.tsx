@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   useGetFeed,
+  useGetCurrentUser,
   getGetFeedQueryKey
 } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
@@ -14,6 +15,8 @@ export default function Home() {
 
   // Type assertion since the OpenAPI schema type isn't matching perfectly in this mockup context
   const { data: feedData, isLoading } = useGetFeed({ tab: activeTab as any, page: 1 });
+  const { data: user } = useGetCurrentUser();
+  const welcomeName = user?.displayName?.trim() || user?.username || "User";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -27,7 +30,9 @@ export default function Home() {
       {/* Desktop Header / Tabs */}
       <div className="sticky top-0 md:top-0 z-20 glass-panel border-b border-white/10 pt-4 px-4 pb-0">
         <div className="relative flex h-10 items-center justify-center mb-3">
-          <h2 className="hidden md:block absolute left-2 font-display font-bold text-2xl text-white">Home</h2>
+          <h2 className="hidden md:block absolute left-2 max-w-[calc(100%-1rem)] truncate font-display font-bold text-2xl text-white">
+            Welcome, {welcomeName}
+          </h2>
         </div>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
           <TabsList className="w-full grid grid-cols-2 bg-transparent p-0 h-auto gap-0 rounded-none border-b border-transparent">

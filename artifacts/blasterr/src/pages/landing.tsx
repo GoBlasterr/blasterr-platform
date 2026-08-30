@@ -68,7 +68,7 @@ export default function Landing() {
       </main>
 
       {/* Feature Grid */}
-      <section className="relative z-10 bg-black/40 border-t border-white/5 py-24 backdrop-blur-xl">
+      <section className="relative z-10 bg-black/40 border-t border-white/5 py-12 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="glass-panel p-8 rounded-3xl flex flex-col items-center text-center">
             <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
