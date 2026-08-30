@@ -119,6 +119,7 @@ function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
   const [email, setEmail] = useState('info@blasterr.co');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -178,18 +179,29 @@ function SignInPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white" htmlFor="staff-password">Password</label>
-              <Input
-                id="staff-password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter password"
-                className="border-white/30 bg-black text-white placeholder:text-white/60 focus-visible:ring-[#e5f403]"
-                required
-                data-testid="staff-password"
-              />
+              <div className="relative">
+                <Input
+                  id="staff-password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Enter password"
+                  className="border-white/30 bg-black pr-16 text-white placeholder:text-white/60 focus-visible:ring-[#e5f403]"
+                  required
+                  data-testid="staff-password"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-3 text-xs font-semibold text-[#e5f403] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#e5f403] focus:ring-offset-2 focus:ring-offset-black"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  data-testid="button-toggle-password"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
             {error && <p className="text-sm text-red-400" role="alert">{error}</p>}
             <button
