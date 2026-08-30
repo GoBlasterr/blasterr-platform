@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -23,6 +23,9 @@ import { useDebounce } from "@/hooks/use-debounce"; // We'll create this
 const blastSchema = z.object({
   content: z.string().min(1, "Enter some text").max(1000, "Too long"),
   targetId: z.string().min(1, "Select a target"),
+  location: z.string().optional(),
+  mediaUrl: z.string().optional(),
+  mediaType: z.enum(["image", "video"]).optional(),
 });
 
 const targetTypeOptions = [
@@ -49,6 +52,11 @@ export default function CreateBlast() {
   const queryClient = useQueryClient();
   const createMutation = useCreateBlast();
   const createTargetMutation = useCreateTarget();
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState("");
+  const [mapCoords, setMapCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   
   const [targetQuery, setTargetQuery] = useState("");
   const debouncedQuery = useDebounce(targetQuery, 300);
@@ -74,8 +82,89 @@ export default function CreateBlast() {
     defaultValues: {
       content: "",
       targetId: "",
+      location: "",
+      mediaUrl: "",
+      mediaType: undefined,
     },
   });
+
+  const handleImageSelected = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Choose an image file", variant: "destructive" });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Images must be 10 MB or smaller", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingImage(true);
+    setImagePreview(URL.createObjectURL(file));
+    try {
+      const urlResponse = await fetch("/api/storage/uploads/request-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: file.name,
+          size: file.size,
+          contentType: file.type,
+        }),
+      });
+      const uploadDetails = await urlResponse.json() as { uploadURL?: string; objectPath?: string; error?: string };
+      if (!urlResponse.ok || !uploadDetails.uploadURL || !uploadDetails.objectPath) {
+        throw new Error(uploadDetails.error || "Could not prepare image upload");
+      }
+
+      const uploadResponse = await fetch(uploadDetails.uploadURL, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!uploadResponse.ok) {
+        throw new Error("Could not upload image");
+      }
+
+      form.setValue("mediaUrl", `/api/storage${uploadDetails.objectPath}`, { shouldValidate: true });
+      form.setValue("mediaType", "image", { shouldValidate: true });
+      toast({ title: "Image attached to your Blast." });
+    } catch (error) {
+      setImagePreview("");
+      toast({
+        title: error instanceof Error ? error.message : "Could not upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleLocation = () => {
+    if (!navigator.geolocation) {
+      toast({ title: "Location is not available in this browser", variant: "destructive" });
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const lat = Number(coords.latitude.toFixed(5));
+        const lon = Number(coords.longitude.toFixed(5));
+        setMapCoords({ lat, lon });
+        form.setValue("location", `${lat}, ${lon}`, { shouldValidate: true });
+        setIsLocating(false);
+        toast({ title: "Location attached to your Blast." });
+      },
+      () => {
+        setIsLocating(false);
+        toast({
+          title: "Location access was not available",
+          description: "Allow location access and try again.",
+          variant: "destructive",
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
+  };
 
   const onSubmit = (values: z.infer<typeof blastSchema>) => {
     createMutation.mutate(
