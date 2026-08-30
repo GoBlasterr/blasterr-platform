@@ -17,7 +17,7 @@ export default function Landing() {
 
       {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between p-6 max-w-7xl mx-auto w-full">
-        <Link href="/" className="absolute left-1/2 z-10 flex -translate-x-1/2 items-center gap-3 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
+        <Link href="/" className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-3 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
           <img src="/word-logo.png" alt="BLASTERR" className="h-12 md:h-20 w-auto" />
         </Link>
         <div className="ml-auto flex items-center gap-4">
@@ -44,7 +44,7 @@ export default function Landing() {
 
       {/* Hero Section */}
       <main className="flex-1 relative z-10 flex flex-col items-center justify-center px-6 text-center max-w-5xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm font-medium mb-8">
+        <div className="relative top-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm font-medium mb-8">
           <Zap className="w-4 h-4" />
           <span>The New Social Command Center</span>
         </div>
