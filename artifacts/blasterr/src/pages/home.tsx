@@ -35,7 +35,7 @@ export default function Home() {
           </Link>
         )}
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
-          <img src="/word-logo.png" alt="BLASTERR" className="relative top-3 h-16 w-auto" />
+            <img src="/word-logo.png" alt="BLASTERR" className="relative top-6 h-16 w-auto" />
         </Link>
       </header>
 
