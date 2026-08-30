@@ -134,7 +134,7 @@ export const adminFeatureFlags = [
     key: "new_target_requests",
     label: "New Target requests",
     description: "Allow the community to suggest new Targets.",
-    enabled: false,
+    enabled: true,
     updatedAt: "2026-08-24T16:08:00.000Z",
   },
 ];
