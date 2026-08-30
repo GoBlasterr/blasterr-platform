@@ -117,7 +117,7 @@ function AdminRouter() {
 
 function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('info@blasterr.co');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
