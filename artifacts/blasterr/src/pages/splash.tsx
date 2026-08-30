@@ -37,7 +37,7 @@ export default function Splash() {
     <main className="relative min-h-[100dvh] overflow-hidden bg-black text-white">
       <video
         ref={videoRef}
-        className="absolute left-1/2 top-1/2 z-[3] h-auto max-h-[72dvh] w-[88vw] max-w-5xl -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-primary/20 object-contain shadow-[0_0_80px_rgba(229,244,3,0.12)]"
+        className="absolute left-1/2 top-1/2 z-[3] h-auto max-h-[72dvh] w-[88vw] max-w-5xl -translate-x-1/2 -translate-y-1/2 object-contain mix-blend-screen"
         autoPlay
         playsInline
         preload="auto"
