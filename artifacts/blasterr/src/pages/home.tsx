@@ -8,6 +8,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { FeedAdPlacement } from "@/components/shared/sponsored-blast-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Home as HomeIcon, PenSquare } from "lucide-react";
 
 export default function Home() {
@@ -61,9 +62,17 @@ export default function Home() {
               <span>Home Feed</span>
             </Link>
           )}
-          <h2 className={`hidden md:block absolute max-w-[calc(100%-12rem)] truncate font-display font-bold text-2xl text-white ${isStandaloneFeed ? "left-1/2 -translate-x-1/2" : "left-2"}`}>
-            Welcome, {welcomeName}
-          </h2>
+          <div className={`hidden md:flex absolute items-center gap-3 max-w-[calc(100%-1rem)] ${isStandaloneFeed ? "left-1/2 -translate-x-1/2" : "right-4"}`}>
+            <h2 className="truncate font-display font-bold text-2xl text-white">
+              Welcome, {welcomeName}
+            </h2>
+            <Avatar className="h-10 w-10 shrink-0 border-2 border-primary/60 shadow-[0_0_12px_rgba(229,244,3,0.25)]">
+              <AvatarImage src={user?.avatarUrl || undefined} alt={`${welcomeName} profile image`} />
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                {welcomeName.slice(0, 1).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
         </div>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
           <TabsList className="w-full grid grid-cols-2 bg-transparent p-0 h-auto gap-0 rounded-none border-b border-transparent">
