@@ -219,45 +219,13 @@ function SignInPage() {
   );
 }
 
-function AdminLanding() {
-  return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-black p-6 text-white">
-      <div className="flex w-full max-w-lg -translate-y-2 flex-col items-center gap-10 sm:-translate-y-4">
-        <img
-          src={`${import.meta.env.BASE_URL}blasterr-logo.png`}
-          alt="BLASTERR"
-          className="h-auto w-[min(20rem,62vw)] object-contain"
-          data-testid="img-landing-blasterr-logo"
-        />
-        <section className="w-full rounded-sm border border-white/20 bg-black p-8 text-center text-white shadow-2xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#e5f403]">
-            Restricted control center
-          </p>
-          <h1 className="font-mono text-3xl font-bold tracking-tight text-white">BLASTERR ADMIN</h1>
-          <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-white">
-            Manage advertising, moderation, and platform operations from one secure
-            workspace. Access is granted only to staff accounts authorized by BLASTERR.
-          </p>
-          <a
-            href={`${basePath}/sign-in`}
-            className="mx-auto mt-7 inline-flex h-10 items-center justify-center rounded-sm bg-[#e5f403] px-5 text-sm font-semibold text-black transition-colors hover:bg-[#e5f403]/90"
-            data-testid="link-staff-sign-in"
-          >
-            Staff sign in
-          </a>
-        </section>
-      </div>
-    </main>
-  );
-}
-
 function SignedOutRouter() {
   return (
     <Switch>
-      <Route path="/" component={AdminLanding} />
+      <Route path="/" component={() => <Redirect to="/sign-in" />} />
       <Route path="/sign-in/*?" component={SignInPage} />
-      <Route path="/sign-up/*?" component={() => <Redirect to="/" />} />
-      <Route component={() => <Redirect to="/" />} />
+      <Route path="/sign-up/*?" component={() => <Redirect to="/sign-in" />} />
+      <Route component={() => <Redirect to="/sign-in" />} />
     </Switch>
   );
 }
