@@ -354,7 +354,20 @@ export default function CreateBlast() {
     createMutation.mutate(
       { data: values },
       {
-        onSuccess: () => {
+        onSuccess: (createdBlast) => {
+          queryClient.setQueryData(
+            getGetFeedQueryKey({ tab: "for-you", page: 1 }),
+            (currentFeed: { items?: unknown[]; [key: string]: unknown } | undefined) => {
+              if (!currentFeed?.items) return currentFeed;
+              return {
+                ...currentFeed,
+                items: [
+                  createdBlast,
+                  ...currentFeed.items.filter((item: any) => item && item.id !== createdBlast.id),
+                ],
+              };
+            },
+          );
           queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
           toast({ title: "Blast fired successfully!" });
           setLocation("/splash");

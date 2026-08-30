@@ -128,7 +128,7 @@ export default function Home() {
             const isAfterTarget = index === currentAdIndex;
             return (
               <Fragment key={blast.id}>
-                <BlastCard blast={blast} />
+                <BlastCard blast={blast} showMedia />
                 {isAfterTarget && (
                   <FeedAdPlacement key={`ad-${activeTab}`} placement={activeTab === "for-you" ? "home_feed" : "following_feed"} />
                 )}

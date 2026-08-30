@@ -52,7 +52,7 @@ const blastSchema = z.object({
 
 // --- Components ---
 
-export function BlastCard({ blast, showTarget = true }: { blast: any, showTarget?: boolean }) {
+export function BlastCard({ blast, showTarget = true, showMedia = false }: { blast: any, showTarget?: boolean, showMedia?: boolean }) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -199,7 +199,7 @@ export function BlastCard({ blast, showTarget = true }: { blast: any, showTarget
             {blast.content}
           </p>
 
-          {blast.mediaUrl && (
+          {showMedia && blast.mediaUrl && (
             <div className="mt-3 rounded-2xl overflow-hidden border border-white/10">
               {blast.mediaType === 'video' ? (
                  <div className="aspect-video bg-black flex items-center justify-center text-muted-foreground">
