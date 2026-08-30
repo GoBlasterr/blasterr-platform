@@ -1,8 +1,7 @@
 import { getGetFeedQueryKey, useGetFeed } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ArrowLeft, Loader2, LocateFixed, MapPin } from "lucide-react";
-import { Link } from "wouter";
+import { AlertTriangle, Loader2, LocateFixed, MapPin } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type LocationStatus = "requesting" | "ready" | "denied" | "unavailable";
@@ -123,17 +122,7 @@ export default function Nearby() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="sticky top-0 z-20 glass-panel border-b border-white/10 p-4">
-        <div className="flex items-center gap-3">
-          <Link href="/home">
-            <Button
-              variant="ghost"
-              className="h-10 gap-2 rounded-full border border-white/15 bg-white/5 px-4 text-sm font-semibold text-white hover:bg-primary/15 hover:text-primary"
-              aria-label="Back to home feed"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back to Feed</span>
-            </Button>
-          </Link>
+        <div className="flex items-center">
           <h2 className="font-display font-bold text-2xl text-white flex items-center gap-2">
             <MapPin className="w-6 h-6 text-primary" /> Nearby Scanner
           </h2>
