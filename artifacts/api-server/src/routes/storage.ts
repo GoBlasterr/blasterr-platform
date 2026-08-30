@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { Router, type IRouter, type Request, type Response } from "express";
+import { getAuth } from "@clerk/express";
 
 const router: IRouter = Router();
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
@@ -52,8 +53,15 @@ async function getSignedObjectUrl({
 }
 
 router.post("/storage/uploads/request-url", async (req: Request, res: Response) => {
-  const { name, size, contentType } = req.body ?? {};
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Sign in is required before uploading files." });
+    return;
+  }
+
+  const { name, size, contentType, purpose } = req.body ?? {};
   const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+  const uploadPurpose = purpose === "avatar" || purpose === "banner" ? purpose : "general";
 
   if (
     typeof name !== "string" ||
@@ -71,7 +79,7 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
   try {
     const { bucketName, prefix } = getPrivateObjectPath();
     const objectId = randomUUID();
-    const objectName = [prefix, "uploads", objectId].filter(Boolean).join("/");
+    const objectName = [prefix, "users", userId, uploadPurpose, objectId].filter(Boolean).join("/");
     const uploadURL = await getSignedObjectUrl({
       bucketName,
       objectName,
@@ -80,7 +88,7 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
 
     res.json({
       uploadURL,
-      objectPath: `/objects/uploads/${objectId}`,
+      objectPath: `/objects/users/${userId}/${uploadPurpose}/${objectId}`,
       metadata: { name: name.trim(), size, contentType },
     });
   } catch (error) {

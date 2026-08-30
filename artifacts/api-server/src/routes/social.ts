@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { Router, type IRouter } from "express";
+import { clerkClient, getAuth } from "@clerk/express";
 import {
   CreateBlastBackBody,
   CreateBlastBackParams,
@@ -38,6 +39,8 @@ import {
   ToggleBookmarkResponse,
   ToggleFollowParams,
   ToggleFollowResponse,
+  UpdateCurrentUserBody,
+  UpdateCurrentUserResponse,
   UpdateBlastBody,
   UpdateBlastParams,
   UpdateBlastResponse,
@@ -51,6 +54,7 @@ const users = [
     username: "kinamin",
     displayName: "Kinamin",
     avatarUrl: "",
+    coverUrl: "",
     bio: "Building the next conversation layer of the internet.",
     location: "Atlanta, GA",
     followers: 842,
@@ -229,8 +233,60 @@ const notifications = [
   { id: "notice-3", type: "trending" as const, message: "Your Blast is gaining momentum in Atlanta.", createdAt: "2026-08-28T23:58:00.000Z", read: true, actor: users[0] },
 ];
 
-router.get("/me", (_req, res): void => {
+router.get("/me", async (req, res): Promise<void> => {
+  const { userId } = getAuth(req);
+  if (userId) {
+    try {
+      const clerkUser = await clerkClient.users.getUser(userId);
+      const metadata = clerkUser.publicMetadata as Record<string, unknown>;
+      const profileFields = ["displayName", "username", "bio", "location", "avatarUrl", "coverUrl"] as const;
+      for (const field of profileFields) {
+        if (typeof metadata[field] === "string") {
+          users[0][field] = metadata[field];
+        }
+      }
+    } catch (error) {
+      req.log.warn({ err: error }, "Unable to load Clerk profile metadata");
+    }
+  }
+
   res.json(GetCurrentUserResponse.parse(users[0]));
+});
+
+router.patch("/me", async (req, res): Promise<void> => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Sign in is required to save profile settings." });
+    return;
+  }
+
+  const parsed = UpdateCurrentUserBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Enter valid profile information before saving." });
+    return;
+  }
+
+  try {
+    const current = users[0];
+    const next = {
+      displayName: parsed.data.displayName ?? current.displayName,
+      username: parsed.data.username ?? current.username,
+      bio: parsed.data.bio ?? current.bio,
+      location: parsed.data.location ?? current.location,
+      avatarUrl: parsed.data.avatarUrl ?? current.avatarUrl,
+      coverUrl: parsed.data.coverUrl ?? current.coverUrl,
+    };
+
+    await clerkClient.users.updateUserMetadata(userId, {
+      publicMetadata: next,
+    });
+
+    Object.assign(current, next);
+    res.json(UpdateCurrentUserResponse.parse(current));
+  } catch (error) {
+    req.log.error({ err: error }, "Unable to save profile settings");
+    res.status(500).json({ error: "Profile settings could not be saved. Please try again." });
+  }
 });
 
 router.get("/feed", (req, res): void => {
@@ -339,7 +395,7 @@ router.get("/users/:username", (req, res): void => {
     return;
   }
   const profileBlasts = blasts.filter((blast) => blast.author.id === user.id);
-  res.json(GetUserProfileResponse.parse({ ...user, coverUrl: "", blasts: profileBlasts, media: profileBlasts.filter((blast) => blast.mediaUrl) }));
+  res.json(GetUserProfileResponse.parse({ ...user, coverUrl: user.coverUrl || "", blasts: profileBlasts, media: profileBlasts.filter((blast) => blast.mediaUrl) }));
 });
 
 router.post("/users/:username/follow", (req, res): void => {
