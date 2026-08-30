@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/blasterr-admin/"
+title = "BLASTERR ADMIN"
+description = "A secure SaaS-style administration and moderation control center for the BLASTERR social platform, with platform overview, user and content operations, moderation queue, analytics, system health, and audit-ready workflows."
+version = "1.0.0"
+id = "artifacts/blasterr-admin"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/blasterr-admin/" ]
+localPort = 25844
+
+[services.development]
+run = "pnpm --filter @workspace/blasterr-admin run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/blasterr-admin", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/blasterr-admin/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25844"
+BASE_PATH = "/blasterr-admin/"

@@ -1,0 +1,1076 @@
+# REPLIT AGENT PROMPT — BLASTERR ADMIN CONTROL CENTER
+
+Build a completely separate, secure **BLASTERR ADMIN** web application that serves as the centralized administration and moderation control center for my existing **BLASTERR** social platform.
+
+## IMPORTANT
+
+This is **NOT a redesign of the existing BLASTERR platform**.
+
+Do not modify the existing public BLASTERR user interface unless specifically required to connect an admin-controlled feature.
+
+The goal is to create a separate admin website that connects to the **existing BLASTERR backend, database, authentication system, users, posts, comments, reports, notifications, and other platform data**.
+
+The Admin site should be accessible through a separate admin URL/domain such as:
+
+**admin.blasterr.com**
+
+The admin dashboard should be completely inaccessible to normal BLASTERR users.
+
+---
+
+# 1. ADMIN DASHBOARD
+
+Create a modern, professional SaaS-style dashboard.
+
+Brand the dashboard as:
+
+**BLASTERR ADMIN**
+
+Use the BLASTERR visual identity but make the Admin interface feel more like a powerful command center.
+
+Suggested design:
+
+* Dark/black background
+* Neon accent colors
+* White text
+* Clean cards
+* Modern typography
+* Subtle glow effects
+* Responsive design
+* Desktop-first but tablet compatible
+* Professional rather than overly flashy
+
+Sidebar navigation:
+
+### DASHBOARD
+
+* Overview
+
+### USERS
+
+* All Users
+* Search Users
+* Suspended Users
+* Banned Users
+* Verified Users
+* Admins
+
+### CONTENT
+
+* All Blasts
+* Reported Blasts
+* Comments
+* Media
+* Trending Content
+
+### MODERATION
+
+* Reports
+* Moderation Queue
+* Removed Content
+* Appeals
+* Blocked Words
+* Moderation Rules
+
+### ENGAGEMENT
+
+* Trending
+* Hashtags
+* Categories
+* Featured Blasts
+* Viral Blasts
+
+### PLATFORM
+
+* Notifications
+* Announcements
+* Platform Settings
+* Feature Controls
+* Maintenance Mode
+
+### MONETIZATION
+
+* Revenue
+* Subscriptions
+* Payments
+* Transactions
+* Promotions
+
+### ANALYTICS
+
+* Users
+* Content
+* Engagement
+* Growth
+* Revenue
+
+### SYSTEM
+
+* Admin Users
+* Roles & Permissions
+* Audit Logs
+* API/System Health
+* Security
+
+---
+
+# 2. MAIN ADMIN DASHBOARD
+
+Create a dashboard showing real-time platform statistics.
+
+Top metric cards:
+
+* Total Users
+* Active Users
+* New Users Today
+* Blasts Today
+* Comments Today
+* Reports Pending
+* Suspended Users
+* Revenue
+
+Add percentage changes compared with:
+
+* Yesterday
+* Last 7 days
+* Last 30 days
+
+Example:
+
+**TOTAL USERS**
+1,248,392
+↑ 8.4%
+
+---
+
+# 3. LIVE ACTIVITY
+
+Create a live activity panel showing recent platform events.
+
+Examples:
+
+* New user registered
+* Blast created
+* Blast reported
+* User suspended
+* Content removed
+* User verified
+* Admin action performed
+
+Example:
+
+**@username posted a new Blast**
+2 minutes ago
+
+**@username was suspended**
+5 minutes ago
+
+Allow admins to click an event to view details.
+
+---
+
+# 4. USER MANAGEMENT
+
+Create a complete user management system.
+
+Admins should be able to:
+
+* Search users
+* Filter users
+* View user profiles
+* View account creation date
+* View followers
+* View following
+* View number of Blasts
+* View engagement
+* View reports against user
+* View moderation history
+* View account status
+* Verify/unverify users
+* Suspend users
+* Unsuspend users
+* Ban users
+* Unban users
+* Force logout
+* Reset account restrictions
+* Add internal admin notes
+
+User statuses:
+
+* Active
+* Suspended
+* Banned
+* Deleted
+* Verified
+
+---
+
+# 5. USER DETAIL PAGE
+
+Create a detailed user administration page.
+
+Show:
+
+### PROFILE
+
+* Username
+* Display name
+* Email
+* Profile image
+* Bio
+* Join date
+* Last active
+* Verification status
+
+### ACCOUNT
+
+* Account status
+* Login activity
+* Device/session information where available
+* Account flags
+
+### CONTENT
+
+* Blasts
+* Comments
+* Likes
+* Reposts
+* Media
+
+### MODERATION
+
+* Reports received
+* Reports submitted
+* Removed content
+* Previous suspensions
+* Previous bans
+* Admin notes
+
+### ACTIONS
+
+Buttons:
+
+**VERIFY**
+
+**SUSPEND**
+
+**BAN**
+
+**UNBAN**
+
+**FORCE LOGOUT**
+
+**REMOVE CONTENT**
+
+All sensitive actions must require confirmation.
+
+---
+
+# 6. BLAST MANAGEMENT
+
+Create a complete content-management interface for BLASTERR.
+
+Admins can:
+
+* Search Blasts
+* Filter Blasts
+* View Blast
+* View author
+* View timestamp
+* View engagement
+* View reports
+* Remove Blast
+* Restore Blast
+* Flag Blast
+* Feature Blast
+* Mark as trending
+* Add/remove moderation labels
+
+Blast information:
+
+* Text
+* Images
+* Videos
+* Author
+* Likes
+* Comments
+* Reposts
+* Views
+* Reports
+* Creation date
+
+---
+
+# 7. MODERATION QUEUE
+
+Create a dedicated moderation center.
+
+Display reported content in a queue.
+
+Each report should show:
+
+* Reported user
+* Reported content
+* Reporter
+* Report reason
+* Date reported
+* Number of reports
+* Previous violations
+
+Actions:
+
+**Approve**
+
+**Remove**
+
+**Warn User**
+
+**Suspend User**
+
+**Ban User**
+
+**Dismiss Report**
+
+**Escalate**
+
+Allow admins to select multiple reports and perform bulk actions where appropriate.
+
+---
+
+# 8. REPORTING SYSTEM
+
+Create a complete reporting dashboard.
+
+Report categories should be configurable.
+
+Examples:
+
+* Spam
+* Harassment
+* Hate
+* Threats
+* Nudity
+* Violence
+* Misinformation
+* Copyright
+* Impersonation
+* Scam
+* Other
+
+Show:
+
+* Pending reports
+* Resolved reports
+* Dismissed reports
+* Reports by category
+* Reports by day/week/month
+
+---
+
+# 9. APPEALS
+
+Create an appeals management system.
+
+Users who receive moderation actions should be able to submit appeals through the existing BLASTERR platform.
+
+Admins can review:
+
+* User
+* Original action
+* Reason
+* Original content
+* Appeal message
+* Appeal date
+* Previous violations
+
+Actions:
+
+**Approve Appeal**
+
+**Reject Appeal**
+
+**Restore Content**
+
+**Remove Suspension**
+
+**Restore Account**
+
+---
+
+# 10. TRENDING MANAGEMENT
+
+Create a system allowing admins to influence platform discovery.
+
+Admins should be able to:
+
+* View trending Blasts
+* View trending hashtags
+* View trending users
+* Feature content
+* Remove content from trending
+* Pin content
+* Create featured categories
+
+Create controls for:
+
+**Featured Blast**
+
+**Trending Blast**
+
+**Editor's Pick**
+
+**Featured Creator**
+
+---
+
+# 11. PLATFORM ANNOUNCEMENTS
+
+Allow administrators to create announcements that appear inside the BLASTERR platform.
+
+Admin can create:
+
+* Title
+* Message
+* Image
+* CTA
+* Start date
+* End date
+* Target audience
+
+Target:
+
+* Everyone
+* New users
+* Verified users
+* Specific user groups
+
+---
+
+# 12. NOTIFICATION CONTROL
+
+Create an admin notification center.
+
+Admins can send platform-wide notifications.
+
+Examples:
+
+* System announcement
+* New feature announcement
+* Breaking platform news
+* Maintenance notification
+* Promotional notification
+
+Include scheduling.
+
+---
+
+# 13. FEATURE FLAGS
+
+Create a powerful Feature Control system.
+
+Admins should be able to turn features on/off without deploying new code.
+
+Example:
+
+### FEATURE FLAGS
+
+Blast Clips
+ON/OFF
+
+Create Clip
+ON/OFF
+
+Trending
+ON/OFF
+
+Reposts
+ON/OFF
+
+Comments
+ON/OFF
+
+Messaging
+ON/OFF
+
+Video Uploads
+ON/OFF
+
+Verification
+ON/OFF
+
+Subscriptions
+ON/OFF
+
+Monetization
+ON/OFF
+
+AI Features
+ON/OFF
+
+Allow feature flags to be controlled globally or, where practical, by user segment.
+
+---
+
+# 14. BLOCKED WORDS / CONTENT FILTER
+
+Create a configurable moderation dictionary.
+
+Admins can:
+
+* Add blocked words
+* Remove words
+* Edit words
+* Assign severity
+* Choose whether the system warns, blocks, flags, or queues content
+
+Example actions:
+
+**BLOCK**
+
+**FLAG**
+
+**REVIEW**
+
+**WARN**
+
+---
+
+# 15. ANALYTICS
+
+Create a comprehensive analytics section.
+
+### USER ANALYTICS
+
+* Total users
+* New users
+* Daily active users
+* Weekly active users
+* Monthly active users
+* Retention
+* User growth
+
+### CONTENT ANALYTICS
+
+* Blasts created
+* Comments
+* Likes
+* Reposts
+* Views
+* Videos uploaded
+
+### ENGAGEMENT
+
+* Engagement rate
+* Average Blasts per user
+* Average comments
+* Average likes
+* Average session activity
+
+### REVENUE
+
+If monetization exists:
+
+* Revenue
+* Transactions
+* Subscribers
+* Average revenue per user
+* Revenue by day/week/month
+
+Use interactive charts.
+
+---
+
+# 16. REVENUE ADMIN
+
+Create a monetization management section that can integrate with the payment system already used by BLASTERR.
+
+Display:
+
+* Gross revenue
+* Net revenue
+* Transactions
+* Refunds
+* Failed payments
+* Subscribers
+* Revenue by date
+
+Do NOT store raw credit card information in the BLASTERR Admin system.
+
+Use the existing payment provider's secure APIs.
+
+---
+
+# 17. ADMIN USERS
+
+Create a separate administrator management system.
+
+Super Admin should be able to create additional administrators.
+
+Roles:
+
+### SUPER ADMIN
+
+Full access.
+
+### ADMIN
+
+Most platform controls.
+
+### MODERATOR
+
+Users, reports and content moderation.
+
+### ANALYST
+
+Analytics only.
+
+### SUPPORT
+
+User support and account assistance.
+
+### FINANCE
+
+Revenue and transactions.
+
+Implement granular permissions.
+
+Example:
+
+users.view
+
+users.edit
+
+users.suspend
+
+users.ban
+
+content.view
+
+content.remove
+
+reports.view
+
+reports.resolve
+
+analytics.view
+
+finance.view
+
+settings.edit
+
+admins.manage
+
+---
+
+# 18. AUDIT LOG
+
+This is extremely important.
+
+Every administrative action must be logged.
+
+Example:
+
+**Admin:** [john@blasterr.com](mailto:john@blasterr.com)
+
+**Action:** Suspended User
+
+**Target:** @exampleuser
+
+**Reason:** Repeated harassment
+
+**Timestamp:** August 30, 2026 8:32 PM
+
+Store:
+
+* Admin ID
+* Admin email
+* Action
+* Target
+* Reason
+* Timestamp
+* IP/device information where legally appropriate
+
+Admins should NOT be able to alter or delete audit records.
+
+---
+
+# 19. SECURITY
+
+Treat the Admin application as a high-security system.
+
+Implement:
+
+* Separate admin authentication
+* Role-based access control
+* Secure sessions
+* Session expiration
+* Password protection
+* Optional 2FA architecture
+* Rate limiting
+* CSRF protection
+* Input validation
+* Server-side authorization
+* Secure API endpoints
+* Audit logging
+
+CRITICAL:
+
+Do not rely on hiding admin buttons for security.
+
+Every administrative action must be authorized on the server.
+
+A normal BLASTERR user must NEVER be able to call an admin API endpoint successfully.
+
+---
+
+# 20. DATABASE INTEGRATION
+
+Connect the Admin application to the EXISTING BLASTERR database.
+
+First inspect the existing BLASTERR project and determine:
+
+* Database technology
+* Tables/collections
+* User schema
+* Blast schema
+* Comment schema
+* Report schema
+* Authentication system
+* Existing APIs
+* Existing storage system
+
+DO NOT create duplicate users, Blasts, comments, or other platform records if those already exist.
+
+The Admin application should operate on the existing platform data.
+
+If a required admin table does not exist, create only the necessary administrative tables.
+
+Potential new tables:
+
+* admin_users
+* admin_roles
+* admin_permissions
+* admin_sessions
+* audit_logs
+* moderation_actions
+* feature_flags
+* platform_announcements
+* blocked_words
+* admin_notes
+
+Adapt these to the existing database architecture rather than blindly creating them.
+
+---
+
+# 21. API ARCHITECTURE
+
+Create a secure server-side API layer between the Admin UI and BLASTERR database.
+
+Example endpoints:
+
+GET /admin/users
+
+GET /admin/users/:id
+
+POST /admin/users/:id/suspend
+
+POST /admin/users/:id/ban
+
+POST /admin/users/:id/unban
+
+GET /admin/blasts
+
+GET /admin/blasts/:id
+
+DELETE /admin/blasts/:id
+
+POST /admin/blasts/:id/restore
+
+GET /admin/reports
+
+POST /admin/reports/:id/resolve
+
+GET /admin/analytics
+
+GET /admin/audit-logs
+
+GET /admin/settings
+
+POST /admin/settings
+
+Use the project's existing architecture where possible.
+
+Do not expose database credentials to the browser.
+
+---
+
+# 22. ADMIN SEARCH
+
+Create a universal admin search.
+
+Allow admins to search:
+
+* Users
+* Blasts
+* Comments
+* Reports
+* Hashtags
+* Transactions
+
+Search should be fast and return categorized results.
+
+---
+
+# 23. BULK ACTIONS
+
+Where safe and appropriate, allow:
+
+* Bulk suspend
+* Bulk ban
+* Bulk remove content
+* Bulk dismiss reports
+* Bulk feature content
+
+Require confirmation before destructive bulk actions.
+
+---
+
+# 24. CONFIRMATION MODALS
+
+For destructive actions, show confirmation dialogs.
+
+Example:
+
+**Suspend @username?**
+
+Reason:
+
+[________________]
+
+Duration:
+
+[24 Hours ▼]
+
+[Cancel] [Confirm Suspension]
+
+For permanent bans, require stronger confirmation.
+
+---
+
+# 25. RESPONSIVE DESIGN
+
+The Admin application should work on:
+
+* Desktop
+* Laptop
+* Tablet
+
+Desktop should be the primary experience.
+
+Use:
+
+* Fixed sidebar
+* Responsive tables
+* Search
+* Filters
+* Pagination
+* Modal dialogs
+* Toast notifications
+
+---
+
+# 26. PERFORMANCE
+
+The admin dashboard must remain fast even with a large BLASTERR database.
+
+Do NOT load thousands of records at once.
+
+Use:
+
+* Pagination
+* Server-side filtering
+* Server-side searching
+* Lazy loading
+* Database indexes
+* Cached analytics where appropriate
+
+Design the architecture so it can eventually support millions of users and large volumes of Blasts.
+
+---
+
+# 27. REAL-TIME ADMIN EVENTS
+
+Where the existing infrastructure supports it, implement real-time updates for:
+
+* New reports
+* New users
+* New moderation events
+* System alerts
+
+Display a notification indicator in the Admin sidebar.
+
+Example:
+
+**REPORTS  🔴 12**
+
+---
+
+# 28. SYSTEM HEALTH
+
+Create a system health page.
+
+Show:
+
+* API status
+* Database status
+* Storage status
+* Authentication status
+* Payment system status
+* Background jobs
+* Error rate
+* Server status
+
+Use simple indicators:
+
+🟢 Operational
+
+🟡 Warning
+
+🔴 Down
+
+---
+
+# 29. MAINTENANCE MODE
+
+Create a maintenance mode control.
+
+Admins can activate maintenance mode from the Admin dashboard.
+
+Settings:
+
+* Enable/disable
+* Maintenance message
+* Estimated completion time
+* Allow admins to access platform during maintenance
+
+Do not activate maintenance mode automatically during development.
+
+---
+
+# 30. DESIGN REQUIREMENTS
+
+The interface should feel like a serious technology company administration platform.
+
+Think:
+
+**Modern SaaS dashboard + social media command center + moderation platform**
+
+Avoid making it look like a generic Bootstrap admin template.
+
+Use:
+
+* Strong visual hierarchy
+* Large metric cards
+* Clean tables
+* Modern charts
+* Dark mode
+* Neon BLASTERR accents
+* Smooth transitions
+* Clear status indicators
+
+---
+
+# 31. DEVELOPMENT REQUIREMENTS
+
+Before writing major code:
+
+1. Inspect the existing BLASTERR application.
+2. Identify its framework.
+3. Identify its database.
+4. Identify its authentication.
+5. Identify its API architecture.
+6. Identify the existing user/content schemas.
+7. Identify existing environment variables.
+8. Identify existing storage.
+9. Determine the safest way for the Admin application to communicate with the existing BLASTERR backend.
+
+DO NOT break the existing BLASTERR application.
+
+DO NOT replace existing authentication unless necessary.
+
+DO NOT duplicate existing platform data.
+
+DO NOT create fake production statistics.
+
+If something is not yet implemented in BLASTERR, clearly label the Admin feature as requiring backend integration rather than pretending it works.
+
+---
+
+# 32. ENVIRONMENT VARIABLES
+
+Keep all secrets server-side.
+
+Use environment variables for:
+
+* Database connection
+* Authentication secrets
+* API keys
+* Storage credentials
+* Payment provider credentials
+* Admin configuration
+
+Never expose secrets in frontend code.
+
+---
+
+# 33. DEMO / DEVELOPMENT MODE
+
+If certain BLASTERR backend features are not yet available, create clearly labeled development placeholders.
+
+Example:
+
+**BACKEND CONNECTION REQUIRED**
+
+instead of fake data being presented as real platform data.
+
+You may use seed data ONLY when explicitly running development/demo mode.
+
+---
+
+# 34. FINAL DELIVERABLE
+
+Build the complete BLASTERR ADMIN application inside a separate admin project.
+
+The finished system should include:
+
+* Secure admin login
+* Dashboard
+* User management
+* User profiles
+* Blast management
+* Comment management
+* Reports
+* Moderation queue
+* Appeals
+* Trending controls
+* Announcements
+* Notifications
+* Feature flags
+* Blocked words
+* Analytics
+* Revenue management
+* Admin management
+* Roles & permissions
+* Audit logs
+* System health
+* Platform settings
+* Maintenance mode
+* Secure API architecture
+
+Most importantly:
+
+**BLASTERR ADMIN must function as the control center for the existing BLASTERR platform.**
+
+When an authorized admin takes an action in BLASTERR ADMIN, that action should affect the actual BLASTERR platform data and behavior.
+
+Build this as production-ready architecture, not merely a visual prototype.
