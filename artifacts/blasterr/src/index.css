@@ -243,11 +243,14 @@
 
 .site-stars {
   background-image:
-    radial-gradient(circle at 12px 24px, rgb(229 244 3 / 0.26) 0 1px, transparent 1.4px),
-    radial-gradient(circle at 82px 116px, rgb(255 255 255 / 0.2) 0 0.8px, transparent 1.2px),
-    radial-gradient(circle at 48px 172px, rgb(255 255 255 / 0.14) 0 0.7px, transparent 1.1px);
-  background-size: 149px 149px, 211px 211px, 263px 263px;
-  opacity: 0.42;
+    radial-gradient(circle at 12px 24px, rgb(229 244 3 / 0.32) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 58px 72px, rgb(255 255 255 / 0.24) 0 0.9px, transparent 1.35px),
+    radial-gradient(circle at 102px 18px, rgb(255 255 255 / 0.18) 0 0.8px, transparent 1.2px),
+    radial-gradient(circle at 36px 126px, rgb(229 244 3 / 0.2) 0 0.8px, transparent 1.2px),
+    radial-gradient(circle at 116px 148px, rgb(255 255 255 / 0.2) 0 0.7px, transparent 1.1px),
+    radial-gradient(circle at 172px 88px, rgb(255 255 255 / 0.16) 0 0.7px, transparent 1.1px);
+  background-size: 137px 137px, 173px 173px, 223px 223px, 251px 251px, 307px 307px, 359px 359px;
+  opacity: 0.56;
 }
 
   input[type='search']::-webkit-search-cancel-button { @apply hidden; }

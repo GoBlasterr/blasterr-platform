@@ -28,9 +28,6 @@ export default function Home() {
       <div className="sticky top-0 md:top-0 z-20 glass-panel border-b border-white/10 pt-4 px-4 pb-0">
         <div className="relative flex h-10 items-center justify-center mb-3">
           <h2 className="hidden md:block absolute left-2 font-display font-bold text-2xl text-white">Home</h2>
-          <Link href="/" className="hidden md:flex fixed left-1/2 top-4 z-30 -translate-x-1/2 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
-            <img src="/word-logo.png" alt="BLASTERR" className="h-10 w-auto" />
-          </Link>
         </div>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
           <TabsList className="w-full grid grid-cols-2 bg-transparent p-0 h-auto gap-0 rounded-none border-b border-transparent">

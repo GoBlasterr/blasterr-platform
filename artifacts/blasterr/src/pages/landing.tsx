@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Globe, Zap, Users, Crosshair } from "lucide-react";
+import { Globe, Zap, Users, Crosshair } from "lucide-react";
 import { useGetCurrentUser } from "@workspace/api-client-react";
 
 export default function Landing() {
@@ -17,13 +17,13 @@ export default function Landing() {
 
       {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between p-6 max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
-          <img src="/word-logo.png" alt="BLASTERR" className="h-14 md:h-20 w-auto" />
+        <Link href="/" className="absolute left-1/2 z-10 flex -translate-x-1/2 items-center gap-3 hover:opacity-80 transition-opacity" aria-label="Go to BLASTERR home">
+          <img src="/word-logo.png" alt="BLASTERR" className="h-12 md:h-20 w-auto" />
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-4">
           {isLoading ? null : user ? (
             <Link href="/splash" className="flex items-center">
-              <Button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-full px-6">
+              <Button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-full px-3 md:px-6 text-sm md:text-base">
                 Go to App
               </Button>
             </Link>
@@ -33,7 +33,7 @@ export default function Landing() {
                 Sign In
               </Link>
               <Link href="/sign-up">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 shadow-[0_0_15px_rgba(229,244,3,0.3)]">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-3 md:px-6 text-sm md:text-base shadow-[0_0_15px_rgba(229,244,3,0.3)]">
                   Join Now
                 </Button>
               </Link>
@@ -49,19 +49,19 @@ export default function Landing() {
           <span>The New Social Command Center</span>
         </div>
         
-        <h1 className="font-display text-6xl md:text-8xl font-black text-white leading-[1.1] mb-6 tracking-tight">
+        <h1 className="font-display text-5xl md:text-7xl font-black text-white leading-[1.1] mb-6 tracking-tight">
           Target <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-400">Everything.</span><br />
           Start the Conversation.
         </h1>
         
-        <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mb-12 font-light">
+        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mb-12 font-light">
           A sophisticated digital universe where every person, place, business, product, event, or idea becomes a Target for public discussion.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center max-w-md">
-          <Link href={user ? "/splash" : "/sign-up"} className="w-full">
-            <Button size="lg" className="w-full h-16 rounded-full text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_rgba(229,244,3,0.4)] transition-transform hover:scale-105">
-              Launch Comm Link <ArrowRight className="ml-2 w-6 h-6" />
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href={user ? "/splash" : "/sign-up"}>
+            <Button size="lg" className="h-12 rounded-full px-8 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_rgba(229,244,3,0.4)] transition-transform hover:scale-105">
+              Launch Comm Link
             </Button>
           </Link>
         </div>
