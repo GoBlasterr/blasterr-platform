@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Image as ImageIcon, MapPin, Target as TargetIcon, Search, Loader2 } from "lucide-react";
+import { ArrowLeft, Image as ImageIcon, MapPin, Target as TargetIcon, Search, Loader2, Plus } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce"; // We'll create this
 
 const blastSchema = z.object({
@@ -206,9 +206,26 @@ export default function CreateBlast() {
             
             {/* Target Selection */}
             <div className="space-y-3">
-              <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                <TargetIcon className="w-4 h-4" /> Select Target
-              </label>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <TargetIcon className="w-4 h-4" /> Select Target
+                </label>
+                {!selectedTarget && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setNewTarget((current) => ({ ...current, name: targetQuery.trim() }));
+                      setIsCreatingTarget(true);
+                    }}
+                    className="rounded-full border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Create new target
+                  </Button>
+                )}
+              </div>
               
               {selectedTarget ? (
                 <div className="flex items-center justify-between p-4 rounded-xl border border-primary/50 bg-primary/5">
