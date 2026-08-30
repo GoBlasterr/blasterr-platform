@@ -62,6 +62,7 @@ function Router() {
           <Route path="/" component={() => <Redirect to="/home" />} />
           <Route path="/splash" component={Splash} />
           <Route path="/home" component={Home} />
+          <Route path="/following" component={Home} />
           <Route path="/create" component={CreateBlast} />
           <Route path="/trending" component={Trending} />
           <Route path="/nearby" component={Nearby} />

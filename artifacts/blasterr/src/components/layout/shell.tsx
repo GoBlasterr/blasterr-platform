@@ -9,6 +9,7 @@ import {
   Bookmark, 
   Settings, 
   User,
+  Users,
   LogOut,
   LogIn,
   Film
@@ -35,6 +36,7 @@ export function Shell({ children }: ShellProps) {
     { icon: MapPin, label: "Nearby", href: "/nearby" },
     { icon: Search, label: "Search", href: "/search" },
   ];
+  const followingNavItem = { icon: Users, label: "Pages you follow", href: "/following" };
 
   if (user) {
     navItems.splice(1, 0, { icon: User, label: "Profile", href: `/profile/${user.username}` });
@@ -67,16 +69,30 @@ export function Shell({ children }: ShellProps) {
             <img src="/sidebar-logo.png" alt="BLASTERR" className="relative top-4 h-20 w-auto object-contain object-left" />
           </Link>
 
-          <nav className="flex flex-col gap-2">
+          <nav className="flex flex-col gap-2" aria-label="Main navigation">
             {navItems.map((item) => {
               const isActive = location === item.href;
               return (
                 <Link key={item.href} href={item.href} className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive ? 'bg-primary/10 text-primary neon-border' : 'hover:bg-white/5 text-muted-foreground hover:text-white'}`}>
                   <item.icon className={`w-6 h-6 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : ''}`} />
-                  <span className="font-medium text-lg">{item.label}</span>
+                  <span className="font-medium text-sm">{item.label}</span>
                 </Link>
               );
             })}
+            {user && (
+              <div className="mt-3 border-t border-white/10 pt-3">
+                <p className="px-4 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
+                  Following
+                </p>
+                <Link
+                  href={followingNavItem.href}
+                  className={`flex items-center gap-4 rounded-xl px-4 py-3 transition-all duration-200 group ${location === followingNavItem.href ? 'bg-primary/10 text-primary neon-border' : 'text-muted-foreground hover:bg-white/5 hover:text-white'}`}
+                >
+                  <followingNavItem.icon className={`h-6 w-6 transition-transform group-hover:scale-110 ${location === followingNavItem.href ? 'text-primary' : ''}`} />
+                  <span className="font-medium text-sm">{followingNavItem.label}</span>
+                </Link>
+              </div>
+            )}
           </nav>
         </div>
 
@@ -143,7 +159,7 @@ export function Shell({ children }: ShellProps) {
 
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-white/10 z-50 px-6 py-3 flex justify-between items-center safe-area-bottom">
-        {navItems.slice(0, 5).map((item) => (
+        {(user ? [navItems[0], navItems[1], followingNavItem, ...navItems.slice(2)] : navItems).slice(0, 5).map((item) => (
           <Link key={item.href} href={item.href} className={`flex flex-col items-center p-2 rounded-lg ${location === item.href ? 'text-primary' : 'text-muted-foreground'}`}>
             <item.icon className="w-6 h-6" />
           </Link>

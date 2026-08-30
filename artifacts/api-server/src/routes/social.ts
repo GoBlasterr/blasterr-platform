@@ -55,6 +55,7 @@ import {
   recordAudit,
 } from "../lib/admin-state";
 import { isActiveAdmin } from "../lib/admin-auth";
+import { findTargetMatches } from "../lib/target-resolution";
 
 const router: IRouter = Router();
 
@@ -453,6 +454,9 @@ const isFeatureEnabled = (key: string): boolean =>
 const visibleBlasts = (): Blast[] =>
   blasts.filter((blast) => (adminContentStatuses.get(blast.id) ?? "published") === "published");
 
+const followingBlasts = (): Blast[] =>
+  visibleBlasts().filter((blast) => blast.author.isFollowing === true);
+
 function distanceInMiles(
   latitudeA: number,
   longitudeA: number,
@@ -602,7 +606,11 @@ router.get("/feed", (req, res): void => {
     return;
   }
 
-  res.json(GetFeedResponse.parse({ items: visibleBlasts(), page, hasMore: false }));
+  res.json(GetFeedResponse.parse({
+    items: tab === "following" ? followingBlasts() : visibleBlasts(),
+    page,
+    hasMore: false,
+  }));
 });
 
 router.get("/trending", (_req, res): void => {
@@ -616,10 +624,16 @@ router.get("/search", (req, res): void => {
     return;
   }
   const q = parsed.data.q.toLowerCase();
+  const targetMatches = findTargetMatches(targets, { name: parsed.data.q });
   res.json(SearchResponse.parse({
     people: users.filter((user) => `${user.username} ${user.displayName} ${user.bio}`.toLowerCase().includes(q)),
-    blasts: visibleBlasts().filter((blast) => blast.content.toLowerCase().includes(q)),
-    targets: targets.filter((target) => `${target.name} ${target.description} ${target.location}`.toLowerCase().includes(q)),
+    blasts: followingBlasts().filter((blast) => blast.content.toLowerCase().includes(q)),
+    targets: targetMatches.map((match) => ({
+      ...match.target,
+      matchKind: match.matchKind,
+      matchScore: match.matchScore,
+      matchReason: match.matchReason,
+    })),
   }));
 });
 
@@ -629,12 +643,24 @@ router.get("/targets", (req, res): void => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const q = parsed.data.q?.toLowerCase();
-  const result = targets.filter((target) =>
-    (!q || `${target.name} ${target.description}`.toLowerCase().includes(q)) &&
-    (!parsed.data.type || target.type === parsed.data.type),
-  );
-  res.json(ListTargetsResponse.parse(result));
+  const typedTargets = parsed.data.type
+    ? targets.filter((target) => target.type === parsed.data.type)
+    : targets;
+  if (!parsed.data.q?.trim()) {
+    res.json(ListTargetsResponse.parse(typedTargets));
+    return;
+  }
+
+  const matches = findTargetMatches(typedTargets, {
+    name: parsed.data.q,
+    type: parsed.data.type,
+  });
+  res.json(ListTargetsResponse.parse(matches.map((match) => ({
+    ...match.target,
+    matchKind: match.matchKind,
+    matchScore: match.matchScore,
+    matchReason: match.matchReason,
+  }))));
 });
 
 router.post("/targets", (req, res): void => {
@@ -648,7 +674,41 @@ router.post("/targets", (req, res): void => {
     return;
   }
 
-  const baseSlug = parsed.data.name
+  const targetName = parsed.data.name.trim();
+  const targetLocation = parsed.data.location.trim();
+  if ((parsed.data.type === "business" || parsed.data.type === "place") && !targetLocation) {
+    res.status(400).json({ error: "A city or location is required for businesses and places." });
+    return;
+  }
+
+  const duplicateMatches = findTargetMatches(targets, {
+    name: targetName,
+    type: parsed.data.type,
+    location: targetLocation,
+  }).filter((match) =>
+    match.isHardDuplicate ||
+    match.matchKind === "same-name-different-location" ||
+    match.matchScore >= 0.76
+  );
+  const hasHardDuplicate = duplicateMatches.some((match) => match.isHardDuplicate);
+  if (duplicateMatches.length && (hasHardDuplicate || !parsed.data.confirmDistinct)) {
+    res.status(409).json({
+      error: "target_resolution_required",
+      message: hasHardDuplicate
+        ? "This Target already appears to exist. Select the existing Target to continue."
+        : "Possible existing Targets were found. Choose one or confirm this is a different entity.",
+      canCreateNew: !hasHardDuplicate,
+      candidates: duplicateMatches.map((match) => ({
+        ...match.target,
+        matchKind: match.matchKind,
+        matchScore: match.matchScore,
+        matchReason: match.matchReason,
+      })),
+    });
+    return;
+  }
+
+  const baseSlug = targetName
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
@@ -656,10 +716,10 @@ router.post("/targets", (req, res): void => {
   const slug = `${baseSlug}-${randomUUID().slice(0, 8)}`;
   const target = {
     id: `target-${randomUUID()}`,
-    name: parsed.data.name.trim(),
+    name: targetName,
     slug,
     type: parsed.data.type,
-    location: parsed.data.location.trim(),
+    location: targetLocation,
     blastCount: 0,
     imageUrl: parsed.data.imageUrl?.trim() ?? "",
     description: parsed.data.description.trim(),

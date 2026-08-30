@@ -74,6 +74,16 @@ export const TargetType = {
   other: 'other',
 } as const;
 
+export type TargetMatchKind = typeof TargetMatchKind[keyof typeof TargetMatchKind];
+
+
+export const TargetMatchKind = {
+  exact: 'exact',
+  alias: 'alias',
+  likely: 'likely',
+  'same-name-different-location': 'same-name-different-location',
+} as const;
+
 export interface Target {
   id: string;
   name: string;
@@ -83,6 +93,13 @@ export interface Target {
   blastCount: number;
   imageUrl: string;
   description: string;
+  matchKind?: TargetMatchKind;
+  /**
+     * @minimum 0
+     * @maximum 1
+     */
+  matchScore?: number;
+  matchReason?: string;
 }
 
 /**
@@ -173,6 +190,22 @@ export interface TargetInput {
   description: string;
   /** @maxLength 500 */
   imageUrl?: string;
+  /** Confirm that ambiguous candidates represent a different entity; definitive duplicates remain blocked. */
+  confirmDistinct?: boolean;
+}
+
+export type TargetConflictError = typeof TargetConflictError[keyof typeof TargetConflictError];
+
+
+export const TargetConflictError = {
+  target_resolution_required: 'target_resolution_required',
+} as const;
+
+export interface TargetConflict {
+  error: TargetConflictError;
+  message: string;
+  canCreateNew: boolean;
+  candidates: Target[];
 }
 
 export interface FeedResponse {
@@ -1434,3 +1467,4 @@ export type GetAdPlacement200 = {
 export type RecordAdEvent201 = {
   recorded: boolean;
 };
+

@@ -156,6 +156,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Target"
+        "409":
+          description: Target resolution required before creating a possible duplicate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetConflict"
   /targets/{slug}:
     get:
       operationId: getTarget
@@ -1147,6 +1153,11 @@ components:
         blastCount: { type: number }
         imageUrl: { type: string }
         description: { type: string }
+        matchKind:
+          type: string
+          enum: [exact, alias, likely, same-name-different-location]
+        matchScore: { type: number, minimum: 0, maximum: 1 }
+        matchReason: { type: string }
     TargetInput:
       type: object
       required: [name, type, location, description]
@@ -1158,6 +1169,22 @@ components:
         location: { type: string, maxLength: 120 }
         description: { type: string, maxLength: 500 }
         imageUrl: { type: string, maxLength: 500 }
+        confirmDistinct:
+          type: boolean
+          default: false
+          description: Confirm that ambiguous candidates represent a different entity; definitive duplicates remain blocked.
+    TargetConflict:
+      type: object
+      required: [error, message, canCreateNew, candidates]
+      properties:
+        error:
+          type: string
+          enum: [target_resolution_required]
+        message: { type: string }
+        canCreateNew: { type: boolean }
+        candidates:
+          type: array
+          items: { $ref: "#/components/schemas/Target" }
     Blast:
       type: object
       required: [id, content, createdAt, author, target, location, mediaUrl, reactions, commentCount, shareCount, viewCount, isBookmarked]

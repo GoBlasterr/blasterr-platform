@@ -117,6 +117,11 @@ export const GetFeedQueryParams = zod.object({
   "radius": zod.coerce.number().min(1).max(getFeedQueryRadiusMax).default(getFeedQueryRadiusDefault)
 })
 
+export const getFeedResponseItemsItemTargetMatchScoreMin = 0;
+export const getFeedResponseItemsItemTargetMatchScoreMax = 1;
+
+
+
 export const GetFeedResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -146,7 +151,10 @@ export const GetFeedResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getFeedResponseItemsItemTargetMatchScoreMin).max(getFeedResponseItemsItemTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -176,6 +184,14 @@ export const GetFeedResponse = zod.object({
 /**
  * @summary Get trending Blasts and Targets
  */
+export const getTrendingResponseBlastsItemTargetMatchScoreMin = 0;
+export const getTrendingResponseBlastsItemTargetMatchScoreMax = 1;
+
+export const getTrendingResponseTargetsItemMatchScoreMin = 0;
+export const getTrendingResponseTargetsItemMatchScoreMax = 1;
+
+
+
 export const GetTrendingResponse = zod.object({
   "blasts": zod.array(zod.object({
   "id": zod.string(),
@@ -205,7 +221,10 @@ export const GetTrendingResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getTrendingResponseBlastsItemTargetMatchScoreMin).max(getTrendingResponseBlastsItemTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -233,7 +252,10 @@ export const GetTrendingResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getTrendingResponseTargetsItemMatchScoreMin).max(getTrendingResponseTargetsItemMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }))
 })
 
@@ -248,6 +270,14 @@ export const SearchQueryParams = zod.object({
   "q": zod.coerce.string().min(1),
   "type": zod.enum(['all', 'people', 'blasts', 'targets']).default(searchQueryTypeDefault)
 })
+
+export const searchResponseBlastsItemTargetMatchScoreMin = 0;
+export const searchResponseBlastsItemTargetMatchScoreMax = 1;
+
+export const searchResponseTargetsItemMatchScoreMin = 0;
+export const searchResponseTargetsItemMatchScoreMax = 1;
+
+
 
 export const SearchResponse = zod.object({
   "people": zod.array(zod.object({
@@ -294,7 +324,10 @@ export const SearchResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(searchResponseBlastsItemTargetMatchScoreMin).max(searchResponseBlastsItemTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -322,7 +355,10 @@ export const SearchResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(searchResponseTargetsItemMatchScoreMin).max(searchResponseTargetsItemMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }))
 })
 
@@ -335,6 +371,11 @@ export const ListTargetsQueryParams = zod.object({
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']).optional()
 })
 
+export const listTargetsResponseMatchScoreMin = 0;
+export const listTargetsResponseMatchScoreMax = 1;
+
+
+
 export const ListTargetsResponseItem = zod.object({
   "id": zod.string(),
   "name": zod.string(),
@@ -343,7 +384,10 @@ export const ListTargetsResponseItem = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(listTargetsResponseMatchScoreMin).max(listTargetsResponseMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 })
 export const ListTargetsResponse = zod.array(ListTargetsResponseItem)
 
@@ -359,15 +403,21 @@ export const createTargetBodyDescriptionMax = 500;
 
 export const createTargetBodyImageUrlMax = 500;
 
-
+export const createTargetBodyConfirmDistinctDefault = false;
 
 export const CreateTargetBody = zod.object({
   "name": zod.string().min(1).max(createTargetBodyNameMax),
   "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
   "location": zod.string().max(createTargetBodyLocationMax),
   "description": zod.string().max(createTargetBodyDescriptionMax),
-  "imageUrl": zod.string().max(createTargetBodyImageUrlMax).optional()
+  "imageUrl": zod.string().max(createTargetBodyImageUrlMax).optional(),
+  "confirmDistinct": zod.boolean().default(createTargetBodyConfirmDistinctDefault).describe('Confirm that ambiguous candidates represent a different entity; definitive duplicates remain blocked.')
 })
+
+export const createTargetResponseMatchScoreMin = 0;
+export const createTargetResponseMatchScoreMax = 1;
+
+
 
 export const CreateTargetResponse = zod.object({
   "id": zod.string(),
@@ -377,7 +427,10 @@ export const CreateTargetResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(createTargetResponseMatchScoreMin).max(createTargetResponseMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 })
 
 
@@ -388,6 +441,14 @@ export const GetTargetParams = zod.object({
   "slug": zod.coerce.string()
 })
 
+export const getTargetResponseTargetMatchScoreMin = 0;
+export const getTargetResponseTargetMatchScoreMax = 1;
+
+export const getTargetResponseBlastsItemTargetMatchScoreMin = 0;
+export const getTargetResponseBlastsItemTargetMatchScoreMax = 1;
+
+
+
 export const GetTargetResponse = zod.object({
   "target": zod.object({
   "id": zod.string(),
@@ -397,7 +458,10 @@ export const GetTargetResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getTargetResponseTargetMatchScoreMin).max(getTargetResponseTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "blasts": zod.array(zod.object({
   "id": zod.string(),
@@ -427,7 +491,10 @@ export const GetTargetResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getTargetResponseBlastsItemTargetMatchScoreMin).max(getTargetResponseBlastsItemTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -462,6 +529,14 @@ export const GetTargetResponse = zod.object({
 export const GetUserProfileParams = zod.object({
   "username": zod.coerce.string()
 })
+
+export const getUserProfileResponseTwoBlastsItemTargetMatchScoreMin = 0;
+export const getUserProfileResponseTwoBlastsItemTargetMatchScoreMax = 1;
+
+export const getUserProfileResponseTwoMediaItemTargetMatchScoreMin = 0;
+export const getUserProfileResponseTwoMediaItemTargetMatchScoreMax = 1;
+
+
 
 export const GetUserProfileResponse = zod.object({
   "id": zod.string(),
@@ -508,7 +583,10 @@ export const GetUserProfileResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getUserProfileResponseTwoBlastsItemTargetMatchScoreMin).max(getUserProfileResponseTwoBlastsItemTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -556,7 +634,10 @@ export const GetUserProfileResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getUserProfileResponseTwoMediaItemTargetMatchScoreMin).max(getUserProfileResponseTwoMediaItemTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -607,6 +688,11 @@ export const CreateBlastBody = zod.object({
   "mediaType": zod.enum(['image', 'video']).optional()
 })
 
+export const createBlastResponseTargetMatchScoreMin = 0;
+export const createBlastResponseTargetMatchScoreMax = 1;
+
+
+
 export const CreateBlastResponse = zod.object({
   "id": zod.string(),
   "content": zod.string(),
@@ -635,7 +721,10 @@ export const CreateBlastResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(createBlastResponseTargetMatchScoreMin).max(createBlastResponseTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -673,6 +762,11 @@ export const UpdateBlastBody = zod.object({
   "location": zod.string().optional()
 })
 
+export const updateBlastResponseTargetMatchScoreMin = 0;
+export const updateBlastResponseTargetMatchScoreMax = 1;
+
+
+
 export const UpdateBlastResponse = zod.object({
   "id": zod.string(),
   "content": zod.string(),
@@ -701,7 +795,10 @@ export const UpdateBlastResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(updateBlastResponseTargetMatchScoreMin).max(updateBlastResponseTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -741,6 +838,11 @@ export const getMyClipsQueryStatusDefault = `all`;
 export const GetMyClipsQueryParams = zod.object({
   "status": zod.enum(['all', 'DRAFT', 'QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'SHARED']).default(getMyClipsQueryStatusDefault)
 })
+
+export const getMyClipsResponseBlastTargetMatchScoreMin = 0;
+export const getMyClipsResponseBlastTargetMatchScoreMax = 1;
+
+
 
 export const GetMyClipsResponseItem = zod.object({
   "id": zod.string(),
@@ -785,7 +887,10 @@ export const GetMyClipsResponseItem = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getMyClipsResponseBlastTargetMatchScoreMin).max(getMyClipsResponseBlastTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -860,6 +965,11 @@ export const CreateClipBody = zod.object({
   "ctaText": zod.string().max(createClipBodyCtaTextMax).optional()
 })
 
+export const createClipResponseBlastTargetMatchScoreMin = 0;
+export const createClipResponseBlastTargetMatchScoreMax = 1;
+
+
+
 export const CreateClipResponse = zod.object({
   "id": zod.string(),
   "blastId": zod.string(),
@@ -903,7 +1013,10 @@ export const CreateClipResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(createClipResponseBlastTargetMatchScoreMin).max(createClipResponseBlastTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -957,6 +1070,11 @@ export const GetClipParams = zod.object({
   "id": zod.coerce.string()
 })
 
+export const getClipResponseBlastTargetMatchScoreMin = 0;
+export const getClipResponseBlastTargetMatchScoreMax = 1;
+
+
+
 export const GetClipResponse = zod.object({
   "id": zod.string(),
   "blastId": zod.string(),
@@ -1000,7 +1118,10 @@ export const GetClipResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getClipResponseBlastTargetMatchScoreMin).max(getClipResponseBlastTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -1074,6 +1195,11 @@ export const UpdateClipBody = zod.object({
   "ctaText": zod.string().max(updateClipBodyCtaTextMax).optional()
 })
 
+export const updateClipResponseBlastTargetMatchScoreMin = 0;
+export const updateClipResponseBlastTargetMatchScoreMax = 1;
+
+
+
 export const UpdateClipResponse = zod.object({
   "id": zod.string(),
   "blastId": zod.string(),
@@ -1117,7 +1243,10 @@ export const UpdateClipResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(updateClipResponseBlastTargetMatchScoreMin).max(updateClipResponseBlastTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -1181,6 +1310,11 @@ export const RetryClipParams = zod.object({
   "id": zod.coerce.string()
 })
 
+export const retryClipResponseBlastTargetMatchScoreMin = 0;
+export const retryClipResponseBlastTargetMatchScoreMax = 1;
+
+
+
 export const RetryClipResponse = zod.object({
   "id": zod.string(),
   "blastId": zod.string(),
@@ -1224,7 +1358,10 @@ export const RetryClipResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(retryClipResponseBlastTargetMatchScoreMin).max(retryClipResponseBlastTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -1364,6 +1501,11 @@ export const CreateBlastBackBody = zod.object({
   "mediaType": zod.enum(['image', 'video']).optional()
 })
 
+export const createBlastBackResponseTargetMatchScoreMin = 0;
+export const createBlastBackResponseTargetMatchScoreMax = 1;
+
+
+
 export const CreateBlastBackResponse = zod.object({
   "id": zod.string(),
   "content": zod.string(),
@@ -1392,7 +1534,10 @@ export const CreateBlastBackResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(createBlastBackResponseTargetMatchScoreMin).max(createBlastBackResponseTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -1458,6 +1603,11 @@ export const GetNotificationsResponse = zod.array(GetNotificationsResponseItem)
 /**
  * @summary Get saved Blasts
  */
+export const getBookmarksResponseTargetMatchScoreMin = 0;
+export const getBookmarksResponseTargetMatchScoreMax = 1;
+
+
+
 export const GetBookmarksResponseItem = zod.object({
   "id": zod.string(),
   "content": zod.string(),
@@ -1486,7 +1636,10 @@ export const GetBookmarksResponseItem = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getBookmarksResponseTargetMatchScoreMin).max(getBookmarksResponseTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -1562,6 +1715,11 @@ export const GetAdminOverviewResponse = zod.object({
 /**
  * @summary Get the protected BLASTR Media Center overview
  */
+export const getAdminClipsResponseClipsItemBlastTargetMatchScoreMin = 0;
+export const getAdminClipsResponseClipsItemBlastTargetMatchScoreMax = 1;
+
+
+
 export const GetAdminClipsResponse = zod.object({
   "clipCount": zod.number(),
   "completedCount": zod.number(),
@@ -1610,7 +1768,10 @@ export const GetAdminClipsResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getAdminClipsResponseClipsItemBlastTargetMatchScoreMin).max(getAdminClipsResponseClipsItemBlastTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -1741,6 +1902,11 @@ export const GetAdminContentQueryParams = zod.object({
   "status": zod.enum(['all', 'published', 'hidden', 'removed']).optional()
 })
 
+export const getAdminContentResponseItemsItemOneTargetMatchScoreMin = 0;
+export const getAdminContentResponseItemsItemOneTargetMatchScoreMax = 1;
+
+
+
 export const GetAdminContentResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -1770,7 +1936,10 @@ export const GetAdminContentResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(getAdminContentResponseItemsItemOneTargetMatchScoreMin).max(getAdminContentResponseItemsItemOneTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -1808,6 +1977,11 @@ export const UpdateAdminContentBody = zod.object({
   "status": zod.enum(['published', 'hidden', 'removed'])
 })
 
+export const updateAdminContentResponseOneTargetMatchScoreMin = 0;
+export const updateAdminContentResponseOneTargetMatchScoreMax = 1;
+
+
+
 export const UpdateAdminContentResponse = zod.object({
   "id": zod.string(),
   "content": zod.string(),
@@ -1836,7 +2010,10 @@ export const UpdateAdminContentResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(updateAdminContentResponseOneTargetMatchScoreMin).max(updateAdminContentResponseOneTargetMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
 }),
   "location": zod.string(),
   "mediaUrl": zod.string(),
@@ -2623,4 +2800,5 @@ export const RecordAdEventBody = zod.object({
 export const RecordAdEventResponse = zod.object({
   "recorded": zod.boolean()
 })
+
 

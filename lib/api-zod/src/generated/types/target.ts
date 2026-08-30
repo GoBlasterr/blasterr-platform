@@ -5,6 +5,7 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { TargetMatchKind } from './targetMatchKind';
 import type { TargetType } from './targetType';
 
 export interface Target {
@@ -16,4 +17,11 @@ export interface Target {
   blastCount: number;
   imageUrl: string;
   description: string;
+  matchKind?: TargetMatchKind;
+  /**
+     * @minimum 0
+     * @maximum 1
+     */
+  matchScore?: number;
+  matchReason?: string;
 }

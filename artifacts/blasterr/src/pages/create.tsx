@@ -12,7 +12,7 @@ import {
   getGetTargetQueryKey,
   getSearchQueryKey,
 } from "@workspace/api-client-react";
-import type { Target } from "@workspace/api-client-react";
+import type { Target, TargetConflict } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
@@ -163,6 +163,7 @@ export default function CreateBlast() {
   
   const [selectedTarget, setSelectedTarget] = useState<Target | null>(null);
   const [isCreatingTarget, setIsCreatingTarget] = useState(false);
+  const [targetConflict, setTargetConflict] = useState<TargetConflict | null>(null);
   const [newTarget, setNewTarget] = useState<NewTarget>({
     name: "",
     type: "other",
@@ -203,7 +204,7 @@ export default function CreateBlast() {
     setStage(3);
   };
 
-  const handleCreateTarget = () => {
+  const handleCreateTarget = (confirmDistinct = false) => {
     if (isTargetLocked) return;
     createTargetMutation.mutate(
       {
@@ -212,18 +213,28 @@ export default function CreateBlast() {
           name: newTarget.name.trim(),
           location: newTarget.location.trim(),
           description: newTarget.description.trim(),
+          confirmDistinct,
         },
       },
       {
         onSuccess: (target) => {
           handleTargetSelect(target);
+          setTargetConflict(null);
           setTargetQuery("");
           setIsCreatingTarget(false);
           setNewTarget({ name: "", type: "other", location: "", description: "", imageUrl: "" });
           setTargetImagePreview("");
           toast({ title: "Target locked on." });
         },
-        onError: () => {
+        onError: (error) => {
+          if (error.status === 409 && error.data?.error === "target_resolution_required") {
+            setTargetConflict(error.data);
+            toast({
+              title: error.data.canCreateNew ? "Possible Targets found" : "Target already exists",
+              description: error.data.message,
+            });
+            return;
+          }
           toast({ title: "Could not create Target", variant: "destructive" });
         },
       }
@@ -407,6 +418,12 @@ export default function CreateBlast() {
   };
 
   const activeMode = BLAST_MODES.find(m => m.id === blastMode);
+  const targetLocationRequired = newTarget.type === "business" || newTarget.type === "place";
+  const canSubmitNewTarget = Boolean(
+    newTarget.name.trim() &&
+    (!targetLocationRequired || newTarget.location.trim()) &&
+    !createTargetMutation.isPending
+  );
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-background relative z-10">
@@ -517,33 +534,59 @@ export default function CreateBlast() {
                           </Button>
                         </div>
                       ) : searchResults?.targets?.length ? (
-                        <div className="divide-y divide-white/5 max-h-[300px] overflow-y-auto">
-                          {searchResults.targets.map((t) => (
-                            <button
-                              key={t.id}
+                        <div className="flex max-h-[360px] flex-col">
+                          <div className="divide-y divide-white/5 overflow-y-auto">
+                            {searchResults.targets.map((t) => (
+                              <button
+                                key={t.id}
+                                type="button"
+                                onClick={() => handleTargetSelect(t)}
+                                className="w-full p-4 hover:bg-white/5 flex items-center justify-between group transition-all text-left"
+                              >
+                                <div className="flex min-w-0 items-center gap-4">
+                                  <div className="w-12 h-12 shrink-0 rounded-xl bg-black/40 flex items-center justify-center overflow-hidden border border-white/5 group-hover:border-primary/30 shadow-inner">
+                                    {t.imageUrl ? <img src={t.imageUrl} alt="" className="w-full h-full object-cover" /> : <TargetIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <p className="font-bold text-white text-lg group-hover:text-primary transition-colors leading-tight">{t.name}</p>
+                                      {t.matchKind && (
+                                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
+                                          {t.matchKind === "same-name-different-location" ? "Different location" : `${t.matchKind} match`}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                                      <span className="uppercase tracking-wider font-bold text-[10px] text-primary/70">{t.type}</span>
+                                      {t.location && <span className="opacity-50 text-white truncate max-w-[180px]">• {t.location}</span>}
+                                    </p>
+                                    {t.matchReason && <p className="mt-1 text-[11px] text-primary/80">{t.matchReason}</p>}
+                                </div>
+                                </div>
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity pr-2">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_10px_rgba(229,244,3,0.2)]">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                          <div className="border-t border-white/10 bg-black/30 p-3">
+                            <Button
                               type="button"
-                              onClick={() => handleTargetSelect(t)}
-                              className="w-full p-4 hover:bg-white/5 flex items-center justify-between group transition-all text-left"
+                              variant="ghost"
+                              onClick={() => {
+                                setTargetConflict(null);
+                                setNewTarget((current) => ({ ...current, name: targetQuery.trim() }));
+                                setIsCreatingTarget(true);
+                              }}
+                              className="w-full rounded-xl text-sm text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                              data-testid="button-target-none-match"
                             >
-                              <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-black/40 flex items-center justify-center overflow-hidden border border-white/5 group-hover:border-primary/30 shadow-inner">
-                                  {t.imageUrl ? <img src={t.imageUrl} alt="" className="w-full h-full object-cover" /> : <TargetIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />}
-                                </div>
-                                <div>
-                                  <p className="font-bold text-white text-lg group-hover:text-primary transition-colors leading-tight">{t.name}</p>
-                                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                                    <span className="uppercase tracking-wider font-bold text-[10px] text-primary/70">{t.type}</span>
-                                    {t.location && <span className="opacity-50 text-white truncate max-w-[120px]">• {t.location}</span>}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity pr-2">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_10px_rgba(229,244,3,0.2)]">
-                                  <CheckCircle2 className="w-4 h-4" />
-                                </div>
-                              </div>
-                            </button>
-                          ))}
+                              <Plus className="mr-2 h-4 w-4" />
+                              None of these — initialize a new Target
+                            </Button>
+                          </div>
                         </div>
                       ) : debouncedQuery.length > 2 ? (
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in-95 duration-300">
@@ -588,7 +631,10 @@ export default function CreateBlast() {
                         variant="ghost"
                         size="icon"
                         aria-label="Cancel new Target"
-                        onClick={() => setIsCreatingTarget(false)}
+                          onClick={() => {
+                            setTargetConflict(null);
+                            setIsCreatingTarget(false);
+                          }}
                         className="rounded-full text-muted-foreground hover:text-white hover:bg-white/10"
                       >
                         <X className="w-5 h-5" />
@@ -664,7 +710,10 @@ export default function CreateBlast() {
                           id="new-target-name"
                           autoFocus
                           value={newTarget.name}
-                          onChange={(e) => setNewTarget({ ...newTarget, name: e.target.value })}
+                          onChange={(e) => {
+                            setTargetConflict(null);
+                            setNewTarget({ ...newTarget, name: e.target.value });
+                          }}
                           placeholder="Enter target name"
                           className="bg-black/50 h-14 rounded-xl border-white/10 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/20 text-lg shadow-inner"
                         />
@@ -677,7 +726,10 @@ export default function CreateBlast() {
                             <select
                               id="new-target-type"
                               value={newTarget.type}
-                              onChange={(e) => setNewTarget({ ...newTarget, type: e.target.value as any })}
+                              onChange={(e) => {
+                                setTargetConflict(null);
+                                setNewTarget({ ...newTarget, type: e.target.value as NewTarget["type"] });
+                              }}
                               className="w-full h-14 rounded-xl border border-white/10 bg-black/50 px-4 text-white outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 appearance-none shadow-inner cursor-pointer"
                             >
                               {targetTypeOptions.map((option) => (
@@ -690,12 +742,17 @@ export default function CreateBlast() {
                           </div>
                         </div>
                         <div>
-                          <label htmlFor="new-target-location" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 block">Sector / Location</label>
+                           <label htmlFor="new-target-location" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 block">
+                             Sector / Location {targetLocationRequired && <span className="text-primary">Required</span>}
+                           </label>
                           <Input
                             id="new-target-location"
                             value={newTarget.location}
-                            onChange={(e) => setNewTarget({ ...newTarget, location: e.target.value })}
-                            placeholder="Where are they based?"
+                             onChange={(e) => {
+                               setTargetConflict(null);
+                               setNewTarget({ ...newTarget, location: e.target.value });
+                             }}
+                             placeholder={targetLocationRequired ? "City and state or country" : "Where are they based?"}
                             className="bg-black/50 h-14 rounded-xl border-white/10 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/20 shadow-inner"
                           />
                         </div>
@@ -711,16 +768,78 @@ export default function CreateBlast() {
                           className="min-h-[100px] resize-none bg-black/50 rounded-xl border-white/10 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/20 p-4 shadow-inner"
                         />
                       </div>
+
+                      {targetConflict && (
+                        <div className="space-y-3 rounded-2xl border border-primary/30 bg-primary/5 p-4" data-testid="target-resolution-panel">
+                          <div>
+                            <p className="font-display text-lg font-bold text-white">
+                              {targetConflict.canCreateNew ? "Are any of these the same Target?" : "This Target is already registered"}
+                            </p>
+                            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{targetConflict.message}</p>
+                          </div>
+                          <div className="space-y-2">
+                            {targetConflict.candidates.map((candidate) => (
+                              <button
+                                key={candidate.id}
+                                type="button"
+                                onClick={() => {
+                                  setTargetConflict(null);
+                                  setIsCreatingTarget(false);
+                                  handleTargetSelect(candidate);
+                                }}
+                                className="flex w-full items-start gap-3 rounded-xl border border-white/10 bg-black/40 p-3 text-left transition-colors hover:border-primary/50 hover:bg-primary/10"
+                                data-testid={`target-candidate-${candidate.id}`}
+                              >
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/40">
+                                  {candidate.imageUrl ? (
+                                    <img src={candidate.imageUrl} alt="" className="h-full w-full object-cover" />
+                                  ) : (
+                                    <TargetIcon className="h-5 w-5 text-primary" />
+                                  )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="font-bold text-white">{candidate.name}</span>
+                                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                                      {candidate.type}
+                                    </span>
+                                  </div>
+                                  <p className="mt-1 text-xs text-white/70">{candidate.location || "Location not listed"}</p>
+                                  {candidate.description && (
+                                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{candidate.description}</p>
+                                  )}
+                                  {candidate.matchReason && (
+                                    <p className="mt-2 text-xs font-medium text-primary">{candidate.matchReason}</p>
+                                  )}
+                                </div>
+                                <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-primary" />
+                              </button>
+                            ))}
+                          </div>
+                          {targetConflict.canCreateNew && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={!canSubmitNewTarget}
+                              onClick={() => handleCreateTarget(true)}
+                              className="h-auto w-full rounded-xl border-white/15 py-3 text-white hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
+                              data-testid="button-confirm-distinct-target"
+                            >
+                              None of these — create this distinct Target
+                            </Button>
+                          )}
+                        </div>
+                      )}
                       
                       <div className="flex justify-end pt-4 mt-2 border-t border-white/5">
                         <Button
                           type="button"
-                          disabled={!newTarget.name.trim() || createTargetMutation.isPending}
-                          onClick={handleCreateTarget}
+                          disabled={!canSubmitNewTarget}
+                          onClick={() => handleCreateTarget(false)}
                           className="h-14 px-8 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 shadow-[0_0_20px_rgba(229,244,3,0.2)] disabled:shadow-none text-lg transition-all w-full sm:w-auto"
                         >
                           {createTargetMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <TargetIcon className="w-5 h-5 mr-2" />}
-                          {createTargetMutation.isPending ? "Locking On..." : "Confirm Lock"}
+                          {createTargetMutation.isPending ? "Checking Targets..." : "Check & Confirm Lock"}
                         </Button>
                       </div>
                     </div>

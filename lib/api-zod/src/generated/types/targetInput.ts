@@ -20,4 +20,6 @@ export interface TargetInput {
   description: string;
   /** @maxLength 500 */
   imageUrl?: string;
+  /** Confirm that ambiguous candidates represent a different entity; definitive duplicates remain blocked. */
+  confirmDistinct?: boolean;
 }

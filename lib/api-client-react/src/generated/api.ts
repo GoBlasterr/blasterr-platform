@@ -100,6 +100,7 @@ import type {
   ShareLink,
   StatusUpdate,
   Target,
+  TargetConflict,
   TargetDetail,
   TargetInput,
   TrendingResponse,
@@ -713,7 +714,7 @@ export const createTarget = async (targetInput: TargetInput, options?: Parameter
 
 
 
-export const getCreateTargetMutationOptions = <TError = ErrorType<unknown>,
+export const getCreateTargetMutationOptions = <TError = ErrorType<TargetConflict>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTarget>>, TError,{data: BodyType<TargetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createTarget>>, TError,{data: BodyType<TargetInput>}, TContext> => {
 
@@ -742,12 +743,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateTargetMutationResult = NonNullable<Awaited<ReturnType<typeof createTarget>>>
     export type CreateTargetMutationBody = BodyType<TargetInput>
-    export type CreateTargetMutationError = ErrorType<unknown>
+    export type CreateTargetMutationError = ErrorType<TargetConflict>
 
     /**
  * @summary Create a new Target
  */
-export const useCreateTarget = <TError = ErrorType<unknown>,
+export const useCreateTarget = <TError = ErrorType<TargetConflict>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTarget>>, TError,{data: BodyType<TargetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof createTarget>>,

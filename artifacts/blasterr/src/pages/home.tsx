@@ -1,4 +1,4 @@
-import { useState, Fragment, useRef } from "react";
+import { useState, Fragment, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   useGetFeed,
@@ -13,8 +13,17 @@ import { ArrowLeft, Home as HomeIcon, PenSquare } from "lucide-react";
 
 export default function Home() {
   const [location, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
+  const requestedTab = location === "/following"
+    ? "following"
+    : new URLSearchParams(window.location.search).get("tab");
+  const [activeTab, setActiveTab] = useState<"for-you" | "following">(
+    requestedTab === "following" ? "following" : "for-you",
+  );
   const isStandaloneFeed = location === "/";
+
+  useEffect(() => {
+    setActiveTab(requestedTab === "following" ? "following" : "for-you");
+  }, [location, requestedTab]);
 
   const adIndexRef = useRef<Record<string, number>>({});
 
@@ -74,7 +83,15 @@ export default function Home() {
             </h2>
           </div>
         </div>
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => {
+            const nextTab = v as "for-you" | "following";
+            setActiveTab(nextTab);
+            setLocation(nextTab === "following" ? "/following" : "/home");
+          }}
+          className="w-full"
+        >
           <TabsList className="w-full grid grid-cols-2 bg-transparent p-0 h-auto gap-0 rounded-none border-b border-transparent">
             <TabsTrigger 
               value="for-you" 
