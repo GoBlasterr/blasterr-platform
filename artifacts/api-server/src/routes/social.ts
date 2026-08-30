@@ -48,6 +48,60 @@ import {
 
 const router: IRouter = Router();
 
+const stateAbbreviations: Record<string, string> = {
+  alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA",
+  colorado: "CO", connecticut: "CT", delaware: "DE", florida: "FL", georgia: "GA",
+  hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA",
+  kansas: "KS", kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD",
+  massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS",
+  missouri: "MO", montana: "MT", nebraska: "NE", nevada: "NV", "new hampshire": "NH",
+  "new jersey": "NJ", "new mexico": "NM", "new york": "NY", "north carolina": "NC",
+  "north dakota": "ND", ohio: "OH", oklahoma: "OK", oregon: "OR",
+  pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC",
+  "south dakota": "SD", tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT",
+  virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI",
+  wyoming: "WY", "district of columbia": "DC",
+};
+
+const stateNamesByAbbreviation = Object.fromEntries(
+  Object.entries(stateAbbreviations).map(([name, abbreviation]) => [abbreviation.toLowerCase(), abbreviation]),
+);
+
+function titleCaseLocationPart(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\b([a-z])/g, (letter) => letter.toUpperCase());
+}
+
+function normalizeLocation(value: string): string {
+  const cleaned = value.trim().replace(/\s+/g, " ");
+  if (!cleaned) return "";
+
+  const commaParts = cleaned.split(",").map((part) => part.trim()).filter(Boolean);
+  let city = "";
+  let state = "";
+
+  if (commaParts.length >= 2) {
+    city = commaParts.slice(0, -1).join(" ");
+    state = commaParts[commaParts.length - 1];
+  } else {
+    const stateMatch = cleaned.match(
+      new RegExp(`^(.*?)(?:\\s|,)(${Object.keys(stateAbbreviations).sort((a, b) => b.length - a.length).join("|")}|[A-Za-z]{2})$`, "i"),
+    );
+    if (stateMatch) {
+      city = stateMatch[1].trim();
+      state = stateMatch[2].trim();
+    }
+  }
+
+  const normalizedState = stateAbbreviations[state.toLowerCase()] ?? stateNamesByAbbreviation[state.toLowerCase()];
+  if (!city || !normalizedState) {
+    return titleCaseLocationPart(cleaned);
+  }
+
+  return `${titleCaseLocationPart(city)}, ${normalizedState}`;
+}
+
 const users = [
   {
     id: "user-kinamin",
@@ -242,7 +296,9 @@ router.get("/me", async (req, res): Promise<void> => {
       const profileFields = ["displayName", "username", "bio", "location", "avatarUrl", "coverUrl"] as const;
       for (const field of profileFields) {
         if (typeof metadata[field] === "string") {
-          users[0][field] = metadata[field];
+          users[0][field] = field === "location"
+            ? normalizeLocation(metadata[field])
+            : metadata[field];
         }
       }
     } catch (error) {
@@ -275,7 +331,9 @@ router.patch("/me", async (req, res): Promise<void> => {
       displayName: parsed.data.displayName ?? current.displayName,
       username: parsed.data.username ?? current.username,
       bio: parsed.data.bio ?? current.bio,
-      location: parsed.data.location ?? current.location,
+      location: parsed.data.location === undefined
+        ? current.location
+        : normalizeLocation(parsed.data.location),
       avatarUrl: parsed.data.avatarUrl ?? current.avatarUrl,
       coverUrl: parsed.data.coverUrl ?? current.coverUrl,
     };
