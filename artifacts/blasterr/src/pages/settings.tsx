@@ -201,6 +201,9 @@ export default function Settings() {
                   </div>
                 )}
               </div>
+              <p className="text-xs text-muted-foreground">
+                Recommended banner size: <span className="text-white">1500 × 500 px</span>
+              </p>
               <div className="flex flex-wrap items-center gap-3">
                 <Button
                   type="button"
