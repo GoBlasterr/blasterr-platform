@@ -32,7 +32,7 @@ export type R2Health = {
 let client: S3Client | null = null;
 let clientConfigKey = "";
 
-function required(name: keyof R2Config, value: string | undefined): string {
+function required(name: string, value: string | undefined): string {
   if (!value?.trim()) throw new Error(`${name} is required for Cloudflare R2.`);
   return value.trim();
 }

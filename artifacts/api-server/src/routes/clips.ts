@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rm } from "node:fs/promises";
+import { mkdir, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { clerkClient, getAuth } from "@clerk/express";
@@ -23,7 +23,8 @@ import {
 } from "@workspace/api-zod";
 import { renderClip } from "../lib/clip-renderer";
 import { isActiveAdmin, isSuspended } from "../lib/admin-auth";
-import { getPrivateObjectPath, getSignedObjectUrl } from "./storage";
+import { createReadyMedia } from "../lib/media-repository";
+import { deleteR2Object, getR2Config, uploadFileToR2 } from "../lib/r2";
 import { adminFeatureFlags, recordAudit } from "../lib/admin-state";
 import {
   createClip, deleteClip, findBlast, getClip, listClips, updateClip,
@@ -75,18 +76,7 @@ const fallbackTitle = (blast: PersistedClip["blast"], style: Style) =>
   `${style[0]}${style.slice(1).toLowerCase()} Blast: ${blast.target.name}`;
 
 async function upload(path: string, objectName: string, contentType: string): Promise<string> {
-  const { bucketName, prefix } = getPrivateObjectPath();
-  const signed = await getSignedObjectUrl({
-    bucketName,
-    objectName: [prefix, objectName].filter(Boolean).join("/"),
-    method: "PUT",
-  });
-  const response = await fetch(signed, {
-    method: "PUT",
-    headers: { "Content-Type": contentType },
-    body: await readFile(path),
-  });
-  if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+  await uploadFileToR2({ path, key: objectName, contentType });
   return `/api/storage/objects/${objectName}`;
 }
 
@@ -97,6 +87,7 @@ async function processClip(id: string): Promise<void> {
   const dir = join(tmpdir(), "blasterr-clips", clip.id);
   const output = join(dir, "clip.mp4");
   const thumbnail = join(dir, "thumbnail.jpg");
+  const uploadedKeys: string[] = [];
   try {
     await mkdir(dir, { recursive: true });
     await renderClip({
@@ -105,10 +96,40 @@ async function processClip(id: string): Promise<void> {
       target: clip.blast.target.name, cta: clip.settings.ctaText,
       position: clip.settings.captionPosition, background: clip.settings.background,
     });
-    const videoUrl = await upload(output, `clips/${clip.id}/clip.mp4`, "video/mp4");
-    const thumbnailUrl = await upload(thumbnail, `clips/${clip.id}/thumbnail.jpg`, "image/jpeg");
+    const videoKey = `clips/${clip.id}/clip.mp4`;
+    const thumbnailKey = `clips/${clip.id}/thumbnail.jpg`;
+    const videoUrl = await upload(output, videoKey, "video/mp4");
+    uploadedKeys.push(videoKey);
+    const thumbnailUrl = await upload(thumbnail, thumbnailKey, "image/jpeg");
+    uploadedKeys.push(thumbnailKey);
+    const config = getR2Config();
+    await createReadyMedia({
+      id: `media-${randomUUID()}`,
+      ownerId: clip.creatorId,
+      bucket: config.bucket,
+      objectKey: videoKey,
+      originalName: "clip.mp4",
+      contentType: "video/mp4",
+      sizeBytes: (await stat(output)).size,
+      purpose: "clip-asset",
+      resourceType: "clip",
+      resourceId: clip.id,
+    });
+    await createReadyMedia({
+      id: `media-${randomUUID()}`,
+      ownerId: clip.creatorId,
+      bucket: config.bucket,
+      objectKey: thumbnailKey,
+      originalName: "thumbnail.jpg",
+      contentType: "image/jpeg",
+      sizeBytes: (await stat(thumbnail)).size,
+      purpose: "clip-asset",
+      resourceType: "clip",
+      resourceId: clip.id,
+    });
     await updateClip(id, { videoUrl, thumbnailUrl, renderStatus: "COMPLETED", errorMessage: null });
   } catch {
+    await Promise.all(uploadedKeys.map((key) => deleteR2Object(key).catch(() => undefined)));
     await updateClip(id, { renderStatus: "FAILED", errorMessage: "We couldn't finish your BLASTR Clip. Try again." });
   } finally {
     await rm(dir, { recursive: true, force: true }).catch(() => undefined);

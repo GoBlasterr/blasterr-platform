@@ -103,7 +103,7 @@ export default function Settings() {
         purpose,
       }),
     });
-    const details = await request.json() as { uploadURL?: string; objectPath?: string; error?: string };
+    const details = await request.json() as { uploadURL?: string; objectPath?: string; assetId?: string; error?: string };
     if (!request.ok || !details.uploadURL || !details.objectPath) {
       throw new Error(details.error || `Could not prepare the ${purpose} upload.`);
     }
@@ -115,6 +115,15 @@ export default function Settings() {
     });
     if (!upload.ok) {
       throw new Error(`Could not upload the ${purpose} image.`);
+    }
+    if (details.assetId) {
+      const completed = await fetch(`/api/storage/uploads/${details.assetId}/complete`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!completed.ok) {
+        throw new Error(`Could not verify the ${purpose} image upload.`);
+      }
     }
 
     return `/api/storage${details.objectPath}`;

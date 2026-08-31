@@ -54,6 +54,15 @@ type NewTarget = {
   imageUrl: string;
 };
 
+async function completeUpload(assetId?: string): Promise<void> {
+  if (!assetId) return;
+  const response = await fetch(`/api/storage/uploads/${assetId}/complete`, {
+    method: "POST",
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Could not verify the uploaded media.");
+}
+
 const BLAST_MODES = [
   { id: "recon", label: "Recon", description: "Sharing intel & raw facts.", icon: Eye, prompt: "What intel do you have on this target?" },
   { id: "hot-take", label: "Hot Take", description: "Unpopular opinions welcome.", icon: Flame, prompt: "Drop your hot take here..." },
@@ -285,7 +294,7 @@ export default function CreateBlast() {
           purpose: "blast-media",
         }),
       });
-      const uploadDetails = await urlResponse.json() as { uploadURL?: string; objectPath?: string; error?: string };
+      const uploadDetails = await urlResponse.json() as { uploadURL?: string; objectPath?: string; assetId?: string; error?: string };
       if (!urlResponse.ok || !uploadDetails.uploadURL || !uploadDetails.objectPath) {
         throw new Error(uploadDetails.error || "Could not prepare media upload");
       }
@@ -306,6 +315,7 @@ export default function CreateBlast() {
         request.onerror = () => reject(new Error("Could not upload media"));
         request.send(file);
       });
+      await completeUpload(uploadDetails.assetId);
 
       form.setValue("mediaUrl", `/api/storage${uploadDetails.objectPath}`, { shouldValidate: true });
       form.setValue("mediaType", mediaType, { shouldValidate: true });
@@ -346,9 +356,10 @@ export default function CreateBlast() {
           name: file.name,
           size: file.size,
           contentType: file.type,
+          purpose: "target-image",
         }),
       });
-      const uploadDetails = await urlResponse.json() as { uploadURL?: string; objectPath?: string; error?: string };
+      const uploadDetails = await urlResponse.json() as { uploadURL?: string; objectPath?: string; assetId?: string; error?: string };
       if (!urlResponse.ok || !uploadDetails.uploadURL || !uploadDetails.objectPath) {
         throw new Error(uploadDetails.error || "Could not prepare image upload");
       }
@@ -361,6 +372,7 @@ export default function CreateBlast() {
       if (!uploadResponse.ok) {
         throw new Error("Could not upload image");
       }
+      await completeUpload(uploadDetails.assetId);
 
       setNewTarget((current) => ({
         ...current,

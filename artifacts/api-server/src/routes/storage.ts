@@ -137,7 +137,8 @@ router.post("/storage/uploads/:id/complete", async (req: Request, res: Response)
     res.status(401).json({ error: "Sign in is required to complete an upload." });
     return;
   }
-  const asset = await mediaById(req.params.id);
+  const assetId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const asset = await mediaById(assetId);
   if (!asset || asset.ownerId !== ownerId) {
     res.status(404).json({ error: "Upload not found." });
     return;
@@ -167,7 +168,8 @@ router.delete("/storage/uploads/:id", async (req: Request, res: Response) => {
     res.status(401).json({ error: "Sign in is required to delete uploads." });
     return;
   }
-  const asset = await mediaById(req.params.id);
+  const assetId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const asset = await mediaById(assetId);
   if (!asset || asset.ownerId !== ownerId || asset.lifecycleStatus === "deleted") {
     res.status(404).json({ error: "Upload not found." });
     return;

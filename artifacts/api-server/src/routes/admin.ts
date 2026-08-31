@@ -60,6 +60,8 @@ import {
 } from "../lib/admin-state";
 import { isActiveAdmin, isSuspended } from "../lib/admin-auth";
 import * as social from "../lib/social-repository";
+import { validateDatabaseConnection } from "@workspace/db";
+import { checkR2Connection } from "../lib/r2";
 
 const router: IRouter = Router();
 const startedAt = Date.now();
@@ -465,14 +467,23 @@ router.get("/analytics", async (_req, res): Promise<void> => {
   }));
 });
 
-router.get("/system", (_req, res): void => {
+router.get("/system", async (_req, res): Promise<void> => {
+  const [database, storage] = await Promise.all([
+    validateDatabaseConnection()
+      .then(() => ({ status: "operational" as const, detail: "Supabase PostgreSQL is reachable through the configured pooler." }))
+      .catch(() => ({ status: "degraded" as const, detail: "Supabase PostgreSQL could not be reached." })),
+    checkR2Connection(),
+  ]);
+  const operational = database.status === "operational" && storage.status === "operational";
   res.json(GetAdminSystemResponse.parse({
-    status: "operational",
+    status: operational ? "operational" : "degraded",
     version: "0.1.0",
     uptimeSeconds: Math.floor((Date.now() - startedAt) / 1000),
     checks: [
       { name: "API", status: "operational", detail: "Express request handling is available." },
       { name: "Authentication", status: "operational", detail: "Clerk authorization middleware is active." },
+      { name: "Database", status: database.status, detail: database.detail },
+      { name: "Media storage", status: storage.status === "operational" ? "operational" : "degraded", detail: storage.detail },
       { name: "Moderation state", status: "operational", detail: `${adminReports.length} reports loaded.` },
     ],
   }));
