@@ -2,9 +2,9 @@ import { Feather } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useColors } from '@/hooks/useColors';
 
-export function EmptyState({ icon = 'inbox', title, message, actionLabel, onAction }: { icon?: keyof typeof Feather.glyphMap; title: string; message: string; actionLabel?: string; onAction?: () => void }) {
+export function EmptyState({ icon = 'inbox', title, message, actionLabel, onAction }: { icon?: keyof typeof Feather.glyphMap; title: string; message?: string; actionLabel?: string; onAction?: () => void }) {
   const colors = useColors();
-  return <View style={styles.container}><View style={[styles.icon, { backgroundColor: colors.secondary }]}><Feather name={icon} size={22} color={colors.primary} /></View><Text style={[styles.title, { color: colors.foreground }]}>{title}</Text><Text style={[styles.message, { color: colors.mutedForeground }]}>{message}</Text>{actionLabel && onAction ? <Pressable onPress={onAction} style={({ pressed }) => [styles.action, { backgroundColor: colors.primary, opacity: pressed ? 0.75 : 1 }]}><Text style={[styles.actionText, { color: colors.primaryForeground }]}>{actionLabel}</Text></Pressable> : null}</View>;
+  return <View style={styles.container}><View style={[styles.icon, { backgroundColor: colors.secondary }]}><Feather name={icon} size={22} color={colors.primary} /></View><Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>{message ? <Text style={[styles.message, { color: colors.mutedForeground }]}>{message}</Text> : null}{actionLabel && onAction ? <Pressable onPress={onAction} style={({ pressed }) => [styles.action, { backgroundColor: colors.primary, opacity: pressed ? 0.75 : 1 }]}><Text style={[styles.actionText, { color: colors.primaryForeground }]}>{actionLabel}</Text></Pressable> : null}</View>;
 }
 
 const styles = StyleSheet.create({

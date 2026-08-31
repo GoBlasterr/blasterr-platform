@@ -15,14 +15,14 @@ import { SymbolView } from 'expo-symbols';
 function NativeTabLayout() {
   return (
     <NativeTabs>
-      <NativeTabs.Trigger name="index">
+      <NativeTabs.Trigger name="home">
         <Icon sf={{ default: 'house', selected: 'house.fill' }} />
         <Label>Home</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="explore"><Icon sf={{ default: 'safari', selected: 'safari.fill' }} /><Label>Explore</Label></NativeTabs.Trigger>
-      <NativeTabs.Trigger name="create"><Icon sf={{ default: 'plus.circle', selected: 'plus.circle.fill' }} /><Label>Create</Label></NativeTabs.Trigger>
-      <NativeTabs.Trigger name="notifications"><Icon sf={{ default: 'bell', selected: 'bell.fill' }} /><Label>Inbox</Label></NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile"><Icon sf={{ default: 'person', selected: 'person.fill' }} /><Label>Profile</Label></NativeTabs.Trigger>
+      <NativeTabs.Trigger name="explore"><Icon sf={{ default: 'safari', selected: 'safari.fill' }} /><Label>Trending</Label></NativeTabs.Trigger>
+      <NativeTabs.Trigger name="nearby"><Icon sf={{ default: 'map', selected: 'map.fill' }} /><Label>Nearby</Label></NativeTabs.Trigger>
+      <NativeTabs.Trigger name="search" role="search"><Icon sf="magnifyingglass" /><Label>Search</Label></NativeTabs.Trigger>
+      <NativeTabs.Trigger name="notifications"><Icon sf={{ default: 'bell', selected: 'bell.fill' }} /><Label>Notifications</Label></NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -40,6 +40,7 @@ function ClassicTabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
         headerShown: false,
+        sceneStyle: { backgroundColor: 'transparent' },
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: isIOS ? 'transparent' : colors.background,
@@ -66,7 +67,7 @@ function ClassicTabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) =>
@@ -77,10 +78,10 @@ function ClassicTabLayout() {
             ),
         }}
       />
-      <Tabs.Screen name="explore" options={{ title: 'Explore', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="safari" tintColor={color} size={24} /> : <Feather name="compass" size={22} color={color} /> }} />
-      <Tabs.Screen name="create" options={{ title: 'Create', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="plus.circle" tintColor={color} size={24} /> : <Feather name="plus-circle" size={22} color={color} /> }} />
-      <Tabs.Screen name="notifications" options={{ title: 'Inbox', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="bell" tintColor={color} size={24} /> : <Feather name="bell" size={22} color={color} /> }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="person" tintColor={color} size={24} /> : <Feather name="user" size={22} color={color} /> }} />
+      <Tabs.Screen name="explore" options={{ title: 'Trending', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="safari" tintColor={color} size={24} /> : <Feather name="compass" size={22} color={color} /> }} />
+      <Tabs.Screen name="nearby" options={{ title: 'Nearby', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="map" tintColor={color} size={24} /> : <Feather name="map" size={22} color={color} /> }} />
+      <Tabs.Screen name="search" options={{ title: 'Search', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="magnifyingglass" tintColor={color} size={24} /> : <Feather name="search" size={22} color={color} /> }} />
+      <Tabs.Screen name="notifications" options={{ title: 'Notifications', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="bell" tintColor={color} size={24} /> : <Feather name="bell" size={22} color={color} /> }} />
     </Tabs>
   );
 }
