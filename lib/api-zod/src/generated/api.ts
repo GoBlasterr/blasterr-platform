@@ -47,7 +47,8 @@ export const GetCurrentUserResponse = zod.object({
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }).and(zod.object({
-  "zipCode": zod.string().optional()
+  "zipCode": zod.string().optional(),
+  "onboardingComplete": zod.boolean().optional()
 }))
 
 
@@ -81,7 +82,8 @@ export const UpdateCurrentUserBody = zod.object({
   "state": zod.string().min(1).max(updateCurrentUserBodyStateMax).optional(),
   "zipCode": zod.string().regex(updateCurrentUserBodyZipCodeRegExp).optional(),
   "avatarUrl": zod.string().max(updateCurrentUserBodyAvatarUrlMax).optional(),
-  "coverUrl": zod.string().max(updateCurrentUserBodyCoverUrlMax).optional()
+  "coverUrl": zod.string().max(updateCurrentUserBodyCoverUrlMax).optional(),
+  "onboardingComplete": zod.boolean().optional()
 })
 
 export const UpdateCurrentUserResponse = zod.object({
@@ -100,7 +102,8 @@ export const UpdateCurrentUserResponse = zod.object({
   "joinedAt": zod.string(),
   "isFollowing": zod.boolean().optional()
 }).and(zod.object({
-  "zipCode": zod.string().optional()
+  "zipCode": zod.string().optional(),
+  "onboardingComplete": zod.boolean().optional()
 }))
 
 

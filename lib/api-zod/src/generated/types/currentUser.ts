@@ -9,4 +9,5 @@ import type { User } from './user';
 
 export type CurrentUser = User & {
   zipCode?: string;
+  onboardingComplete?: boolean;
 };

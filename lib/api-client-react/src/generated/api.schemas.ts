@@ -28,6 +28,7 @@ export interface User {
 
 export type CurrentUser = User & {
   zipCode?: string;
+  onboardingComplete?: boolean;
 };
 
 export interface UserUpdate {
@@ -58,6 +59,7 @@ export interface UserUpdate {
   avatarUrl?: string;
   /** @maxLength 500 */
   coverUrl?: string;
+  onboardingComplete?: boolean;
 }
 
 export type TargetType = typeof TargetType[keyof typeof TargetType];

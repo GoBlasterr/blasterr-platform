@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { useAssets } from 'expo-asset';
-import { useRouter } from 'expo-router';
+import { useAuth, useUser } from '@clerk/expo';
+import { type Href, useRouter } from 'expo-router';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { CosmicBackground } from '@/components/cosmic-background';
+import { hasVisitedApp, markAppVisited } from '@/lib/onboarding';
 
 const introVideo = require('@/assets/videos/blasterr-intro.mp4');
 const introVideoWeb = require('@/assets/videos/blasterr-intro.webm');
@@ -13,9 +15,31 @@ export default function SplashScreen() {
   return Platform.OS === 'web' ? <WebSplash /> : <NativeSplash />;
 }
 
-function WebSplash() {
+function useSplashCompletion() {
   const router = useRouter();
-  const finish = useCallback(() => router.replace('/home'), [router]);
+  const { isLoaded, isSignedIn, userId } = useAuth();
+  const { user } = useUser();
+  const [ended, setEnded] = useState(false);
+
+  useEffect(() => {
+    if (!ended || !isLoaded) return;
+    let active = true;
+    void hasVisitedApp().then((hasVisited) => {
+      if (!active) return;
+      void markAppVisited();
+      const meta = user?.publicMetadata as Record<string, unknown> | undefined;
+      const profileComplete = meta?.onboardingComplete === true || Boolean(meta?.displayName && meta?.username && meta?.city && meta?.state);
+      if (isSignedIn) router.replace(profileComplete ? '/home' : '/settings?onboarding=1');
+      else router.replace((hasVisited ? '/sign-in' : '/sign-up') as Href);
+    });
+    return () => { active = false; };
+  }, [ended, isLoaded, isSignedIn, router, user, userId]);
+
+  return useCallback(() => setEnded(true), []);
+}
+
+function WebSplash() {
+  const finish = useSplashCompletion();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
   const [assets] = useAssets([introVideoWeb]);
@@ -49,8 +73,7 @@ function WebSplash() {
 }
 
 function NativeSplash() {
-  const router = useRouter();
-  const finish = useCallback(() => router.replace('/home'), [router]);
+  const finish = useSplashCompletion();
   const player = useVideoPlayer(introVideo, (videoPlayer) => {
     videoPlayer.loop = false;
     videoPlayer.muted = false;

@@ -34,4 +34,5 @@ export interface UserUpdate {
   avatarUrl?: string;
   /** @maxLength 500 */
   coverUrl?: string;
+  onboardingComplete?: boolean;
 }

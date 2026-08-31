@@ -1316,6 +1316,7 @@ components:
         - type: object
           properties:
             zipCode: { type: string }
+            onboardingComplete: { type: boolean }
     UserUpdate:
       type: object
       properties:
@@ -1328,6 +1329,7 @@ components:
         zipCode: { type: string, pattern: "^(?:[0-9]{5}(?:-[0-9]{4})?)?$" }
         avatarUrl: { type: string, maxLength: 500 }
         coverUrl: { type: string, maxLength: 500 }
+        onboardingComplete: { type: boolean }
     Profile:
       allOf:
         - $ref: "#/components/schemas/User"
