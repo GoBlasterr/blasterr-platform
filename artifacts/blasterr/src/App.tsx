@@ -31,6 +31,7 @@ import NotFound from '@/pages/not-found';
 import ClipsLibrary from '@/pages/clips/index';
 import CreateClip from '@/pages/clips/create';
 import { PrivacyPolicy, TermsAndConditions } from '@/pages/legal';
+import CmsCollectionPage from '@/pages/cms-collection';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +81,7 @@ function Router() {
           <Route path="/sign-up/*?" component={SignUp} />
           <Route path="/privacy" component={PrivacyPolicy} />
           <Route path="/terms" component={TermsAndConditions} />
+          <Route path="/site/:type" component={CmsCollectionPage} />
           <Route component={NotFound} />
         </Switch>
       </RoutedErrorBoundary>

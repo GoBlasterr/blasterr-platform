@@ -26,7 +26,8 @@ import {
   Clock,
   PauseCircle,
   XCircle,
-  PlayCircle
+  PlayCircle,
+  Globe2
 } from "lucide-react";
 import { useHealthCheck } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,7 @@ const NAVIGATION_GROUPS = [
     items: [
       { label: "Overview", href: "/overview", icon: BarChart },
       { label: "Media", href: "/media", icon: Video },
+      { label: "Website CMS", href: "/cms", icon: Globe2 },
       { label: "Users", href: "/users", icon: Users },
       { label: "Content", href: "/content", icon: MessageSquare },
       { label: "Reports", href: "/reports", icon: Flag },

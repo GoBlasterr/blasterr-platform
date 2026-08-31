@@ -10,6 +10,7 @@ import { FeedAdPlacement } from "@/components/shared/sponsored-blast-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Home as HomeIcon, PenSquare } from "lucide-react";
+import { CmsHomepageSurface } from "@/components/shared/cms-homepage";
 
 export default function Home() {
   const [location, setLocation] = useLocation();
@@ -116,6 +117,7 @@ export default function Home() {
       </div>
 
       {/* Quick compose hint (desktop) */}
+      <CmsHomepageSurface />
       <div 
         className="hidden md:flex items-center gap-4 p-5 border-b border-white/5 cursor-pointer hover:bg-white/[0.02] transition-colors"
         onClick={() => setLocation("/create")}

@@ -6,6 +6,7 @@ import clipsRouter from "./clips";
 import advertisingRouter from "./advertising";
 import adminRouter from "./admin";
 import announcementsRouter from "./announcements";
+import cmsRouter from "./cms";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(socialRouter);
 router.use(storageRouter);
 router.use(clipsRouter);
 router.use(advertisingRouter);
+router.use("/cms", cmsRouter);
 
 export default router;

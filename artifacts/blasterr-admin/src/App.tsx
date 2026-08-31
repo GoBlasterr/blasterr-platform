@@ -53,6 +53,7 @@ import PromotionsPage from '@/pages/advertising/promotions';
 import AdvertisingFraudPage from '@/pages/advertising/fraud';
 import AdvertisingReportsPage from '@/pages/advertising/ad-reports';
 import AdvertisingNotificationsPage from '@/pages/advertising/notifications';
+import CmsPage from '@/pages/cms';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -65,6 +66,7 @@ function AdminRouter() {
           <Route path="/" component={() => <Redirect to="/overview" />} />
           <Route path="/overview" component={OverviewPage} />
           <Route path="/media" component={MediaPage} />
+          <Route path="/cms" component={CmsPage} />
 
           {/* Advertising Routes */}
           <Route path="/advertising" component={AdvertisingOverviewPage} />
