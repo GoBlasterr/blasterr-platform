@@ -1,0 +1,367 @@
+# Blaster Backend Architecture: Supabase + Cloudflare R2 Integration
+
+Build the Blaster website using **Supabase as the primary backend** and **Cloudflare R2 as the dedicated media storage service**. The architecture must clearly separate application data from media files.
+
+I will provide both the **Supabase API credentials** and the **Cloudflare R2 API credentials**.
+
+## Architecture Overview
+
+### Supabase Responsibilities
+
+Supabase remains responsible for:
+
+* Authentication (Email, Google, Phone, etc.)
+* PostgreSQL database.
+* User profiles.
+* Worker and client accounts.
+* Messages and conversations.
+* Notifications.
+* Tasks and gigs.
+* Payments metadata.
+* Orders.
+* Reviews.
+* Settings.
+* Admin dashboard data.
+* Analytics.
+* Realtime subscriptions.
+* Store media metadata (URLs, filenames, file types, sizes), not the actual files.
+
+### Cloudflare R2 Responsibilities
+
+Cloudflare R2 becomes the dedicated storage service for:
+
+* Profile pictures.
+* Company logos.
+* Cover photos.
+* Portfolio images.
+* Portfolio videos.
+* Chat images.
+* Chat videos.
+* Audio messages.
+* PDF documents.
+* Verification documents.
+* Task attachments.
+* Gig attachments.
+* Invoice attachments.
+* Any uploaded media across the website.
+
+---
+
+## Part 1 — Configure Supabase
+
+### Environment Variables
+
+Create environment variables.
+
+SUPABASE_URL=
+
+SUPABASE_ANON_KEY=
+
+SUPABASE_SERVICE_ROLE_KEY=
+
+### Configure Supabase Client
+
+* Initialize Supabase client correctly.
+* Use server-side client where privileged access is needed.
+* Keep service role key on backend only.
+* Use authenticated user sessions throughout the app.
+
+### Database Responsibilities
+
+Ensure Supabase stores:
+
+* User information.
+* Worker profiles.
+* Client profiles.
+* Projects.
+* Tasks.
+* Messages.
+* Reviews.
+* Notifications.
+* Wallet records.
+* Payment records.
+* Activity logs.
+* Media metadata only.
+
+### Media Metadata Table
+
+Create or update a table for uploaded media.
+
+Fields:
+
+* id
+* user_id
+* folder
+* original_name
+* stored_name
+* media_type
+* mime_type
+* file_size
+* r2_url
+* thumbnail_url
+* created_at
+* updated_at
+
+### Security
+
+* Enable Row Level Security.
+* Users only access their own media metadata unless permitted.
+* Admin has full access.
+* Use Supabase Auth UID for ownership.
+
+---
+
+## Part 2 — Configure Cloudflare R2
+
+### Environment Variables
+
+CLOUDFLARE_R2_ACCOUNT_ID=
+
+CLOUDFLARE_R2_BUCKET=
+
+CLOUDFLARE_R2_ACCESS_KEY_ID=
+
+CLOUDFLARE_R2_SECRET_ACCESS_KEY=
+
+CLOUDFLARE_R2_ENDPOINT=
+
+CLOUDFLARE_R2_PUBLIC_URL=
+
+Keep secret keys backend-only.
+
+### Configure Storage SDK
+
+Use AWS S3-compatible SDK configured for Cloudflare R2.
+
+Create a reusable R2 client.
+
+### Folder Structure
+
+Organize uploads.
+
+* profile-images/
+* company-logos/
+* cover-images/
+* portfolio/
+* chat-media/
+* task-files/
+* verification-documents/
+* invoices/
+* videos/
+* audio/
+* documents/
+* temporary/
+
+### Upload Service
+
+Create one reusable upload service that:
+
+* accepts all supported file types.
+* generates UUID filenames.
+* uploads into correct folder.
+* returns public URL.
+* returns metadata object.
+
+### Supported File Types
+
+Images:
+
+* PNG
+* JPG
+* JPEG
+* WEBP
+* GIF
+
+Videos:
+
+* MP4
+* MOV
+* WEBM
+
+Documents:
+
+* PDF
+* DOCX
+* XLSX
+* TXT
+
+Audio:
+
+* MP3
+* WAV
+* M4A
+
+---
+
+## Part 3 — Replace All Upload Logic
+
+Find every upload feature inside Blaster.
+
+Replace Supabase Storage uploads with Cloudflare R2 uploads.
+
+Migrate these components:
+
+* User avatar.
+* Profile banner.
+* Company logo.
+* Portfolio upload.
+* Portfolio gallery.
+* Chat attachment.
+* Voice notes.
+* Video messages.
+* Task attachments.
+* Proposal attachments.
+* Verification uploads.
+* Invoice uploads.
+* Admin media uploads.
+* Gig media uploads.
+
+After upload:
+
+1. Upload file to Cloudflare R2.
+2. Receive URL.
+3. Save metadata in Supabase.
+4. Return URL to frontend.
+
+No feature should continue using Supabase Storage buckets.
+
+---
+
+## Part 4 — Media Optimization
+
+### Images
+
+Before upload:
+
+* Compress oversized images.
+* Convert PNG/JPEG to WebP when possible.
+* Resize very large images.
+* Generate thumbnails.
+
+### Videos
+
+* Validate size.
+* Generate preview thumbnail.
+* Store thumbnail URL.
+* Keep original video in R2.
+
+### Documents
+
+* Preserve originals.
+* Generate preview icon.
+* Store metadata.
+
+---
+
+## Part 5 — Secure Upload API
+
+Create secure backend endpoints.
+
+Requirements:
+
+* User authentication required.
+* Validate MIME type.
+* Validate maximum upload size.
+* Sanitize filenames.
+* Prevent executable uploads.
+* Return meaningful errors.
+* Support multipart uploads.
+
+---
+
+## Part 6 — Delete Media
+
+When media is deleted:
+
+* Delete object from R2.
+* Delete metadata from Supabase.
+* Remove thumbnails if applicable.
+* Keep database consistent.
+
+---
+
+## Part 7 — Migration Tool
+
+Create a migration script.
+
+The script should:
+
+* Find existing uploaded media.
+* Upload each file into Cloudflare R2.
+* Update Supabase metadata with R2 URLs.
+* Log migrated files.
+* Log failures.
+* Retry failed uploads.
+
+---
+
+## Part 8 — Performance Improvements
+
+Implement:
+
+* Upload progress bars.
+* Multiple file uploads.
+* Parallel uploads.
+* Multipart upload for large videos.
+* Lazy loading.
+* Image caching.
+* Signed upload endpoint if needed.
+* CDN-ready public URLs.
+
+---
+
+## Part 9 — Frontend Integration
+
+Create helper utilities.
+
+### Upload Helper
+
+uploadMedia(file, folder)
+
+Returns:
+
+* public URL.
+* thumbnail URL if available.
+* metadata.
+
+### Media URL Helper
+
+getMediaUrl(path)
+
+Uses Cloudflare R2 public URL automatically.
+
+Changing to a custom domain later (media.blaster.com) should require changing only one environment variable.
+
+---
+
+## Part 10 — Production Requirements
+
+The final implementation must:
+
+* Keep Supabase as the only database and authentication provider.
+* Use Cloudflare R2 as the only media storage provider.
+* Never store uploaded media inside Supabase Storage.
+* Be production-ready.
+* Secure secrets.
+* Scalable for thousands of users.
+* Fully compatible with Replit deployment.
+* Include error handling, logging, and retry logic for uploads.
+
+## Credentials I Will Provide
+
+### Supabase
+
+* Project URL
+* Anon Key
+* Service Role Key
+
+### Cloudflare R2
+
+* Account ID
+* Bucket Name
+* Access Key ID
+* Secret Access Key
+* Endpoint
+* Public URL / Custom Domain
+
+Use these credentials to complete the integration without changing the existing Blaster database structure or authentication system.
