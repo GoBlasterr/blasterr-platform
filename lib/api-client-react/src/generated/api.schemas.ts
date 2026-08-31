@@ -1232,6 +1232,116 @@ export interface AdEventInput {
   deliveryToken: string;
 }
 
+export interface AdvertisingFraudAudit {
+  id: string;
+  action: string;
+  actorClerkId: string;
+  /** @nullable */
+  note: string | null;
+  createdAt: string;
+}
+
+export type AdvertisingFraudFlagStatus = typeof AdvertisingFraudFlagStatus[keyof typeof AdvertisingFraudFlagStatus];
+
+
+export const AdvertisingFraudFlagStatus = {
+  open: 'open',
+  in_review: 'in_review',
+  resolved: 'resolved',
+  dismissed: 'dismissed',
+} as const;
+
+export type AdvertisingFraudFlagSeverity = typeof AdvertisingFraudFlagSeverity[keyof typeof AdvertisingFraudFlagSeverity];
+
+
+export const AdvertisingFraudFlagSeverity = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  critical: 'critical',
+} as const;
+
+export type AdvertisingFraudFlagDetails = { [key: string]: unknown };
+
+export interface AdvertisingFraudFlag {
+  id: string;
+  /** @nullable */
+  eventId: string | null;
+  advertisementId: string;
+  campaignId: string;
+  advertiserName: string;
+  /** @nullable */
+  eventType: string | null;
+  /** @nullable */
+  destinationUrl: string | null;
+  /** @nullable */
+  sessionId: string | null;
+  /** @nullable */
+  sourceHash: string | null;
+  status: AdvertisingFraudFlagStatus;
+  severity: AdvertisingFraudFlagSeverity;
+  reason: string;
+  details: AdvertisingFraudFlagDetails;
+  /** @nullable */
+  reviewerClerkId: string | null;
+  /** @nullable */
+  reviewedAt: string | null;
+  /** @nullable */
+  reviewNote: string | null;
+  createdAt: string;
+  updatedAt: string;
+  auditHistory: AdvertisingFraudAudit[];
+}
+
+export type AdvertisingFraudReviewStatus = typeof AdvertisingFraudReviewStatus[keyof typeof AdvertisingFraudReviewStatus];
+
+
+export const AdvertisingFraudReviewStatus = {
+  open: 'open',
+  in_review: 'in_review',
+  resolved: 'resolved',
+  dismissed: 'dismissed',
+} as const;
+
+export interface AdvertisingFraudReview {
+  status: AdvertisingFraudReviewStatus;
+  /** @maxLength 1000 */
+  note?: string;
+}
+
+export type AdvertisingReportMetrics = { [key: string]: unknown };
+
+export interface AdvertisingReport {
+  id: string;
+  campaignId: string;
+  campaignName: string;
+  advertiserName: string;
+  reportDate: string;
+  metrics: AdvertisingReportMetrics;
+  createdAt: string;
+}
+
+export type AdvertisingNotificationSeverity = typeof AdvertisingNotificationSeverity[keyof typeof AdvertisingNotificationSeverity];
+
+
+export const AdvertisingNotificationSeverity = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  critical: 'critical',
+} as const;
+
+export interface AdvertisingNotification {
+  id: string;
+  /** @nullable */
+  fraudFlagId: string | null;
+  severity: AdvertisingNotificationSeverity;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
 export type AdvertisingSettingsPlacementSettings = { [key: string]: unknown };
 
 export type AdvertisingSettingsFrequencySettings = { [key: string]: unknown };
@@ -1336,6 +1446,28 @@ export interface AdvertisingAuditPage {
   hasMore: boolean;
 }
 
+export interface AdvertisingFraudPage {
+  items: AdvertisingFraudFlag[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+  openCount: number;
+}
+
+export interface AdvertisingReportPage {
+  items: AdvertisingReport[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface AdvertisingNotificationPage {
+  items: AdvertisingNotification[];
+  unreadCount: number;
+}
+
 export type AdvertisingOverviewSeriesItem = {
   date: string;
   impressions: number;
@@ -1347,6 +1479,7 @@ export interface AdvertisingOverview {
   campaignCount: number;
   activeAdvertisementCount: number;
   eventCount: number;
+  openFraudCount: number;
   series: AdvertisingOverviewSeriesItem[];
   activity: AdvertisingAudit[];
   billingIntegrationAvailable: boolean;
@@ -2029,6 +2162,64 @@ export type ListAdminAdvertisingAuditParams = {
  * @minimum 1
  */
 page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+};
+
+export type ListAdminAdvertisingFraudParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: ListAdminAdvertisingFraudStatus;
+severity?: ListAdminAdvertisingFraudSeverity;
+};
+
+export type ListAdminAdvertisingFraudStatus = typeof ListAdminAdvertisingFraudStatus[keyof typeof ListAdminAdvertisingFraudStatus];
+
+
+export const ListAdminAdvertisingFraudStatus = {
+  all: 'all',
+  open: 'open',
+  in_review: 'in_review',
+  resolved: 'resolved',
+  dismissed: 'dismissed',
+} as const;
+
+export type ListAdminAdvertisingFraudSeverity = typeof ListAdminAdvertisingFraudSeverity[keyof typeof ListAdminAdvertisingFraudSeverity];
+
+
+export const ListAdminAdvertisingFraudSeverity = {
+  all: 'all',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  critical: 'critical',
+} as const;
+
+export type ListAdminAdvertisingReportsParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+campaignId?: string;
+};
+
+export type ListAdminAdvertisingNotificationsParams = {
+unreadOnly?: boolean;
 /**
  * @minimum 1
  * @maximum 100

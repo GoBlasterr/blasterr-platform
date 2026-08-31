@@ -2,13 +2,23 @@ import { clerkClient, getAuth } from "@clerk/express";
 import * as v from "@workspace/api-zod";
 import {
   adApprovalRecordsTable, adEventsTable, adTransactionsTable, advertisementsTable, advertisersTable,
-  adGroupsTable, adPromotionRequestsTable, adSpendLedgerTable, advertisingAuditLogsTable, advertisingSettingsTable,
+  adGroupsTable, adPromotionRequestsTable, adSpendLedgerTable, adReportsTable, adFraudFlagsTable,
+  adFraudAuditLogsTable, adFraudNotificationsTable, advertisingAuditLogsTable, advertisingSettingsTable,
   campaignsTable, creativesTable, db,
 } from "@workspace/db";
-import { and, count, desc, eq, gte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, lt, sql } from "drizzle-orm";
 import { Router, type IRouter, type Request, type Response } from "express";
-import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import { getBillingProvider } from "../lib/ad-billing";
+import {
+  createSignedDeliveryToken,
+  detectFraudRules,
+  frequencyCapRejection,
+  isDuplicateEvent,
+  requiresTrustedImpression,
+  verifySignedDeliveryToken,
+  type DeliveryTokenPayload,
+} from "../lib/ad-integrity";
 
 const router: IRouter = Router();
 const placements = ["home_feed", "following_feed", "search", "trending", "profile", "clips", "right_rail"] as const;
@@ -18,26 +28,11 @@ type ViewerContext = { geography?: string; language?: string; device?: string; i
 const now = () => new Date();
 const stamp = (value: Date | null) => value?.toISOString() ?? null;
 const object = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
-type DeliveryTokenPayload = { adId: string; placement: Placement; sessionId: string; tokenId: string; expiresAt: number };
-
 function createDeliveryToken(payload: DeliveryTokenPayload): string | null {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret) return null;
-  const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  const signature = createHmac("sha256", secret).update(encoded).digest("base64url");
-  return `${encoded}.${signature}`;
+  return createSignedDeliveryToken(payload, process.env.SESSION_SECRET);
 }
 function verifyDeliveryToken(token: string): DeliveryTokenPayload | null {
-  const secret = process.env.SESSION_SECRET;
-  const [encoded, signature] = token.split(".");
-  if (!secret || !encoded || !signature) return null;
-  const expected = createHmac("sha256", secret).update(encoded).digest();
-  const provided = Buffer.from(signature, "base64url");
-  if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) return null;
-  try {
-    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as DeliveryTokenPayload;
-    return payload.expiresAt > Date.now() ? payload : null;
-  } catch { return null; }
+  return verifySignedDeliveryToken(token, process.env.SESSION_SECRET);
 }
 async function admin(req: Request): Promise<string | null> {
   const { userId } = getAuth(req);
@@ -101,6 +96,55 @@ function eventCharge(pricingModel: string, bidAmount: string | null, eventType: 
   if (pricingModel === "cpv" && eventType === "video_view") return bid;
   return 0;
 }
+type FraudReason = "suspicious_velocity" | "repeated_destination" | "abnormal_ctr" | "invalid_sequence";
+type FraudSeverity = "low" | "medium" | "high" | "critical";
+const severityForFraud = (reasons: FraudReason[]): FraudSeverity => reasons.includes("invalid_sequence") || reasons.length > 1 ? "critical" : "high";
+function sourceHash(req: Request): string | null {
+  const source = req.ip?.trim();
+  const secret = process.env.SESSION_SECRET;
+  return source && secret ? createHmac("sha256", secret).update(source).digest("hex") : null;
+}
+async function createFraudFlag(
+  tx: any,
+  values: { eventId: string; advertisementId: string; reason: string; severity: FraudSeverity; details: Record<string, unknown> },
+) {
+  const [flag] = await tx.insert(adFraudFlagsTable).values({
+    eventId: values.eventId, advertisementId: values.advertisementId, reason: values.reason,
+    severity: values.severity, details: values.details,
+  }).returning();
+  await tx.insert(adFraudAuditLogsTable).values({
+    fraudFlagId: flag.id, action: "detected", actorClerkId: "system",
+    note: `Detected by ${values.reason.replaceAll("_", " ")} rule.`,
+  });
+  if (values.severity === "high" || values.severity === "critical") {
+    await tx.insert(adFraudNotificationsTable).values({
+      fraudFlagId: flag.id, severity: values.severity, title: "High-severity ad anomaly detected",
+      message: `${values.reason.replaceAll("_", " ")} was detected and removed from trusted reporting.`,
+    });
+  }
+  return flag;
+}
+async function updateTrustedReport(tx: any, campaignId: string, reportDate: Date) {
+  const nextReportDate = new Date(reportDate);
+  nextReportDate.setUTCDate(nextReportDate.getUTCDate() + 1);
+  const grouped = await tx.select({ eventType: adEventsTable.eventType, total: count() })
+    .from(adEventsTable)
+    .innerJoin(advertisementsTable, eq(adEventsTable.advertisementId, advertisementsTable.id))
+    .where(and(
+      eq(advertisementsTable.campaignId, campaignId), eq(adEventsTable.trustStatus, "trusted"),
+      gte(adEventsTable.occurredAt, reportDate), lt(adEventsTable.occurredAt, nextReportDate),
+    ))
+    .groupBy(adEventsTable.eventType) as Array<{ eventType: string; total: number }>;
+  const trustedTypes = new Set(["impression", "click", "video_view"]);
+  const metrics = {
+    impressions: Number(grouped.find((row) => row.eventType === "impression")?.total ?? 0),
+    clicks: Number(grouped.find((row) => row.eventType === "click")?.total ?? 0),
+    videoViews: Number(grouped.find((row) => row.eventType === "video_view")?.total ?? 0),
+    trustedEvents: grouped.filter((row) => trustedTypes.has(row.eventType)).reduce((sum, row) => sum + Number(row.total), 0),
+  };
+  await tx.insert(adReportsTable).values({ campaignId, reportDate, metrics })
+    .onConflictDoUpdate({ target: [adReportsTable.campaignId, adReportsTable.reportDate], set: { metrics, createdAt: now() } });
+}
 async function requireAdmin(req: Request, res: Response): Promise<string | null> {
   const actor = await admin(req);
   if (!actor) res.status(403).json({ error: "Admin access is required." });
@@ -121,6 +165,34 @@ const transactionPayload = (row: typeof adTransactionsTable.$inferSelect) => ({
   providerTransactionId: row.providerTransactionId, transactionType: row.transactionType, status: row.status,
   amountMinor: row.amountMinor, refundedAmountMinor: row.refundedAmountMinor, currency: row.currency,
   invoiceUrl: row.invoiceUrl ?? null, providerCreatedAt: stamp(row.providerCreatedAt), createdAt: row.createdAt.toISOString(),
+});
+const fraudAuditPayload = (row: typeof adFraudAuditLogsTable.$inferSelect) => ({
+  id: row.id, action: row.action, actorClerkId: row.actorClerkId, note: row.note ?? null, createdAt: row.createdAt.toISOString(),
+});
+async function fraudPayloads() {
+  const [rows, history] = await Promise.all([
+    db.select({ flag: adFraudFlagsTable, event: adEventsTable, ad: advertisementsTable, campaign: campaignsTable, advertiser: advertisersTable })
+      .from(adFraudFlagsTable)
+      .leftJoin(adEventsTable, eq(adFraudFlagsTable.eventId, adEventsTable.id))
+      .innerJoin(advertisementsTable, eq(adFraudFlagsTable.advertisementId, advertisementsTable.id))
+      .innerJoin(campaignsTable, eq(advertisementsTable.campaignId, campaignsTable.id))
+      .innerJoin(advertisersTable, eq(campaignsTable.advertiserId, advertisersTable.id))
+      .orderBy(desc(adFraudFlagsTable.createdAt)),
+    db.select().from(adFraudAuditLogsTable).orderBy(desc(adFraudAuditLogsTable.createdAt)),
+  ]);
+  return rows.map(({ flag, event, ad, campaign, advertiser }) => ({
+    id: flag.id, eventId: flag.eventId ?? null, advertisementId: flag.advertisementId, campaignId: campaign.id,
+    advertiserName: advertiser.name, eventType: event?.eventType ?? null, destinationUrl: event?.destinationUrl ?? ad.destinationUrl ?? null,
+    sessionId: event?.sessionId ?? null, sourceHash: event?.sourceHash ?? null, status: flag.status, severity: flag.severity,
+    reason: flag.reason, details: object(flag.details), reviewerClerkId: flag.reviewerClerkId ?? null,
+    reviewedAt: stamp(flag.reviewedAt), reviewNote: flag.reviewNote ?? null,
+    createdAt: flag.createdAt.toISOString(), updatedAt: flag.updatedAt.toISOString(),
+    auditHistory: history.filter((item) => item.fraudFlagId === flag.id).map(fraudAuditPayload),
+  }));
+}
+const notificationPayload = (row: typeof adFraudNotificationsTable.$inferSelect) => ({
+  id: row.id, fraudFlagId: row.fraudFlagId ?? null, severity: row.severity, title: row.title,
+  message: row.message, read: row.read, createdAt: row.createdAt.toISOString(),
 });
 function page<T>(items: T[], pageNumber: number, limit: number) {
   return { items: items.slice((pageNumber - 1) * limit, pageNumber * limit), page: pageNumber, limit, total: items.length, hasMore: pageNumber * limit < items.length };
@@ -145,14 +217,15 @@ function financialBalances(rows: (typeof adTransactionsTable.$inferSelect)[]) {
 
 router.get("/admin/advertising/overview", async (req, res): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
-  const [advertisers, campaigns, active, events, activity] = await Promise.all([
+  const [advertisers, campaigns, active, events, activity, fraud] = await Promise.all([
     db.select({ value: count() }).from(advertisersTable),
     db.select({ value: count() }).from(campaignsTable),
     db.select({ value: count() }).from(advertisementsTable).where(eq(advertisementsTable.status, "active")),
-    db.select({ value: count() }).from(adEventsTable).where(gte(adEventsTable.occurredAt, new Date(Date.now() - 24 * 60 * 60 * 1000))),
+    db.select({ value: count() }).from(adEventsTable).where(and(eq(adEventsTable.trustStatus, "trusted"), gte(adEventsTable.occurredAt, new Date(Date.now() - 24 * 60 * 60 * 1000)))),
     db.select().from(advertisingAuditLogsTable).orderBy(desc(advertisingAuditLogsTable.createdAt)).limit(20),
+    db.select({ value: count() }).from(adFraudFlagsTable).where(eq(adFraudFlagsTable.status, "open")),
   ]);
-  res.json(v.GetAdminAdvertisingOverviewResponse.parse({ advertiserCount: advertisers[0]?.value ?? 0, campaignCount: campaigns[0]?.value ?? 0, activeAdvertisementCount: active[0]?.value ?? 0, eventCount: events[0]?.value ?? 0, series: [], activity: activity.map(auditPayload), billingIntegrationAvailable: getBillingProvider() !== null }));
+  res.json(v.GetAdminAdvertisingOverviewResponse.parse({ advertiserCount: advertisers[0]?.value ?? 0, campaignCount: campaigns[0]?.value ?? 0, activeAdvertisementCount: active[0]?.value ?? 0, eventCount: events[0]?.value ?? 0, openFraudCount: fraud[0]?.value ?? 0, series: [], activity: activity.map(auditPayload), billingIntegrationAvailable: getBillingProvider() !== null }));
 });
 
 router.get("/admin/advertising/advertisers", async (req, res): Promise<void> => {
@@ -407,6 +480,73 @@ router.get("/admin/advertising/audit", async (req, res): Promise<void> => {
   const rows = await db.select().from(advertisingAuditLogsTable).orderBy(desc(advertisingAuditLogsTable.createdAt));
   res.json(v.ListAdminAdvertisingAuditResponse.parse(page(rows.map(auditPayload), parsed.data.page, parsed.data.limit)));
 });
+router.get("/admin/advertising/fraud", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const parsed = v.ListAdminAdvertisingFraudQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
+  const rows = await fraudPayloads();
+  const filtered = rows.filter((row) =>
+    (!parsed.data.status || parsed.data.status === "all" || row.status === parsed.data.status)
+    && (!parsed.data.severity || parsed.data.severity === "all" || row.severity === parsed.data.severity));
+  const openCount = rows.filter((row) => row.status === "open" || row.status === "in_review").length;
+  res.json(v.ListAdminAdvertisingFraudResponse.parse({ ...page(filtered, parsed.data.page, parsed.data.limit), openCount }));
+});
+router.patch("/admin/advertising/fraud/:id/review", async (req, res): Promise<void> => {
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const params = v.ReviewAdminAdvertisingFraudParams.safeParse(req.params);
+  const body = v.ReviewAdminAdvertisingFraudBody.safeParse(req.body);
+  if (!params.success || !body.success || (["resolved", "dismissed"].includes(body.data.status) && !body.data.note?.trim())) {
+    return void res.status(400).json({ error: "A valid review status and note are required." });
+  }
+  const row = await db.transaction(async (tx) => {
+    const [updated] = await tx.update(adFraudFlagsTable).set({
+      status: body.data.status, reviewerClerkId: actor, reviewedAt: now(), reviewNote: body.data.note?.trim() || null, updatedAt: now(),
+    }).where(eq(adFraudFlagsTable.id, params.data.id)).returning();
+    if (!updated) return null;
+    await tx.insert(adFraudAuditLogsTable).values({
+      fraudFlagId: updated.id, action: `review_${body.data.status}`, actorClerkId: actor, note: body.data.note?.trim() || null,
+    });
+    await tx.insert(advertisingAuditLogsTable).values({
+      actorClerkId: actor, action: "fraud_review_updated", entityType: "fraud_flag", entityId: updated.id,
+      reason: body.data.note?.trim() || null, details: { status: body.data.status },
+    });
+    return updated;
+  });
+  if (!row) return void res.status(404).json({ error: "Fraud flag not found." });
+  const updated = (await fraudPayloads()).find((item) => item.id === row.id);
+  res.json(v.ReviewAdminAdvertisingFraudResponse.parse(updated));
+});
+router.get("/admin/advertising/reports", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const parsed = v.ListAdminAdvertisingReportsQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
+  const rows = await db.select({ report: adReportsTable, campaign: campaignsTable, advertiser: advertisersTable })
+    .from(adReportsTable)
+    .innerJoin(campaignsTable, eq(adReportsTable.campaignId, campaignsTable.id))
+    .innerJoin(advertisersTable, eq(campaignsTable.advertiserId, advertisersTable.id))
+    .orderBy(desc(adReportsTable.reportDate));
+  const reports = rows.filter(({ campaign }) => !parsed.data.campaignId || campaign.id === parsed.data.campaignId).map(({ report, campaign, advertiser }) => ({
+    id: report.id, campaignId: campaign.id, campaignName: campaign.name, advertiserName: advertiser.name,
+    reportDate: report.reportDate.toISOString(), metrics: object(report.metrics), createdAt: report.createdAt.toISOString(),
+  }));
+  res.json(v.ListAdminAdvertisingReportsResponse.parse(page(reports, parsed.data.page, parsed.data.limit)));
+});
+router.get("/admin/advertising/notifications", async (req, res): Promise<void> => {
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const parsed = v.ListAdminAdvertisingNotificationsQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
+  const rows = await db.select().from(adFraudNotificationsTable).orderBy(desc(adFraudNotificationsTable.createdAt));
+  const visible = rows.filter((row) => (!row.adminClerkId || row.adminClerkId === actor));
+  const unreadCount = visible.filter((row) => !row.read).length;
+  const filtered = (parsed.data.unreadOnly ? visible.filter((row) => !row.read) : visible).slice(0, parsed.data.limit);
+  res.json(v.ListAdminAdvertisingNotificationsResponse.parse({ items: filtered.map(notificationPayload), unreadCount }));
+});
+router.patch("/admin/advertising/notifications/:id/read", async (req, res): Promise<void> => {
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const params = v.MarkAdminAdvertisingNotificationReadParams.safeParse(req.params);
+  if (!params.success) return void res.status(400).json({ error: "Invalid notification." });
+  const [current] = await db.select().from(adFraudNotificationsTable).where(eq(adFraudNotificationsTable.id, params.data.id)).limit(1);
+  if (!current || (current.adminClerkId && current.adminClerkId !== actor)) return void res.status(404).json({ error: "Notification not found." });
+  const [row] = await db.update(adFraudNotificationsTable).set({ read: true }).where(eq(adFraudNotificationsTable.id, current.id)).returning();
+  res.json(v.MarkAdminAdvertisingNotificationReadResponse.parse(notificationPayload(row)));
+});
 
 router.get("/admin/advertising/billing", async (req, res): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
@@ -485,36 +625,103 @@ router.post("/advertising/events", async (req, res): Promise<void> => {
   if (!ad || !campaign || !advertiser || ad.status !== "active" || campaign.status !== "active" || advertiser.status !== "active" || (group && group.status !== "active") || ad.placement !== body.data.placement || !isScheduled || !config.enabled || config.emergencyShutdown || object(config.featureFlags).advertisingEnabled === false || object(config.placementSettings)[body.data.placement] === false) return void res.status(404).json({ error: "Eligible advertisement not found." });
   const [issued] = await db.select({ id: adEventsTable.id }).from(adEventsTable).where(and(eq(adEventsTable.deliveryTokenId, token.tokenId), eq(adEventsTable.eventType, "delivery"))).limit(1);
   if (!issued) return void res.status(400).json({ error: "Delivery proof was not issued by this server." });
+  const requestSourceHash = sourceHash(req);
   if (body.data.eventType !== "impression") {
-    const [impression] = await db.select({ id: adEventsTable.id }).from(adEventsTable).where(and(eq(adEventsTable.deliveryTokenId, token.tokenId), eq(adEventsTable.eventType, "impression"))).limit(1);
-    if (!impression) return void res.status(409).json({ error: "An accepted impression is required before this event." });
+    const [impression] = await db.select({ id: adEventsTable.id }).from(adEventsTable).where(and(eq(adEventsTable.deliveryTokenId, token.tokenId), eq(adEventsTable.eventType, "impression"), eq(adEventsTable.trustStatus, "trusted"))).limit(1);
+    if (requiresTrustedImpression(body.data.eventType, Boolean(impression))) {
+      await db.transaction(async (tx) => {
+        const rows = await tx.insert(adEventsTable).values({
+          advertisementId: ad.id, eventType: body.data.eventType, placement: body.data.placement,
+          sessionId: body.data.sessionId, deliveryTokenId: token.tokenId, trustStatus: "flagged",
+          sourceHash: requestSourceHash, destinationUrl: ad.destinationUrl,
+        }).onConflictDoNothing().returning({ id: adEventsTable.id });
+        if (rows[0]) {
+          await createFraudFlag(tx, {
+            eventId: rows[0].id, advertisementId: ad.id, reason: "invalid_sequence", severity: "critical",
+            details: { eventType: body.data.eventType, requiredPredecessor: "impression", deliveryTokenId: token.tokenId },
+          });
+        }
+      });
+      return void res.status(409).json({ error: "An accepted impression is required before this event." });
+    }
   }
   const result = await db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${campaign.id}))`);
     const [duplicate] = await tx.select({ id: adEventsTable.id }).from(adEventsTable).where(and(eq(adEventsTable.deliveryTokenId, token.tokenId), eq(adEventsTable.eventType, body.data.eventType))).limit(1);
-    if (duplicate) return { rows: [], rejection: null };
+    if (isDuplicateEvent(duplicate?.id)) return { rows: [], rejection: null };
     if (body.data.eventType === "impression" && body.data.sessionId) {
       if (ad.frequencyCap) {
-        const [seen] = await tx.select({ value: count() }).from(adEventsTable).where(and(eq(adEventsTable.advertisementId, ad.id), eq(adEventsTable.sessionId, body.data.sessionId), eq(adEventsTable.eventType, "impression")));
-        if ((seen?.value ?? 0) >= ad.frequencyCap) return { rows: [], rejection: "Advertisement frequency limit reached." };
+        const [seen] = await tx.select({ value: count() }).from(adEventsTable).where(and(eq(adEventsTable.advertisementId, ad.id), eq(adEventsTable.sessionId, body.data.sessionId), eq(adEventsTable.eventType, "impression"), eq(adEventsTable.trustStatus, "trusted")));
+        const rejection = frequencyCapRejection({ adImpressions: Number(seen?.value ?? 0), adCap: ad.frequencyCap, groupImpressions: 0, groupCap: null });
+        if (rejection) return { rows: [], rejection };
       }
       if (group?.frequencyCap) {
-        const [seen] = await tx.select({ value: count() }).from(adEventsTable).innerJoin(advertisementsTable, eq(adEventsTable.advertisementId, advertisementsTable.id)).where(and(eq(advertisementsTable.adGroupId, group.id), eq(adEventsTable.sessionId, body.data.sessionId), eq(adEventsTable.eventType, "impression")));
-        if ((seen?.value ?? 0) >= group.frequencyCap) return { rows: [], rejection: "Ad group frequency limit reached." };
+        const [seen] = await tx.select({ value: count() }).from(adEventsTable).innerJoin(advertisementsTable, eq(adEventsTable.advertisementId, advertisementsTable.id)).where(and(eq(advertisementsTable.adGroupId, group.id), eq(adEventsTable.sessionId, body.data.sessionId), eq(adEventsTable.eventType, "impression"), eq(adEventsTable.trustStatus, "trusted")));
+        const rejection = frequencyCapRejection({ adImpressions: 0, adCap: null, groupImpressions: Number(seen?.value ?? 0), groupCap: group.frequencyCap });
+        if (rejection) return { rows: [], rejection };
       }
     }
+    const minuteAgo = new Date(Date.now() - 60_000);
+    const [sessionVelocity] = await tx.select({ value: count() }).from(adEventsTable).where(and(
+      eq(adEventsTable.sessionId, body.data.sessionId), eq(adEventsTable.trustStatus, "trusted"), gte(adEventsTable.occurredAt, minuteAgo),
+    ));
+    let sourceVelocityCount = 0;
+    if (requestSourceHash) {
+      const [sourceVelocity] = await tx.select({ value: count() }).from(adEventsTable).where(and(
+        eq(adEventsTable.sourceHash, requestSourceHash), eq(adEventsTable.trustStatus, "trusted"), gte(adEventsTable.occurredAt, minuteAgo),
+      ));
+      sourceVelocityCount = Number(sourceVelocity?.value ?? 0);
+    }
+    const velocityCount = Math.max(Number(sessionVelocity?.value ?? 0), sourceVelocityCount) + 1;
+    let repeatedDestinationClicks = 0;
+    let impressionCount = 0;
+    let clickCount = 0;
+    if (body.data.eventType === "click" && requestSourceHash && ad.destinationUrl) {
+      const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      const [repeated] = await tx.select({ value: count() }).from(adEventsTable).where(and(
+        eq(adEventsTable.eventType, "click"), eq(adEventsTable.trustStatus, "trusted"),
+        eq(adEventsTable.sourceHash, requestSourceHash), eq(adEventsTable.destinationUrl, ad.destinationUrl),
+        gte(adEventsTable.occurredAt, hourAgo),
+      ));
+      repeatedDestinationClicks = Number(repeated?.value ?? 0) + 1;
+      const [[impressions], [clicks]] = await Promise.all([
+        tx.select({ value: count() }).from(adEventsTable).where(and(eq(adEventsTable.advertisementId, ad.id), eq(adEventsTable.eventType, "impression"), eq(adEventsTable.trustStatus, "trusted"))),
+        tx.select({ value: count() }).from(adEventsTable).where(and(eq(adEventsTable.advertisementId, ad.id), eq(adEventsTable.eventType, "click"), eq(adEventsTable.trustStatus, "trusted"))),
+      ]);
+      impressionCount = Number(impressions?.value ?? 0);
+      clickCount = Number(clicks?.value ?? 0) + 1;
+    }
+    const fraud = detectFraudRules({
+      velocityCount, repeatedDestinationClicks, impressions: impressionCount, clicks: clickCount, isClick: body.data.eventType === "click",
+    });
+    const reasons = fraud.reasons;
+    const fraudDetails = fraud.details;
     const [lockedCampaign] = await tx.select().from(campaignsTable).where(eq(campaignsTable.id, campaign.id)).limit(1);
-    const charge = eventCharge(lockedCampaign.pricingModel, lockedCampaign.bidAmount, body.data.eventType);
+    const charge = reasons.length === 0 ? eventCharge(lockedCampaign.pricingModel, lockedCampaign.bidAmount, body.data.eventType) : 0;
     if (charge > 0) {
       const dayStart = new Date(); dayStart.setUTCHours(0, 0, 0, 0);
       const [daily] = await tx.select({ value: sql<number>`coalesce(sum(${adSpendLedgerTable.amount}), 0)` }).from(adSpendLedgerTable).where(and(eq(adSpendLedgerTable.campaignId, campaign.id), gte(adSpendLedgerTable.occurredAt, dayStart)));
       if (lockedCampaign.totalBudget !== null && Number(lockedCampaign.spentAmount) + charge > Number(lockedCampaign.totalBudget)) return { rows: [], rejection: "Campaign total budget reached." };
       if (lockedCampaign.dailyBudget !== null && Number(daily?.value ?? 0) + charge > Number(lockedCampaign.dailyBudget)) return { rows: [], rejection: "Campaign daily budget reached." };
     }
-    const rows = await tx.insert(adEventsTable).values({ advertisementId: ad.id, eventType: body.data.eventType, placement: body.data.placement, sessionId: body.data.sessionId, deliveryTokenId: token.tokenId }).onConflictDoNothing().returning({ id: adEventsTable.id });
-    if (charge > 0) {
+    const rows = await tx.insert(adEventsTable).values({
+      advertisementId: ad.id, eventType: body.data.eventType, placement: body.data.placement,
+      sessionId: body.data.sessionId, deliveryTokenId: token.tokenId,
+      trustStatus: reasons.length ? "flagged" : "trusted", sourceHash: requestSourceHash, destinationUrl: ad.destinationUrl,
+    }).onConflictDoNothing().returning({ id: adEventsTable.id });
+    if (!rows[0]) return { rows, rejection: null };
+    if (reasons.length) {
+      await createFraudFlag(tx, {
+        eventId: rows[0].id, advertisementId: ad.id, reason: reasons.join(","),
+        severity: severityForFraud(reasons), details: fraudDetails,
+      });
+    } else if (charge > 0) {
       await tx.insert(adSpendLedgerTable).values({ campaignId: campaign.id, advertisementId: ad.id, eventId: rows[0].id, pricingModel: lockedCampaign.pricingModel, billableEvent: body.data.eventType, bidAmount: lockedCampaign.bidAmount ?? "0", amount: charge.toFixed(4) });
       await tx.update(campaignsTable).set({ spentAmount: sql`${campaignsTable.spentAmount} + ${charge.toFixed(4)}`, updatedAt: now() }).where(eq(campaignsTable.id, campaign.id));
+    }
+    if (!reasons.length) {
+      const reportDate = new Date(); reportDate.setUTCHours(0, 0, 0, 0);
+      await updateTrustedReport(tx, campaign.id, reportDate);
     }
     return { rows, rejection: null };
   });

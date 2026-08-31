@@ -15,6 +15,7 @@ import { isSuspended } from "./lib/admin-auth";
 import { handleAdvertisingBillingWebhook } from "./lib/ad-billing";
 
 const app: Express = express();
+app.set("trust proxy", 1);
 
 app.use(
   pinoHttp({

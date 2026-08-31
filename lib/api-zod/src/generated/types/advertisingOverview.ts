@@ -13,6 +13,7 @@ export interface AdvertisingOverview {
   campaignCount: number;
   activeAdvertisementCount: number;
   eventCount: number;
+  openFraudCount: number;
   series: AdvertisingOverviewSeriesItem[];
   activity: AdvertisingAudit[];
   billingIntegrationAvailable: boolean;

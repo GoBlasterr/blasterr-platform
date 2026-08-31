@@ -50,6 +50,9 @@ import CreativesPage from '@/pages/advertising/creatives';
 import TargetingPage from '@/pages/advertising/targeting';
 import BudgetsPage from '@/pages/advertising/budgets';
 import PromotionsPage from '@/pages/advertising/promotions';
+import AdvertisingFraudPage from '@/pages/advertising/fraud';
+import AdvertisingReportsPage from '@/pages/advertising/ad-reports';
+import AdvertisingNotificationsPage from '@/pages/advertising/notifications';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -95,8 +98,9 @@ function AdminRouter() {
           <Route path="/advertising/revenue" component={AdvertisingRevenuePage} />
           
           <Route path="/advertising/analytics" component={() => <IntegrationRequired moduleName="Advertising Analytics" />} />
-          <Route path="/advertising/reports" component={() => <IntegrationRequired moduleName="Advertising Reports" />} />
-          <Route path="/advertising/fraud" component={() => <IntegrationRequired moduleName="Click Fraud Detection" />} />
+          <Route path="/advertising/reports" component={AdvertisingReportsPage} />
+          <Route path="/advertising/fraud" component={AdvertisingFraudPage} />
+          <Route path="/advertising/notifications" component={AdvertisingNotificationsPage} />
 
           {/* Core App Routes */}
           <Route path="/users" component={UsersPage} />
@@ -347,13 +351,12 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 
 function App() {
   const { isSignedIn } = useAuth();
-  const isDevelopment = import.meta.env.DEV;
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          {isSignedIn || isDevelopment ? <AuthenticatedRouter /> : <SignedOutRouter />}
+          {isSignedIn ? <AuthenticatedRouter /> : <SignedOutRouter />}
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

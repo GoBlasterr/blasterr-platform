@@ -19,12 +19,17 @@ test("all durable admin tables are present after schema application", {
   skip: process.env.RUN_DATABASE_INTEGRATION_TESTS !== "true",
 }, async () => {
   const supabaseDatabaseUrl = process.env.SUPABASE_DATABASE_URL;
-  assert.match(
-    supabaseDatabaseUrl ?? "",
-    /^postgres(?:ql)?:\/\//i,
-    "SUPABASE_DATABASE_URL is required for the schema integration test",
-  );
-  const pool = new Pool({ connectionString: supabaseDatabaseUrl, max: 1 });
+  const useSupabaseDatabase = process.env.USE_SUPABASE_DATABASE === "true";
+  const validSupabaseDatabaseUrl =
+    supabaseDatabaseUrl && /^postgres(?:ql)?:\/\//i.test(supabaseDatabaseUrl)
+      ? supabaseDatabaseUrl
+      : undefined;
+  const databaseUrl =
+    useSupabaseDatabase
+      ? validSupabaseDatabaseUrl
+      : process.env.DATABASE_URL ?? validSupabaseDatabaseUrl;
+  assert.ok(databaseUrl, "SUPABASE_DATABASE_URL or DATABASE_URL is required for the schema integration test");
+  const pool = new Pool({ connectionString: databaseUrl, max: 1 });
   try {
     const { rows } = await pool.query(
       `SELECT tablename
@@ -59,12 +64,17 @@ test("moderation reports and their audit history persist in PostgreSQL", {
   skip: process.env.RUN_DATABASE_INTEGRATION_TESTS !== "true",
 }, async () => {
   const supabaseDatabaseUrl = process.env.SUPABASE_DATABASE_URL;
-  assert.match(
-    supabaseDatabaseUrl ?? "",
-    /^postgres(?:ql)?:\/\//i,
-    "SUPABASE_DATABASE_URL is required for the persistence integration test",
-  );
-  const pool = new Pool({ connectionString: supabaseDatabaseUrl, max: 1 });
+  const useSupabaseDatabase = process.env.USE_SUPABASE_DATABASE === "true";
+  const validSupabaseDatabaseUrl =
+    supabaseDatabaseUrl && /^postgres(?:ql)?:\/\//i.test(supabaseDatabaseUrl)
+      ? supabaseDatabaseUrl
+      : undefined;
+  const databaseUrl =
+    useSupabaseDatabase
+      ? validSupabaseDatabaseUrl
+      : process.env.DATABASE_URL ?? validSupabaseDatabaseUrl;
+  assert.ok(databaseUrl, "SUPABASE_DATABASE_URL or DATABASE_URL is required for the persistence integration test");
+  const pool = new Pool({ connectionString: databaseUrl, max: 1 });
   const client = await pool.connect();
   const suffix = crypto.randomUUID();
   const reportId = `test-report-${suffix}`;

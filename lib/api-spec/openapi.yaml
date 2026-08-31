@@ -1065,6 +1065,76 @@ paths:
       tags: [admin, advertising]
       parameters: [{ $ref: "#/components/parameters/Page" }, { $ref: "#/components/parameters/Limit" }]
       responses: { "200": { description: Audit history, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingAuditPage" } } } } }
+  /admin/advertising/fraud:
+    get:
+      operationId: listAdminAdvertisingFraud
+      tags: [admin, advertising]
+      summary: List suspicious advertising events
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+        - { name: status, in: query, schema: { type: string, enum: [all, open, in_review, resolved, dismissed] } }
+        - { name: severity, in: query, schema: { type: string, enum: [all, low, medium, high, critical] } }
+      responses:
+        "200": { description: Suspicious event queue, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingFraudPage" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/advertising/fraud/{id}/review:
+    patch:
+      operationId: reviewAdminAdvertisingFraud
+      tags: [admin, advertising]
+      summary: Update a suspicious event review
+      security: [{ clerkSession: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingFraudReview" } } }
+      responses:
+        "200": { description: Updated fraud flag, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingFraudFlag" } } } }
+        "400": { description: Invalid review }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Fraud flag not found }
+  /admin/advertising/reports:
+    get:
+      operationId: listAdminAdvertisingReports
+      tags: [admin, advertising]
+      summary: List trusted advertising report snapshots
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+        - { name: campaignId, in: query, schema: { type: string } }
+      responses:
+        "200": { description: Trusted ad reports, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingReportPage" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/advertising/notifications:
+    get:
+      operationId: listAdminAdvertisingNotifications
+      tags: [admin, advertising]
+      summary: List advertising fraud notifications
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { name: unreadOnly, in: query, schema: { type: boolean, default: false } }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200": { description: Fraud notifications, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingNotificationPage" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/advertising/notifications/{id}/read:
+    patch:
+      operationId: markAdminAdvertisingNotificationRead
+      tags: [admin, advertising]
+      summary: Mark an advertising notification as read
+      security: [{ clerkSession: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Updated notification, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingNotification" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Notification not found }
   /admin/advertising/billing:
     get:
       operationId: getAdminAdvertisingBilling
@@ -1853,6 +1923,66 @@ components:
         placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] }
         sessionId: { type: string, minLength: 12, maxLength: 200 }
         deliveryToken: { type: string, minLength: 20, maxLength: 2000 }
+    AdvertisingFraudAudit:
+      type: object
+      required: [id, action, actorClerkId, note, createdAt]
+      properties:
+        id: { type: string }
+        action: { type: string }
+        actorClerkId: { type: string }
+        note: { type: [string, "null"] }
+        createdAt: { type: string }
+    AdvertisingFraudFlag:
+      type: object
+      required: [id, eventId, advertisementId, campaignId, advertiserName, eventType, destinationUrl, sessionId, sourceHash, status, severity, reason, details, reviewerClerkId, reviewedAt, reviewNote, createdAt, updatedAt, auditHistory]
+      properties:
+        id: { type: string }
+        eventId: { type: [string, "null"] }
+        advertisementId: { type: string }
+        campaignId: { type: string }
+        advertiserName: { type: string }
+        eventType: { type: [string, "null"] }
+        destinationUrl: { type: [string, "null"] }
+        sessionId: { type: [string, "null"] }
+        sourceHash: { type: [string, "null"] }
+        status: { type: string, enum: [open, in_review, resolved, dismissed] }
+        severity: { type: string, enum: [low, medium, high, critical] }
+        reason: { type: string }
+        details: { type: object, additionalProperties: true }
+        reviewerClerkId: { type: [string, "null"] }
+        reviewedAt: { type: [string, "null"] }
+        reviewNote: { type: [string, "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+        auditHistory: { type: array, items: { $ref: "#/components/schemas/AdvertisingFraudAudit" } }
+    AdvertisingFraudReview:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [open, in_review, resolved, dismissed] }
+        note: { type: string, maxLength: 1000 }
+    AdvertisingReport:
+      type: object
+      required: [id, campaignId, campaignName, advertiserName, reportDate, metrics, createdAt]
+      properties:
+        id: { type: string }
+        campaignId: { type: string }
+        campaignName: { type: string }
+        advertiserName: { type: string }
+        reportDate: { type: string }
+        metrics: { type: object, additionalProperties: true }
+        createdAt: { type: string }
+    AdvertisingNotification:
+      type: object
+      required: [id, fraudFlagId, severity, title, message, read, createdAt]
+      properties:
+        id: { type: string }
+        fraudFlagId: { type: [string, "null"] }
+        severity: { type: string, enum: [low, medium, high, critical] }
+        title: { type: string }
+        message: { type: string }
+        read: { type: boolean }
+        createdAt: { type: string }
     AdvertisingSettings:
       type: object
       required: [enabled, emergencyShutdown, placementSettings, frequencySettings, featureFlags, billingIntegrationAvailable, updatedAt]
@@ -1913,14 +2043,27 @@ components:
       type: object
       required: [items, page, limit, total, hasMore]
       properties: { items: { type: array, items: { $ref: "#/components/schemas/AdvertisingAudit" } }, page: { type: number }, limit: { type: number }, total: { type: number }, hasMore: { type: boolean } }
+    AdvertisingFraudPage:
+      type: object
+      required: [items, page, limit, total, hasMore, openCount]
+      properties: { items: { type: array, items: { $ref: "#/components/schemas/AdvertisingFraudFlag" } }, page: { type: number }, limit: { type: number }, total: { type: number }, hasMore: { type: boolean }, openCount: { type: number } }
+    AdvertisingReportPage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties: { items: { type: array, items: { $ref: "#/components/schemas/AdvertisingReport" } }, page: { type: number }, limit: { type: number }, total: { type: number }, hasMore: { type: boolean } }
+    AdvertisingNotificationPage:
+      type: object
+      required: [items, unreadCount]
+      properties: { items: { type: array, items: { $ref: "#/components/schemas/AdvertisingNotification" } }, unreadCount: { type: number } }
     AdvertisingOverview:
       type: object
-      required: [advertiserCount, campaignCount, activeAdvertisementCount, eventCount, series, activity, billingIntegrationAvailable]
+      required: [advertiserCount, campaignCount, activeAdvertisementCount, eventCount, openFraudCount, series, activity, billingIntegrationAvailable]
       properties:
         advertiserCount: { type: number }
         campaignCount: { type: number }
         activeAdvertisementCount: { type: number }
         eventCount: { type: number }
+        openFraudCount: { type: number }
         series: { type: array, items: { type: object, required: [date, impressions, clicks], properties: { date: { type: string }, impressions: { type: number }, clicks: { type: number } } } }
         activity: { type: array, items: { $ref: "#/components/schemas/AdvertisingAudit" } }
         billingIntegrationAvailable: { type: boolean }

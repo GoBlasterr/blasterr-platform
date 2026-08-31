@@ -61,7 +61,13 @@ import type {
   AdvertisingAuditPage,
   AdvertisingBillingSummary,
   AdvertisingBillingWebhookEvent,
+  AdvertisingFraudFlag,
+  AdvertisingFraudPage,
+  AdvertisingFraudReview,
+  AdvertisingNotification,
+  AdvertisingNotificationPage,
   AdvertisingOverview,
+  AdvertisingReportPage,
   AdvertisingRevenueSummary,
   AdvertisingSettings,
   AdvertisingSettingsUpdate,
@@ -101,6 +107,9 @@ import type {
   ListAdminAdvertisementsParams,
   ListAdminAdvertisersParams,
   ListAdminAdvertisingAuditParams,
+  ListAdminAdvertisingFraudParams,
+  ListAdminAdvertisingNotificationsParams,
+  ListAdminAdvertisingReportsParams,
   ListAdminAdvertisingTransactionsParams,
   ListAdminCampaignsParams,
   ListAdminCreativesParams,
@@ -5862,6 +5871,401 @@ export function useListAdminAdvertisingAudit<TData = Awaited<ReturnType<typeof l
 
 
 
+
+export const getListAdminAdvertisingFraudUrl = (params?: ListAdminAdvertisingFraudParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/advertising/fraud?${stringifiedParams}` : `/api/admin/advertising/fraud`
+}
+
+/**
+ * @summary List suspicious advertising events
+ */
+export const listAdminAdvertisingFraud = async (params?: ListAdminAdvertisingFraudParams, options?: Parameters<typeof customFetch>[1]): Promise<AdvertisingFraudPage> => {
+
+  return customFetch<AdvertisingFraudPage>(getListAdminAdvertisingFraudUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminAdvertisingFraudQueryKey = (params?: ListAdminAdvertisingFraudParams,) => {
+    return [
+    `/api/admin/advertising/fraud`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminAdvertisingFraudQueryOptions = <TData = Awaited<ReturnType<typeof listAdminAdvertisingFraud>>, TError = ErrorType<void>>(params?: ListAdminAdvertisingFraudParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingFraud>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminAdvertisingFraudQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminAdvertisingFraud>>> = ({ signal }) => listAdminAdvertisingFraud(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingFraud>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminAdvertisingFraudQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminAdvertisingFraud>>>
+export type ListAdminAdvertisingFraudQueryError = ErrorType<void>
+
+
+/**
+ * @summary List suspicious advertising events
+ */
+
+export function useListAdminAdvertisingFraud<TData = Awaited<ReturnType<typeof listAdminAdvertisingFraud>>, TError = ErrorType<void>>(
+ params?: ListAdminAdvertisingFraudParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingFraud>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminAdvertisingFraudQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReviewAdminAdvertisingFraudUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/advertising/fraud/${id}/review`
+}
+
+/**
+ * @summary Update a suspicious event review
+ */
+export const reviewAdminAdvertisingFraud = async (id: string,
+    advertisingFraudReview: AdvertisingFraudReview, options?: Parameters<typeof customFetch>[1]): Promise<AdvertisingFraudFlag> => {
+
+  return customFetch<AdvertisingFraudFlag>(getReviewAdminAdvertisingFraudUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(advertisingFraudReview)
+  }
+);}
+
+
+
+
+
+export const getReviewAdminAdvertisingFraudMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdminAdvertisingFraud>>, TError,{id: string;data: BodyType<AdvertisingFraudReview>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewAdminAdvertisingFraud>>, TError,{id: string;data: BodyType<AdvertisingFraudReview>}, TContext> => {
+
+const mutationKey = ['reviewAdminAdvertisingFraud'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewAdminAdvertisingFraud>>, {id: string;data: BodyType<AdvertisingFraudReview>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reviewAdminAdvertisingFraud(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewAdminAdvertisingFraudMutationResult = NonNullable<Awaited<ReturnType<typeof reviewAdminAdvertisingFraud>>>
+    export type ReviewAdminAdvertisingFraudMutationBody = BodyType<AdvertisingFraudReview>
+    export type ReviewAdminAdvertisingFraudMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a suspicious event review
+ */
+export const useReviewAdminAdvertisingFraud = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdminAdvertisingFraud>>, TError,{id: string;data: BodyType<AdvertisingFraudReview>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reviewAdminAdvertisingFraud>>,
+        TError,
+        {id: string;data: BodyType<AdvertisingFraudReview>},
+        TContext
+      > => {
+      return useMutation(getReviewAdminAdvertisingFraudMutationOptions(options));
+    }
+
+export const getListAdminAdvertisingReportsUrl = (params?: ListAdminAdvertisingReportsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/advertising/reports?${stringifiedParams}` : `/api/admin/advertising/reports`
+}
+
+/**
+ * @summary List trusted advertising report snapshots
+ */
+export const listAdminAdvertisingReports = async (params?: ListAdminAdvertisingReportsParams, options?: Parameters<typeof customFetch>[1]): Promise<AdvertisingReportPage> => {
+
+  return customFetch<AdvertisingReportPage>(getListAdminAdvertisingReportsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminAdvertisingReportsQueryKey = (params?: ListAdminAdvertisingReportsParams,) => {
+    return [
+    `/api/admin/advertising/reports`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminAdvertisingReportsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminAdvertisingReports>>, TError = ErrorType<void>>(params?: ListAdminAdvertisingReportsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminAdvertisingReportsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminAdvertisingReports>>> = ({ signal }) => listAdminAdvertisingReports(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingReports>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminAdvertisingReportsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminAdvertisingReports>>>
+export type ListAdminAdvertisingReportsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List trusted advertising report snapshots
+ */
+
+export function useListAdminAdvertisingReports<TData = Awaited<ReturnType<typeof listAdminAdvertisingReports>>, TError = ErrorType<void>>(
+ params?: ListAdminAdvertisingReportsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminAdvertisingReportsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListAdminAdvertisingNotificationsUrl = (params?: ListAdminAdvertisingNotificationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/advertising/notifications?${stringifiedParams}` : `/api/admin/advertising/notifications`
+}
+
+/**
+ * @summary List advertising fraud notifications
+ */
+export const listAdminAdvertisingNotifications = async (params?: ListAdminAdvertisingNotificationsParams, options?: Parameters<typeof customFetch>[1]): Promise<AdvertisingNotificationPage> => {
+
+  return customFetch<AdvertisingNotificationPage>(getListAdminAdvertisingNotificationsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminAdvertisingNotificationsQueryKey = (params?: ListAdminAdvertisingNotificationsParams,) => {
+    return [
+    `/api/admin/advertising/notifications`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminAdvertisingNotificationsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminAdvertisingNotifications>>, TError = ErrorType<void>>(params?: ListAdminAdvertisingNotificationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingNotifications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminAdvertisingNotificationsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminAdvertisingNotifications>>> = ({ signal }) => listAdminAdvertisingNotifications(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingNotifications>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminAdvertisingNotificationsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminAdvertisingNotifications>>>
+export type ListAdminAdvertisingNotificationsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List advertising fraud notifications
+ */
+
+export function useListAdminAdvertisingNotifications<TData = Awaited<ReturnType<typeof listAdminAdvertisingNotifications>>, TError = ErrorType<void>>(
+ params?: ListAdminAdvertisingNotificationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingNotifications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminAdvertisingNotificationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMarkAdminAdvertisingNotificationReadUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/advertising/notifications/${id}/read`
+}
+
+/**
+ * @summary Mark an advertising notification as read
+ */
+export const markAdminAdvertisingNotificationRead = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<AdvertisingNotification> => {
+
+  return customFetch<AdvertisingNotification>(getMarkAdminAdvertisingNotificationReadUrl(id),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+
+export const getMarkAdminAdvertisingNotificationReadMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markAdminAdvertisingNotificationRead>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markAdminAdvertisingNotificationRead>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['markAdminAdvertisingNotificationRead'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markAdminAdvertisingNotificationRead>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  markAdminAdvertisingNotificationRead(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkAdminAdvertisingNotificationReadMutationResult = NonNullable<Awaited<ReturnType<typeof markAdminAdvertisingNotificationRead>>>
+
+    export type MarkAdminAdvertisingNotificationReadMutationError = ErrorType<void>
+
+    /**
+ * @summary Mark an advertising notification as read
+ */
+export const useMarkAdminAdvertisingNotificationRead = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markAdminAdvertisingNotificationRead>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof markAdminAdvertisingNotificationRead>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getMarkAdminAdvertisingNotificationReadMutationOptions(options));
+    }
 
 export const getGetAdminAdvertisingBillingUrl = () => {
 

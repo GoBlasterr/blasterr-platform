@@ -2395,6 +2395,7 @@ export const GetAdminAdvertisingOverviewResponse = zod.object({
   "campaignCount": zod.number(),
   "activeAdvertisementCount": zod.number(),
   "eventCount": zod.number(),
+  "openFraudCount": zod.number(),
   "series": zod.array(zod.object({
   "date": zod.string(),
   "impressions": zod.number(),
@@ -3669,6 +3670,183 @@ export const ListAdminAdvertisingAuditResponse = zod.object({
   "limit": zod.number(),
   "total": zod.number(),
   "hasMore": zod.boolean()
+})
+
+
+/**
+ * @summary List suspicious advertising events
+ */
+export const listAdminAdvertisingFraudQueryPageDefault = 1;
+
+export const listAdminAdvertisingFraudQueryLimitDefault = 25;
+export const listAdminAdvertisingFraudQueryLimitMax = 100;
+
+
+
+export const ListAdminAdvertisingFraudQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminAdvertisingFraudQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminAdvertisingFraudQueryLimitMax).default(listAdminAdvertisingFraudQueryLimitDefault),
+  "status": zod.enum(['all', 'open', 'in_review', 'resolved', 'dismissed']).optional(),
+  "severity": zod.enum(['all', 'low', 'medium', 'high', 'critical']).optional()
+})
+
+export const ListAdminAdvertisingFraudResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "eventId": zod.string().nullable(),
+  "advertisementId": zod.string(),
+  "campaignId": zod.string(),
+  "advertiserName": zod.string(),
+  "eventType": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "sessionId": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "status": zod.enum(['open', 'in_review', 'resolved', 'dismissed']),
+  "severity": zod.enum(['low', 'medium', 'high', 'critical']),
+  "reason": zod.string(),
+  "details": zod.record(zod.string(), zod.unknown()),
+  "reviewerClerkId": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewNote": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "auditHistory": zod.array(zod.object({
+  "id": zod.string(),
+  "action": zod.string(),
+  "actorClerkId": zod.string(),
+  "note": zod.string().nullable(),
+  "createdAt": zod.string()
+}))
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean(),
+  "openCount": zod.number()
+})
+
+
+/**
+ * @summary Update a suspicious event review
+ */
+export const ReviewAdminAdvertisingFraudParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reviewAdminAdvertisingFraudBodyNoteMax = 1000;
+
+
+
+export const ReviewAdminAdvertisingFraudBody = zod.object({
+  "status": zod.enum(['open', 'in_review', 'resolved', 'dismissed']),
+  "note": zod.string().max(reviewAdminAdvertisingFraudBodyNoteMax).optional()
+})
+
+export const ReviewAdminAdvertisingFraudResponse = zod.object({
+  "id": zod.string(),
+  "eventId": zod.string().nullable(),
+  "advertisementId": zod.string(),
+  "campaignId": zod.string(),
+  "advertiserName": zod.string(),
+  "eventType": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "sessionId": zod.string().nullable(),
+  "sourceHash": zod.string().nullable(),
+  "status": zod.enum(['open', 'in_review', 'resolved', 'dismissed']),
+  "severity": zod.enum(['low', 'medium', 'high', 'critical']),
+  "reason": zod.string(),
+  "details": zod.record(zod.string(), zod.unknown()),
+  "reviewerClerkId": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewNote": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "auditHistory": zod.array(zod.object({
+  "id": zod.string(),
+  "action": zod.string(),
+  "actorClerkId": zod.string(),
+  "note": zod.string().nullable(),
+  "createdAt": zod.string()
+}))
+})
+
+
+/**
+ * @summary List trusted advertising report snapshots
+ */
+export const listAdminAdvertisingReportsQueryPageDefault = 1;
+
+export const listAdminAdvertisingReportsQueryLimitDefault = 25;
+export const listAdminAdvertisingReportsQueryLimitMax = 100;
+
+
+
+export const ListAdminAdvertisingReportsQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminAdvertisingReportsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminAdvertisingReportsQueryLimitMax).default(listAdminAdvertisingReportsQueryLimitDefault),
+  "campaignId": zod.coerce.string().optional()
+})
+
+export const ListAdminAdvertisingReportsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "campaignId": zod.string(),
+  "campaignName": zod.string(),
+  "advertiserName": zod.string(),
+  "reportDate": zod.string(),
+  "metrics": zod.record(zod.string(), zod.unknown()),
+  "createdAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+/**
+ * @summary List advertising fraud notifications
+ */
+export const listAdminAdvertisingNotificationsQueryUnreadOnlyDefault = false;
+export const listAdminAdvertisingNotificationsQueryLimitDefault = 25;
+export const listAdminAdvertisingNotificationsQueryLimitMax = 100;
+
+
+
+export const ListAdminAdvertisingNotificationsQueryParams = zod.object({
+  "unreadOnly": zod.coerce.boolean().default(listAdminAdvertisingNotificationsQueryUnreadOnlyDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminAdvertisingNotificationsQueryLimitMax).default(listAdminAdvertisingNotificationsQueryLimitDefault)
+})
+
+export const ListAdminAdvertisingNotificationsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "fraudFlagId": zod.string().nullable(),
+  "severity": zod.enum(['low', 'medium', 'high', 'critical']),
+  "title": zod.string(),
+  "message": zod.string(),
+  "read": zod.boolean(),
+  "createdAt": zod.string()
+})),
+  "unreadCount": zod.number()
+})
+
+
+/**
+ * @summary Mark an advertising notification as read
+ */
+export const MarkAdminAdvertisingNotificationReadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const MarkAdminAdvertisingNotificationReadResponse = zod.object({
+  "id": zod.string(),
+  "fraudFlagId": zod.string().nullable(),
+  "severity": zod.enum(['low', 'medium', 'high', 'critical']),
+  "title": zod.string(),
+  "message": zod.string(),
+  "read": zod.boolean(),
+  "createdAt": zod.string()
 })
 
 

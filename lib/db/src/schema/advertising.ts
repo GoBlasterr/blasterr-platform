@@ -70,10 +70,13 @@ export const adApprovalRecordsTable = pgTable("ad_approval_records", {
 export const adEventsTable = pgTable("ad_events", {
   id: id(), advertisementId: text("advertisement_id").notNull().references(() => advertisementsTable.id, { onDelete: "restrict" }),
   eventType: text("event_type").notNull(), sessionId: text("session_id"), deliveryTokenId: text("delivery_token_id"), placement: text("placement").notNull(),
+  trustStatus: text("trust_status").notNull().default("trusted"), sourceHash: text("source_hash"), destinationUrl: text("destination_url"),
   occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index("ad_events_ad_occurred_idx").on(t.advertisementId, t.occurredAt),
   index("ad_events_type_occurred_idx").on(t.eventType, t.occurredAt),
+  index("ad_events_trust_occurred_idx").on(t.trustStatus, t.occurredAt),
+  index("ad_events_source_occurred_idx").on(t.sourceHash, t.occurredAt),
   uniqueIndex("ad_events_delivery_event_unique").on(t.deliveryTokenId, t.eventType),
 ]);
 
@@ -93,13 +96,18 @@ export const adSpendLedgerTable = pgTable("ad_spend_ledger", {
 export const adReportsTable = pgTable("ad_reports", {
   id: id(), campaignId: text("campaign_id").notNull().references(() => campaignsTable.id, { onDelete: "restrict" }),
   reportDate: timestamp("report_date", { withTimezone: true }).notNull(), metrics: jsonb("metrics").notNull().default({}), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("ad_reports_campaign_date_idx").on(t.campaignId, t.reportDate)]);
+}, (t) => [index("ad_reports_campaign_date_idx").on(t.campaignId, t.reportDate), uniqueIndex("ad_reports_campaign_date_unique").on(t.campaignId, t.reportDate)]);
 
 export const adFraudFlagsTable = pgTable("ad_fraud_flags", {
   id: id(), eventId: text("event_id").references(() => adEventsTable.id, { onDelete: "set null" }), advertisementId: text("advertisement_id").notNull().references(() => advertisementsTable.id, { onDelete: "restrict" }),
-  status: text("status").notNull().default("open"), reason: text("reason").notNull(), details: jsonb("details").notNull().default({}), ...audited,
-}, (t) => [index("ad_fraud_flags_ad_status_idx").on(t.advertisementId, t.status)]);
+  status: text("status").notNull().default("open"), severity: text("severity").notNull().default("medium"), reason: text("reason").notNull(), details: jsonb("details").notNull().default({}),
+  reviewerClerkId: text("reviewer_clerk_id"), reviewedAt: timestamp("reviewed_at", { withTimezone: true }), reviewNote: text("review_note"), ...audited,
+}, (t) => [index("ad_fraud_flags_ad_status_idx").on(t.advertisementId, t.status), index("ad_fraud_flags_status_severity_idx").on(t.status, t.severity)]);
 
+export const adFraudAuditLogsTable = pgTable("ad_fraud_audit_logs", {
+  id: id(), fraudFlagId: text("fraud_flag_id").notNull().references(() => adFraudFlagsTable.id),
+  action: text("action").notNull(), actorClerkId: text("actor_clerk_id").notNull(), note: text("note"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("ad_fraud_audit_flag_created_idx").on(t.fraudFlagId, t.createdAt)]);
 export const advertisingAuditLogsTable = pgTable("advertising_audit_logs", {
   id: id(), actorClerkId: text("actor_clerk_id"), action: text("action").notNull(), entityType: text("entity_type").notNull(),
   entityId: text("entity_id"), reason: text("reason"), details: jsonb("details").notNull().default({}), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -156,3 +164,9 @@ export const advertisingSettingsTable = pgTable("advertising_settings", {
   frequencySettings: jsonb("frequency_settings").notNull().default({}), featureFlags: jsonb("feature_flags").notNull().default({}),
   updatedByClerkId: text("updated_by_clerk_id"), ...audited,
 });
+
+export const adFraudNotificationsTable = pgTable("ad_fraud_notifications", {
+  id: id(), fraudFlagId: text("fraud_flag_id").references(() => adFraudFlagsTable.id),
+  adminClerkId: text("admin_clerk_id"), severity: text("severity").notNull(), title: text("title").notNull(), message: text("message").notNull(),
+  read: boolean("read").notNull().default(false), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("ad_fraud_notifications_admin_read_idx").on(t.adminClerkId, t.read, t.createdAt), index("ad_fraud_notifications_flag_idx").on(t.fraudFlagId)]);
