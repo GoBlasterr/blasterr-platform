@@ -12,6 +12,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1121.0",
+    "@aws-sdk/s3-request-presigner": "^3.1121.0",
     "@clerk/express": "^2.1.64",
     "@clerk/shared": "^4.30.2",
     "@workspace/api-zod": "workspace:*",
