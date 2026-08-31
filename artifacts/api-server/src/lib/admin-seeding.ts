@@ -3,14 +3,18 @@ import {
   advertisementsTable,
   advertisersTable,
   campaignsTable,
-  db,
-} from "@workspace/db";
+} from "@workspace/db/schema";
+
+type AdvertisingSeederDatabase = Pick<
+  typeof import("@workspace/db").db,
+  "transaction"
+>;
 
 export function shouldSeedDevelopmentState(nodeEnv = process.env.NODE_ENV): boolean {
   return nodeEnv === "development";
 }
 
-const developmentAdvertisingFixtures = {
+export const developmentAdvertisingFixtures = {
   advertiser: {
     id: "advertiser-development-preview",
     name: "BLASTERR Sample Partner",
@@ -52,10 +56,14 @@ const developmentAdvertisingFixtures = {
   },
 } as const;
 
-export async function seedDevelopmentAdvertising(): Promise<void> {
-  if (!shouldSeedDevelopmentState()) return;
+export async function seedDevelopmentAdvertising(
+  nodeEnv = process.env.NODE_ENV,
+  database?: AdvertisingSeederDatabase,
+): Promise<void> {
+  if (!shouldSeedDevelopmentState(nodeEnv)) return;
 
-  await db.transaction(async (tx) => {
+  const targetDatabase = database ?? (await import("@workspace/db")).db;
+  await targetDatabase.transaction(async (tx) => {
     await tx.insert(advertisersTable)
       .values(developmentAdvertisingFixtures.advertiser)
       .onConflictDoNothing();

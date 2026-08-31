@@ -1,18 +1,90 @@
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
 import test from "node:test";
-import { shouldSeedDevelopmentState } from "./admin-seeding.ts";
-
-const requireFromDbPackage = createRequire(
-  new URL("../../../../lib/db/package.json", import.meta.url),
-);
-const { Pool } = requireFromDbPackage("pg");
+import { getTableName } from "drizzle-orm";
+import {
+  developmentAdvertisingFixtures,
+  seedDevelopmentAdvertising,
+  shouldSeedDevelopmentState,
+} from "./admin-seeding.ts";
 
 test("development fixtures are never enabled for production or tests", () => {
   assert.equal(shouldSeedDevelopmentState("development"), true);
   assert.equal(shouldSeedDevelopmentState("production"), false);
   assert.equal(shouldSeedDevelopmentState("test"), false);
   assert.equal(shouldSeedDevelopmentState(undefined), false);
+});
+
+function createRecordingDatabase() {
+  const inserts = [];
+  let transactions = 0;
+  const transaction = async (callback) => {
+    transactions += 1;
+    return callback({
+      insert(table) {
+        return {
+          values(value) {
+            inserts.push({ table: getTableName(table), value });
+            return {
+              async onConflictDoNothing() {},
+            };
+          },
+        };
+      },
+    });
+  };
+  return {
+    database: { transaction },
+    inserts,
+    transactionCount: () => transactions,
+  };
+}
+
+test("advertising fixtures seed only in development and stay delivery-only", async () => {
+  for (const nodeEnv of ["production", "test"]) {
+    const recording = createRecordingDatabase();
+    await seedDevelopmentAdvertising(nodeEnv, recording.database);
+    assert.equal(recording.transactionCount(), 0);
+    assert.deepEqual(recording.inserts, []);
+  }
+
+  const recording = createRecordingDatabase();
+  await seedDevelopmentAdvertising("development", recording.database);
+
+  assert.equal(recording.transactionCount(), 1);
+  assert.deepEqual(
+    recording.inserts.map(({ table }) => table),
+    [
+      "advertisers",
+      "ad_campaigns",
+      "advertisements",
+      "ad_approval_records",
+    ],
+  );
+  assert.deepEqual(
+    recording.inserts.map(({ value }) => value),
+    [
+      developmentAdvertisingFixtures.advertiser,
+      developmentAdvertisingFixtures.campaign,
+      developmentAdvertisingFixtures.advertisement,
+      developmentAdvertisingFixtures.approval,
+    ],
+  );
+
+  const { advertiser, campaign, advertisement, approval } =
+    developmentAdvertisingFixtures;
+  assert.equal(advertiser.status, "active");
+  assert.equal(campaign.status, "active");
+  assert.ok(campaign.placements.includes("right_rail"));
+  assert.deepEqual(campaign.targeting, {});
+  assert.ok(campaign.startsAt <= new Date());
+  assert.equal(campaign.endsAt, null);
+  assert.equal(campaign.dailyBudget, null);
+  assert.equal(campaign.totalBudget, null);
+  assert.equal(advertisement.status, "active");
+  assert.equal(advertisement.placement, "right_rail");
+  assert.deepEqual(advertisement.targeting, {});
+  assert.equal(advertisement.frequencyCap, null);
+  assert.equal(approval.action, "approve");
 });
 
 test("all durable admin tables are present after schema application", {
