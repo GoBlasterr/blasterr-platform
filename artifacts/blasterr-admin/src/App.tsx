@@ -347,12 +347,13 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 
 function App() {
   const { isSignedIn } = useAuth();
+  const isDevelopment = import.meta.env.DEV;
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          {isSignedIn ? <AuthenticatedRouter /> : <SignedOutRouter />}
+          {isSignedIn || isDevelopment ? <AuthenticatedRouter /> : <SignedOutRouter />}
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

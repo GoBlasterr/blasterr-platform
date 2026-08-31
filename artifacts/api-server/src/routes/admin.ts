@@ -73,6 +73,11 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction): Pr
     return;
   }
   const { userId } = getAuth(req);
+  if (process.env.DEV_ADMIN_BYPASS === "true") {
+    res.locals.adminActorId = userId ?? "development-admin";
+    next();
+    return;
+  }
   if (!userId) {
     res.status(401).json({ error: "Authentication required." });
     return;

@@ -2,3 +2,4 @@
 - [Profile media signing](profile-media-signing.md) — cache and deduplicate signed GET URLs because sidecar signing can stall and duplicate during concurrent image loads.
 - [Social persistence boundary](social-persistence-boundary.md) — social and clip metadata remain in memory for now; keep relational schemas ready for the later persistence migration.
 - [Supabase database connectivity](supabase-database-connectivity.md) — use an IPv4-compatible pooler URI; the direct database host may resolve IPv6-only from Replit.
+- [Development admin bypass](development-admin-bypass.md) — gate preview-only Admin access with an explicit dev-run flag and cover authorization outside the Admin router.
