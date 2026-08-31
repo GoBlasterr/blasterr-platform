@@ -1,31 +1,39 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
-import * as schema from "./schema";
+import { getSupabaseDatabaseUrl } from "./connection.ts";
+import * as schema from "./schema/index.ts";
 
 const { Pool } = pg;
 
-const supabaseDatabaseUrl = process.env.SUPABASE_DATABASE_URL;
-const useSupabaseDatabase = process.env.USE_SUPABASE_DATABASE === "true";
-const databaseUrl =
-  useSupabaseDatabase &&
-  supabaseDatabaseUrl &&
-  /^postgres(?:ql)?:\/\//i.test(supabaseDatabaseUrl)
-    ? supabaseDatabaseUrl
-    : process.env.DATABASE_URL;
+const databaseUrl = getSupabaseDatabaseUrl();
 
-if (useSupabaseDatabase && !databaseUrl) {
-  throw new Error(
-    "USE_SUPABASE_DATABASE=true requires a valid SUPABASE_DATABASE_URL.",
-  );
-}
-
-if (!databaseUrl) {
-  throw new Error(
-    "SUPABASE_DATABASE_URL or DATABASE_URL must be set. Did you forget to configure a database?",
-  );
-}
-
-export const pool = new Pool({ connectionString: databaseUrl });
+export const pool = new Pool({
+  connectionString: databaseUrl,
+  // Keep application connection counts well below the Supabase pooler's limit.
+  max: 5,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000,
+  keepAlive: true,
+});
 export const db = drizzle(pool, { schema });
 
-export * from "./schema";
+/**
+ * Verifies that the configured Supabase pooler is reachable without exposing
+ * connection details or credentials in failures.
+ */
+export async function validateDatabaseConnection(): Promise<void> {
+  try {
+    await pool.query("select 1");
+  } catch {
+    throw new Error(
+      "Unable to connect to Supabase. Verify SUPABASE_DATABASE_URL is the active pooler connection string and that network access is allowed.",
+    );
+  }
+}
+
+export {
+  getSupabaseDatabaseUrl,
+  SUPABASE_DATABASE_URL_ENV,
+  validateSupabaseDatabaseUrl,
+} from "./connection.ts";
+export * from "./schema/index.ts";

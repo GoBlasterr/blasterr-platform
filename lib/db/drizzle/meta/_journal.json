@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1788157313545,
+      "tag": "0000_jittery_madelyne_pryor",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788157617131,
+      "tag": "0001_aromatic_terror",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788157877894,
+      "tag": "0002_plain_jean_grey",
+      "breakpoints": true
+    }
+  ]
+}

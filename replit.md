@@ -8,7 +8,10 @@ BLASTERR is a futuristic social platform where users publish Blasts about a pers
 - `pnpm --filter @workspace/blasterr run dev` — run the BLASTERR web app
 - `pnpm run typecheck` — full workspace typecheck
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas
-- `pnpm --filter @workspace/db run push` — push development schema changes
+- `pnpm --filter @workspace/db run generate` — generate a reviewed Drizzle migration
+- `pnpm --filter @workspace/db run check:migrations` — verify checked-in migrations
+- `pnpm --filter @workspace/db run migrate` — apply checked-in Drizzle migrations
+- `pnpm --filter @workspace/db run validate:connection` — validate the configured Supabase pooler connection
 
 ## Stack
 
@@ -23,6 +26,7 @@ BLASTERR is a futuristic social platform where users publish Blasts about a pers
 - API routes: `artifacts/api-server/src/routes`
 - API contract: `lib/api-spec/openapi.yaml`
 - Database schema: `lib/db/src/schema`
+- Database migrations: `lib/db/drizzle`
 - Brand theme: `artifacts/blasterr/src/index.css`
 - Official logo: `artifacts/blasterr/public/logo.png`
 
@@ -47,3 +51,4 @@ BLASTERR is a futuristic social platform where users publish Blasts about a pers
 - Re-run codegen after every OpenAPI change.
 - Use generated client hooks from `@workspace/api-client-react`; do not hand-write API request types.
 - Keep Clerk proxy middleware before body parsers and API routes.
+- `SUPABASE_DATABASE_URL` is required for runtime and Drizzle tooling. Use the IPv4-compatible Supabase pooler URL; `DATABASE_URL` is not read.

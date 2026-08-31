@@ -1,0 +1,1196 @@
+# BLASTERR — CLOUDFLARE R2 MEDIA INFRASTRUCTURE INTEGRATION
+
+You are working on the BLASTERR social media platform.
+
+I have already created a **Cloudflare R2 account** and want BLASTERR to use Cloudflare R2 as its dedicated media-storage infrastructure.
+
+## IMPORTANT ARCHITECTURE
+
+Do NOT replace Supabase.
+
+Use:
+
+### SUPABASE
+
+Primary application database and authentication.
+
+Store:
+
+* Users
+* Profiles
+* Blasts
+* Comments
+* Reactions
+* Followers
+* Targets
+* Notifications
+* Reports
+* Clip metadata
+* Media metadata
+* Permissions
+* Analytics
+
+### CLOUDFLARE R2
+
+Dedicated object/media storage.
+
+Store:
+
+* User-uploaded images
+* Blast images
+* User-uploaded videos
+* Blast videos
+* Profile images
+* Cover images
+* Thumbnails
+* BLASTR Clips
+* Generated video files
+* Other large media assets
+
+The database should store references/metadata for these files rather than storing large binary files inside PostgreSQL.
+
+---
+
+# 1. DO NOT EXPOSE R2 CREDENTIALS
+
+Never put Cloudflare R2 credentials in:
+
+* React components
+* Client-side JavaScript
+* Browser code
+* Public environment variables
+* GitHub
+* Source code
+* HTML
+
+R2 credentials must only exist on the server.
+
+Use environment variables/secrets.
+
+Expected variables should follow a structure such as:
+
+```text
+R2_ACCOUNT_ID
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_BUCKET_NAME
+R2_PUBLIC_URL
+```
+
+If the application uses a custom naming convention already, preserve the existing convention.
+
+DO NOT hard-code any credentials.
+
+---
+
+# 2. ASK FOR / VERIFY ENVIRONMENT VARIABLES
+
+Before completing the integration, inspect the existing application and determine whether the required R2 environment variables already exist.
+
+If they don't exist, create the code/configuration that expects them and clearly identify which secrets I need to add to Replit Secrets.
+
+Do NOT ask me for the actual secret values in chat or put them into source code.
+
+---
+
+# 3. CREATE A MEDIA SERVICE ABSTRACTION
+
+Do NOT scatter R2 upload logic throughout the application.
+
+Create a centralized media service.
+
+Example architecture:
+
+```text
+src/
+  services/
+    media/
+      MediaService
+      R2MediaProvider
+```
+
+The exact directory structure should follow the existing BLASTERR project architecture.
+
+The goal is:
+
+```text
+BLASTERR
+   ↓
+MediaService
+   ↓
+R2MediaProvider
+   ↓
+Cloudflare R2
+```
+
+This allows us to replace R2 later if BLASTERR becomes extremely large without rewriting the entire application.
+
+---
+
+# 4. R2 BUCKET
+
+Use the existing R2 bucket if one has already been created.
+
+If no bucket exists, do NOT blindly create one with an arbitrary name.
+
+Tell me the bucket name/configuration that needs to be created.
+
+Use an environment variable:
+
+```text
+R2_BUCKET_NAME
+```
+
+The application should not assume a hard-coded bucket name.
+
+---
+
+# 5. MEDIA DIRECTORY STRUCTURE
+
+Organize files logically inside R2.
+
+Use a structure similar to:
+
+```text
+users/
+    {userId}/
+        avatar/
+        cover/
+
+blasts/
+    {blastId}/
+        images/
+        videos/
+        attachments/
+
+clips/
+    {clipId}/
+        video/
+        thumbnail/
+        preview/
+
+targets/
+    {targetId}/
+        images/
+
+temporary/
+    uploads/
+```
+
+Do not put everything into one giant flat directory.
+
+The exact object-key structure can be improved if you have a better scalable architecture.
+
+---
+
+# 6. DATABASE MEDIA RECORD
+
+Create a database table/model for media metadata.
+
+Suggested structure:
+
+```text
+media_assets
+
+id
+user_id
+blast_id
+clip_id
+target_id
+provider
+bucket
+object_key
+public_url
+mime_type
+file_size
+width
+height
+duration
+media_type
+status
+created_at
+updated_at
+```
+
+Possible media types:
+
+```text
+image
+video
+audio
+thumbnail
+document
+other
+```
+
+Provider:
+
+```text
+cloudflare_r2
+```
+
+This allows us to migrate media providers later.
+
+---
+
+# 7. NEVER STORE LARGE MEDIA IN SUPABASE DATABASE
+
+Supabase PostgreSQL should store:
+
+```text
+media_id
+object_key
+media_url
+mime_type
+file_size
+owner_id
+blast_id
+clip_id
+etc.
+```
+
+R2 stores the actual file.
+
+Do NOT put MP4 files, large images, or other large binary objects into PostgreSQL.
+
+---
+
+# 8. SECURE UPLOAD SYSTEM
+
+Build a secure server-side upload workflow.
+
+Users should NOT receive the R2 secret keys.
+
+Preferred architecture:
+
+```text
+USER
+ ↓
+BLASTERR
+ ↓
+Secure upload authorization
+ ↓
+R2
+```
+
+Where appropriate, use signed/presigned upload URLs so large media can upload directly to R2 without unnecessarily routing the entire file through the application server.
+
+This is important for scalability.
+
+---
+
+# 9. PRESIGNED UPLOADS
+
+Implement a secure mechanism for generating presigned upload URLs.
+
+Example flow:
+
+```text
+User selects image/video
+        ↓
+BLASTERR requests upload authorization
+        ↓
+Server validates:
+    - authenticated user
+    - file type
+    - file size
+    - permissions
+        ↓
+Server generates signed R2 upload URL
+        ↓
+Browser uploads directly to R2
+        ↓
+Browser notifies BLASTERR
+        ↓
+BLASTERR stores media metadata in Supabase
+```
+
+Do not allow arbitrary unauthenticated users to generate unlimited R2 upload URLs.
+
+---
+
+# 10. FILE VALIDATION
+
+Before generating an upload URL, validate:
+
+* Authentication
+* File extension
+* MIME type
+* File size
+* User permissions
+* Media type
+
+Initially support:
+
+### IMAGES
+
+* JPG/JPEG
+* PNG
+* WEBP
+* GIF where appropriate
+
+### VIDEO
+
+* MP4
+* MOV where practical
+* WEBM where practical
+
+Do not blindly trust the filename extension.
+
+Validate MIME/content where practical.
+
+---
+
+# 11. FILE SIZE LIMITS
+
+Create configurable limits.
+
+Do NOT hard-code limits throughout the application.
+
+Use centralized configuration.
+
+Example:
+
+```text
+MAX_IMAGE_SIZE
+MAX_VIDEO_SIZE
+MAX_AVATAR_SIZE
+MAX_COVER_SIZE
+```
+
+Choose sensible initial limits for an MVP.
+
+Make them easy to change later.
+
+---
+
+# 12. IMAGE UPLOAD FLOW
+
+When a user uploads an image:
+
+```text
+Select image
+ ↓
+Validate
+ ↓
+Generate unique object key
+ ↓
+Upload to R2
+ ↓
+Create media_assets record
+ ↓
+Return media reference
+ ↓
+Display image
+```
+
+Never rely solely on the original filename.
+
+Generate unique object names.
+
+Example:
+
+```text
+blasts/123/images/550e8400-e29b-41d4-a716-446655440000.webp
+```
+
+---
+
+# 13. VIDEO UPLOAD FLOW
+
+Use the same architecture for video.
+
+```text
+Select video
+ ↓
+Validate
+ ↓
+Generate R2 object key
+ ↓
+Presigned upload
+ ↓
+Upload directly to R2
+ ↓
+Create media_assets record
+ ↓
+Process metadata
+ ↓
+Generate thumbnail where appropriate
+ ↓
+Update status
+```
+
+Do not make the main application request wait for large video uploads.
+
+---
+
+# 14. BLAST MEDIA
+
+Update the existing Blast creation system.
+
+Allow users to attach:
+
+* Images
+* Videos
+
+to a Blast.
+
+When the Blast is submitted:
+
+```text
+Blast
+ ↓
+Media uploaded to R2
+ ↓
+Media metadata saved in Supabase
+ ↓
+Blast references media
+```
+
+The Blast should load media from R2.
+
+---
+
+# 15. PROFILE MEDIA
+
+Move profile media to R2 where appropriate.
+
+Examples:
+
+### Avatar
+
+```text
+users/{userId}/avatar/
+```
+
+### Cover image
+
+```text
+users/{userId}/cover/
+```
+
+When users replace an avatar or cover image:
+
+* Upload the new file
+* Update the database
+* Mark/remove the old asset according to the application's retention strategy
+
+Do not leave unlimited orphaned files in R2.
+
+---
+
+# 16. THUMBNAILS
+
+Design the system to generate thumbnails for:
+
+* Videos
+* BLASTR Clips
+* Uploaded media where useful
+
+Thumbnail structure:
+
+```text
+clips/{clipId}/thumbnail/
+```
+
+Store thumbnail metadata in Supabase.
+
+---
+
+# 17. BLASTR CLIPS INTEGRATION
+
+This is extremely important.
+
+BLASTERR will eventually generate:
+
+# 🔥 BLASTR CLIPS
+
+These will be vertical 9:16 videos.
+
+R2 should be the storage destination for generated clips.
+
+Architecture:
+
+```text
+BLAST
+ ↓
+BLASTR CLIP GENERATOR
+ ↓
+Video renderer
+ ↓
+Generated MP4
+ ↓
+R2
+ ↓
+CDN/public delivery
+```
+
+Example:
+
+```text
+clips/
+    {clipId}/
+        video/
+            final.mp4
+        thumbnail/
+            thumbnail.jpg
+        preview/
+            preview.mp4
+```
+
+The clip database record should contain references to these assets.
+
+---
+
+# 18. VIDEO RENDERING IS SEPARATE FROM R2
+
+Remember:
+
+### R2 = STORAGE
+
+It is not the entire video processing system.
+
+The application should maintain a separate video-processing abstraction.
+
+Example:
+
+```text
+VideoProcessingService
+        ↓
+Remotion / FFmpeg
+        ↓
+Generated video
+        ↓
+MediaService
+        ↓
+R2
+```
+
+This allows us to eventually move video processing to dedicated infrastructure without changing the rest of BLASTERR.
+
+---
+
+# 19. PUBLIC DELIVERY
+
+Determine the safest appropriate way to deliver public BLASTERR media.
+
+If public media is intended to be publicly accessible, configure an appropriate R2 custom domain/public delivery mechanism.
+
+Use:
+
+```text
+R2_PUBLIC_URL
+```
+
+Do not hard-code a domain.
+
+For private media, use signed URLs or another secure access mechanism.
+
+---
+
+# 20. PRIVATE CONTENT
+
+BLASTERR will eventually have different privacy settings.
+
+Architect media access around:
+
+* Public
+* Followers/friends where applicable
+* Private
+* Deleted
+* Moderation pending
+
+Do not expose private media through an unrestricted public URL.
+
+The media service should check permissions before generating access URLs for private assets.
+
+---
+
+# 21. DELETE MEDIA
+
+When a user deletes an eligible Blast or media file:
+
+```text
+User deletes media
+ ↓
+Database status updated
+ ↓
+R2 object deleted or queued for deletion
+```
+
+Do not automatically permanently delete files needed for moderation/legal retention without considering the platform's retention policy.
+
+Create a clean cleanup mechanism for orphaned files.
+
+---
+
+# 22. MODERATION
+
+Design the media system so that uploaded media can have statuses:
+
+```text
+pending
+active
+blocked
+flagged
+deleted
+processing
+failed
+```
+
+A flagged or blocked asset should not continue being publicly served simply because the R2 object still exists.
+
+---
+
+# 23. R2 URL HANDLING
+
+Never hard-code URLs throughout the React application.
+
+Instead:
+
+```text
+mediaService.getMediaUrl(media)
+```
+
+or equivalent centralized logic.
+
+This means that later we can change:
+
+```text
+R2
+```
+
+to:
+
+```text
+Cloudflare Stream
+AWS S3
+Bunny
+Mux
+another CDN
+```
+
+without rewriting the entire frontend.
+
+---
+
+# 24. CACHING / PERFORMANCE
+
+Use appropriate HTTP caching headers for public static assets.
+
+For example:
+
+* Long cache for immutable assets
+* Appropriate cache control
+* Content-type headers
+* Content-length where appropriate
+
+Do not aggressively cache private or frequently changing content.
+
+Use unique object keys for versioned media.
+
+---
+
+# 25. CDN-READY ARCHITECTURE
+
+Design R2 delivery so BLASTERR can eventually place a CDN in front of media.
+
+The architecture should be:
+
+```text
+BLASTERR
+ ↓
+Media URL
+ ↓
+CDN
+ ↓
+Cloudflare R2
+```
+
+Do not make the application depend on a specific R2 endpoint everywhere.
+
+---
+
+# 26. MEDIA SERVICE API
+
+Create reusable functions similar to:
+
+```text
+createUploadUrl()
+uploadMedia()
+getMedia()
+getMediaUrl()
+deleteMedia()
+getSignedUrl()
+createThumbnail()
+validateMedia()
+```
+
+Use the project's existing coding conventions.
+
+---
+
+# 27. SECURITY REQUIREMENTS
+
+Implement:
+
+* Authentication
+* Authorization
+* Ownership validation
+* Signed uploads
+* Signed downloads for private assets
+* File validation
+* File-size limits
+* Rate limiting
+* Upload abuse prevention
+* Secure object keys
+* No credential exposure
+
+Do not trust client-supplied:
+
+* user IDs
+* blast IDs
+* ownership claims
+* MIME types
+* permissions
+
+Validate them server-side.
+
+---
+
+# 28. R2 CORS
+
+Configure the appropriate R2 CORS policy for BLASTERR's development and production domains.
+
+Do not use an unnecessarily permissive wildcard policy in production if it can be avoided.
+
+Support:
+
+* GET
+* PUT
+* HEAD
+
+where required by the upload architecture.
+
+Configure allowed origins appropriately.
+
+---
+
+# 29. DEVELOPMENT ENVIRONMENT
+
+Make the integration work in Replit development.
+
+Use Replit Secrets for:
+
+```text
+R2_ACCOUNT_ID
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_BUCKET_NAME
+R2_PUBLIC_URL
+```
+
+Do not put secrets into `.env` files that could accidentally be committed.
+
+Make sure `.gitignore` protects local secret files.
+
+---
+
+# 30. HEALTH CHECK
+
+Create a protected admin/system health check:
+
+### R2 STATUS
+
+It should verify that BLASTERR can communicate with R2.
+
+Show:
+
+### CONNECTED
+
+or
+
+### NOT CONFIGURED
+
+or
+
+### CONNECTION ERROR
+
+Do not expose sensitive credentials.
+
+---
+
+# 31. ADMIN MEDIA DASHBOARD
+
+Create a basic admin area:
+
+# MEDIA CENTER
+
+Display:
+
+* Total media assets
+* Images
+* Videos
+* Clips
+* Storage usage if available
+* Failed uploads
+* Processing assets
+* Flagged media
+* Recent uploads
+
+Eventually this will become the:
+
+# BLASTR MEDIA CENTER
+
+for managing viral content and clips.
+
+---
+
+# 32. BLASTR CLIPS MEDIA PIPELINE
+
+Prepare the architecture for:
+
+```text
+Viral Blast
+ ↓
+Admin selects "Create BLASTR Clip"
+ ↓
+Clip Generator
+ ↓
+Remotion / FFmpeg
+ ↓
+Final 1080x1920 MP4
+ ↓
+R2
+ ↓
+Thumbnail
+ ↓
+R2
+ ↓
+Database metadata
+ ↓
+BLASTR CLIP
+ ↓
+Share/export
+```
+
+Do not hard-code the video rendering system directly into the R2 code.
+
+Keep these services independent.
+
+---
+
+# 33. STORAGE OPTIMIZATION
+
+Prepare for BLASTERR eventually having:
+
+* Thousands of users
+* Hundreds of thousands of media files
+* Millions of media files
+* Large quantities of video
+
+Use:
+
+* Efficient object naming
+* Metadata records
+* Pagination
+* Lazy loading
+* CDN caching
+* Thumbnail generation
+* Video compression
+* Cleanup jobs
+* Background processing
+
+Never load thousands of media files into one page at once.
+
+---
+
+# 34. DATABASE INDEXING
+
+Add appropriate indexes for:
+
+```text
+media_assets.user_id
+media_assets.blast_id
+media_assets.clip_id
+media_assets.media_type
+media_assets.status
+media_assets.created_at
+```
+
+Use indexes based on actual query patterns.
+
+Do not create unnecessary indexes everywhere.
+
+---
+
+# 35. TESTING
+
+Create tests for:
+
+### Upload
+
+* Valid image
+* Valid video
+* Invalid file
+* Oversized file
+* Unauthorized user
+
+### Permissions
+
+* Owner can upload
+* User cannot upload under another user's ID
+* Private media cannot be accessed publicly
+
+### Delete
+
+* Authorized delete
+* Unauthorized delete
+
+### R2
+
+* Upload
+* Read
+* Delete
+* Signed URL
+
+### Blast
+
+* Create Blast with image
+* Create Blast with video
+* Display media
+
+### BLASTR
+
+* Generate clip
+* Store clip
+* Generate thumbnail
+* Display clip
+
+---
+
+# 36. DO NOT BREAK EXISTING BLASTERR
+
+Before modifying existing code:
+
+1. Inspect the current architecture.
+2. Identify the current database schema.
+3. Identify existing media/upload functionality.
+4. Identify authentication.
+5. Identify Blast creation.
+6. Identify existing storage.
+
+Reuse existing components where appropriate.
+
+Do not duplicate functionality unnecessarily.
+
+Do not replace working features without a reason.
+
+---
+
+# 37. MIGRATION STRATEGY
+
+If BLASTERR currently stores media somewhere else:
+
+DO NOT immediately delete the old system.
+
+Build a migration-compatible architecture.
+
+Existing media should continue working while new uploads use R2.
+
+If practical, create a migration utility later that can move existing media to R2.
+
+---
+
+# 38. IMPORTANT SCALABILITY PRINCIPLE
+
+BLASTERR should have:
+
+```text
+SUPABASE
+= APPLICATION DATA
+
+R2
+= MEDIA STORAGE
+
+VIDEO PROCESSOR
+= VIDEO CREATION
+
+CDN
+= GLOBAL MEDIA DELIVERY
+```
+
+Keep those responsibilities separate.
+
+---
+
+# 39. FINAL USER EXPERIENCE
+
+A user should experience this simply as:
+
+### CREATE BLAST
+
+Attach photo/video.
+
+↓
+
+### POST
+
+↓
+
+BLASTERR stores the content securely.
+
+↓
+
+Users see the media quickly.
+
+↓
+
+If the Blast becomes popular:
+
+### ✨ CREATE CLIP
+
+↓
+
+BLASTR Clip generated.
+
+↓
+
+Final video stored in R2.
+
+↓
+
+User exports/shares it.
+
+The complexity should be invisible to the user.
+
+---
+
+# 40. DO NOT OVER-ENGINEER PHASE 1
+
+We are still building the first version of BLASTERR.
+
+Do NOT add expensive enterprise infrastructure unnecessarily.
+
+Use Cloudflare R2 now because it gives us a dedicated media layer.
+
+Build clean abstractions so we can scale later.
+
+Do not build Kubernetes, microservices, or complicated distributed infrastructure unless there is a genuine requirement.
+
+Keep the implementation simple, secure, modular, and scalable.
+
+---
+
+# 41. ACCEPTANCE CRITERIA
+
+Consider this integration complete only when:
+
+### DATABASE
+
+☑ Supabase remains the primary database.
+
+### STORAGE
+
+☑ R2 is the primary dedicated media storage layer.
+
+### SECURITY
+
+☑ R2 credentials are server-side only.
+
+### UPLOADS
+
+☑ Users can securely upload images.
+
+☑ Users can securely upload videos.
+
+### BLASTS
+
+☑ Blasts can reference R2 media.
+
+### PROFILES
+
+☑ Profile images can use R2.
+
+### CLIPS
+
+☑ BLASTR Clips can be stored in R2.
+
+### URLs
+
+☑ Media URLs are centralized.
+
+### PERMISSIONS
+
+☑ Private/unauthorized media cannot be exposed.
+
+### ADMIN
+
+☑ Admin can see media status.
+
+### PERFORMANCE
+
+☑ Large files do not unnecessarily pass through the application server when direct signed uploads are appropriate.
+
+### SCALABILITY
+
+☑ The media provider can eventually be replaced without rebuilding BLASTERR.
+
+### TESTING
+
+☑ Complete upload → database → display workflow works.
+
+---
+
+# FINAL ARCHITECTURE
+
+Build BLASTERR toward:
+
+```text
+                    BLASTERR
+                       │
+             ┌─────────┴─────────┐
+             │                   │
+          SUPABASE           MEDIA SERVICE
+             │                   │
+        PostgreSQL                │
+        Auth                      │
+        Users                     │
+        Blasts                    │
+        Comments                  │
+        Reactions                 │
+        etc.                      │
+                                 │
+                          CLOUDFLARE R2
+                                 │
+                    ┌────────────┼────────────┐
+                    │            │            │
+                  Images       Videos       BLASTR
+                  Photos      Thumbnails     Clips
+                                             │
+                                             ↓
+                                      Social Sharing
+```
+
+The long-term goal is for BLASTERR to be able to grow from an MVP with thousands of files into a large-scale social platform with millions of media assets without requiring a complete rewrite.
+
+## START BY INSPECTING THE EXISTING BLASTERR CODEBASE
+
+Before making changes, identify the existing:
+
+* Supabase configuration
+* Authentication
+* Blast schema
+* Media upload components
+* Storage implementation
+* Profile system
+* BLASTR Clips implementation
+* Environment/secrets configuration
+
+Then implement the R2 integration incrementally.
+
+After implementation, run the application and test the entire upload/display/delete workflow.
+
+Do not simply tell me how to integrate R2.
+
+**Actually implement the integration in the BLASTERR codebase.**

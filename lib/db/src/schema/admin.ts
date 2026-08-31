@@ -1,6 +1,7 @@
-import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, check, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { randomUUID } from "node:crypto";
+import { sql } from "drizzle-orm";
 
 export const adminReportsTable = pgTable(
   "admin_reports",
@@ -18,6 +19,8 @@ export const adminReportsTable = pgTable(
   (table) => [
     index("admin_reports_status_created_idx").on(table.status, table.createdAt),
     index("admin_reports_target_idx").on(table.targetType, table.targetId),
+    check("admin_reports_status_check", sql`${table.status} in ('open', 'reviewing', 'resolved', 'dismissed')`),
+    check("admin_reports_target_type_check", sql`${table.targetType} in ('user', 'blast', 'comment', 'target')`),
   ],
 );
 
@@ -75,7 +78,7 @@ export const adminAnnouncementsTable = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     updatedBy: text("updated_by"),
   },
-  (table) => [index("admin_announcements_status_idx").on(table.status, table.updatedAt)],
+  (table) => [index("admin_announcements_status_idx").on(table.status, table.updatedAt), check("admin_announcements_status_check", sql`${table.status} in ('draft', 'scheduled', 'published', 'archived')`), check("admin_announcements_audience_check", sql`${table.audience} in ('all', 'users', 'advertisers', 'admins')`)],
 );
 
 export const insertAdminReportSchema = createInsertSchema(adminReportsTable);

@@ -59,7 +59,7 @@ import {
   updateAdminSettingsWithAudit,
 } from "../lib/admin-state";
 import { isActiveAdmin, isSuspended } from "../lib/admin-auth";
-import { blasts, users } from "./social";
+import * as social from "../lib/social-repository";
 
 const router: IRouter = Router();
 const startedAt = Date.now();
@@ -73,7 +73,7 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction): Pr
     return;
   }
   const { userId } = getAuth(req);
-  if (process.env.DEV_ADMIN_BYPASS === "true") {
+  if (process.env.NODE_ENV === "development" && process.env.DEV_ADMIN_BYPASS === "true") {
     res.locals.adminActorId = userId ?? "development-admin";
     next();
     return;
@@ -107,8 +107,9 @@ function actorId(res: Response): string {
   return typeof res.locals.adminActorId === "string" ? res.locals.adminActorId : "unknown-admin";
 }
 
-function adminUser(user: Awaited<ReturnType<typeof clerkClient.users.getUser>>) {
+async function adminUser(user: Awaited<ReturnType<typeof clerkClient.users.getUser>>) {
   const metadata = user.publicMetadata as Record<string, unknown>;
+  const localUser = await social.userByAuth(user.id);
   const username = user.username ?? user.primaryEmailAddress?.emailAddress.split("@")[0] ?? `user-${user.id.slice(-8)}`;
   const role = metadata.role === "admin" || metadata.role === "moderator" ? metadata.role : "user";
   return {
@@ -123,7 +124,9 @@ function adminUser(user: Awaited<ReturnType<typeof clerkClient.users.getUser>>) 
     state: typeof metadata.state === "string" ? metadata.state : "",
     followers: 0,
     following: 0,
-    blastCount: blasts.filter((blast) => blast.author.id === user.id).length,
+    blastCount: localUser
+      ? (await social.blasts()).filter((blast) => blast.author.id === localUser.id).length
+      : 0,
     joinedAt: new Date(user.createdAt).toISOString(),
     isFollowing: false,
     role,
@@ -132,7 +135,7 @@ function adminUser(user: Awaited<ReturnType<typeof clerkClient.users.getUser>>) 
 }
 
 function adminContent(
-  blast: (typeof blasts)[number],
+  blast: Awaited<ReturnType<typeof social.blasts>>[number],
   statuses = adminContentStatuses,
   reports = adminReports,
 ) {
@@ -144,8 +147,8 @@ function adminContent(
 }
 
 async function reporterProfile(reporterId: string) {
-  const seeded = users.find((user) => user.id === reporterId);
-  if (seeded) return seeded;
+  const localUser = await social.userById(reporterId);
+  if (localUser) return social.profile(localUser);
   try {
     const clerkUser = await clerkClient.users.getUser(reporterId);
     const metadata = clerkUser.publicMetadata as Record<string, unknown>;
@@ -203,8 +206,8 @@ router.get("/users", async (req, res): Promise<void> => {
   }
   const query = parsed.data.q?.trim().toLowerCase();
   const { data } = await clerkClient.users.getUserList({ limit: 100 });
-  const filtered = data
-    .map(adminUser)
+  const filtered = (await Promise.all(data
+    .map(adminUser)))
     .filter((user) => !query || `${user.username} ${user.displayName}`.toLowerCase().includes(query))
     .filter((user) => !parsed.data.status || parsed.data.status === "all" || user.status === parsed.data.status);
   res.json(GetAdminUsersResponse.parse({ users: filtered, total: filtered.length }));
@@ -246,7 +249,7 @@ router.patch("/users/:id", async (req, res): Promise<void> => {
     actorId: actorId(res),
     details: `Applied user changes: ${JSON.stringify(body.data)}.`,
   });
-  res.json(UpdateAdminUserResponse.parse(adminUser(user)));
+  res.json(UpdateAdminUserResponse.parse(await adminUser(user)));
 });
 
 router.delete("/users/:id", async (req, res): Promise<void> => {
@@ -267,7 +270,7 @@ router.delete("/users/:id", async (req, res): Promise<void> => {
     entityType: "user",
     entityId: user.id,
     actorId: actorId(res),
-    details: `Deleted @${adminUser(user).username}.`,
+    details: `Deleted @${(await adminUser(user)).username}.`,
   });
   await clerkClient.users.deleteUser(user.id);
   await recordAudit({
@@ -275,19 +278,19 @@ router.delete("/users/:id", async (req, res): Promise<void> => {
     entityType: "user",
     entityId: user.id,
     actorId: actorId(res),
-    details: `Deleted @${adminUser(user).username}.`,
+    details: `Deleted @${(await adminUser(user)).username}.`,
   });
   res.sendStatus(204);
 });
 
-router.get("/content", (req, res): void => {
+router.get("/content", async (req, res): Promise<void> => {
   const parsed = GetAdminContentQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid content filters." });
     return;
   }
   const query = parsed.data.q?.trim().toLowerCase();
-  const filtered = blasts
+  const filtered = (await social.blasts())
     .map((blast) => adminContent(blast))
     .filter((blast) => !query || blast.content.toLowerCase().includes(query) || blast.author.username.toLowerCase().includes(query))
     .filter((blast) => !parsed.data.status || parsed.data.status === "all" || blast.status === parsed.data.status);
@@ -301,7 +304,7 @@ router.patch("/content/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid content update." });
     return;
   }
-  const blast = blasts.find((item) => item.id === params.data.id);
+  const blast = await social.blastById(params.data.id);
   if (!blast) {
     res.status(404).json({ error: "Blast not found." });
     return;
@@ -322,7 +325,7 @@ router.delete("/content/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid Blast id." });
     return;
   }
-  const blast = blasts.find((item) => item.id === params.data.id);
+  const blast = await social.blastById(params.data.id);
   if (!blast) {
     res.status(404).json({ error: "Blast not found." });
     return;
@@ -390,7 +393,7 @@ router.post("/moderation", async (req, res): Promise<void> => {
   }
   let contentUpdate: { id: string; status: "removed" } | undefined;
   if (body.data.action === "remove" && report.targetType === "blast") {
-    if (!blasts.some((blast) => blast.id === report.targetId)) {
+    if (!await social.blastById(report.targetId)) {
       res.status(404).json({ error: "Reported Blast not found." });
       return;
     }
@@ -453,7 +456,7 @@ router.get("/analytics", async (_req, res): Promise<void> => {
   const { data: clerkUsers } = await clerkClient.users.getUserList({ limit: 100 });
   res.json(GetAdminAnalyticsResponse.parse({
     activeUsers: clerkUsers.filter((user) => (user.publicMetadata as Record<string, unknown>).status !== "suspended").length,
-    totalBlasts: blasts.length,
+    totalBlasts: (await social.blasts()).length,
     openReports,
     moderationRate: totalReports === 0 ? 100 : Math.round((resolvedReports / totalReports) * 100),
     chart: [

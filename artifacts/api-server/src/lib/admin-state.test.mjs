@@ -15,17 +15,16 @@ test("development fixtures are never enabled for production or tests", () => {
   assert.equal(shouldSeedDevelopmentState(undefined), false);
 });
 
-test("all durable admin tables are present after schema application", async () => {
+test("all durable admin tables are present after schema application", {
+  skip: process.env.RUN_DATABASE_INTEGRATION_TESTS !== "true",
+}, async () => {
   const supabaseDatabaseUrl = process.env.SUPABASE_DATABASE_URL;
-  const useSupabaseDatabase = process.env.USE_SUPABASE_DATABASE === "true";
-  const databaseUrl =
-    useSupabaseDatabase &&
-    supabaseDatabaseUrl &&
-    /^postgres(?:ql)?:\/\//i.test(supabaseDatabaseUrl)
-      ? supabaseDatabaseUrl
-      : process.env.DATABASE_URL;
-  assert.ok(databaseUrl, "SUPABASE_DATABASE_URL or DATABASE_URL is required for the schema integration test");
-  const pool = new Pool({ connectionString: databaseUrl });
+  assert.match(
+    supabaseDatabaseUrl ?? "",
+    /^postgres(?:ql)?:\/\//i,
+    "SUPABASE_DATABASE_URL is required for the schema integration test",
+  );
+  const pool = new Pool({ connectionString: supabaseDatabaseUrl, max: 1 });
   try {
     const { rows } = await pool.query(
       `SELECT tablename
@@ -56,17 +55,16 @@ test("all durable admin tables are present after schema application", async () =
   }
 });
 
-test("moderation reports and their audit history persist in PostgreSQL", async () => {
+test("moderation reports and their audit history persist in PostgreSQL", {
+  skip: process.env.RUN_DATABASE_INTEGRATION_TESTS !== "true",
+}, async () => {
   const supabaseDatabaseUrl = process.env.SUPABASE_DATABASE_URL;
-  const useSupabaseDatabase = process.env.USE_SUPABASE_DATABASE === "true";
-  const databaseUrl =
-    useSupabaseDatabase &&
-    supabaseDatabaseUrl &&
-    /^postgres(?:ql)?:\/\//i.test(supabaseDatabaseUrl)
-      ? supabaseDatabaseUrl
-      : process.env.DATABASE_URL;
-  assert.ok(databaseUrl, "SUPABASE_DATABASE_URL or DATABASE_URL is required for the persistence integration test");
-  const pool = new Pool({ connectionString: databaseUrl });
+  assert.match(
+    supabaseDatabaseUrl ?? "",
+    /^postgres(?:ql)?:\/\//i,
+    "SUPABASE_DATABASE_URL is required for the persistence integration test",
+  );
+  const pool = new Pool({ connectionString: supabaseDatabaseUrl, max: 1 });
   const client = await pool.connect();
   const suffix = crypto.randomUUID();
   const reportId = `test-report-${suffix}`;
