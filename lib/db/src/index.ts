@@ -4,8 +4,12 @@ import * as schema from "./schema";
 
 const { Pool } = pg;
 
+const supabaseDatabaseUrl = process.env.SUPABASE_DATABASE_URL;
 const databaseUrl =
-  process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
+  supabaseDatabaseUrl &&
+  /^postgres(?:ql)?:\/\//i.test(supabaseDatabaseUrl)
+    ? supabaseDatabaseUrl
+    : process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   throw new Error(

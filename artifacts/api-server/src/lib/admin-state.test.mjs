@@ -16,7 +16,11 @@ test("development fixtures are never enabled for production or tests", () => {
 });
 
 test("all durable admin tables are present after schema application", async () => {
-  const databaseUrl = process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
+  const supabaseDatabaseUrl = process.env.SUPABASE_DATABASE_URL;
+  const databaseUrl =
+    supabaseDatabaseUrl && /^postgres(?:ql)?:\/\//i.test(supabaseDatabaseUrl)
+      ? supabaseDatabaseUrl
+      : process.env.DATABASE_URL;
   assert.ok(databaseUrl, "SUPABASE_DATABASE_URL or DATABASE_URL is required for the schema integration test");
   const pool = new Pool({ connectionString: databaseUrl });
   try {
@@ -50,7 +54,11 @@ test("all durable admin tables are present after schema application", async () =
 });
 
 test("moderation reports and their audit history persist in PostgreSQL", async () => {
-  const databaseUrl = process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
+  const supabaseDatabaseUrl = process.env.SUPABASE_DATABASE_URL;
+  const databaseUrl =
+    supabaseDatabaseUrl && /^postgres(?:ql)?:\/\//i.test(supabaseDatabaseUrl)
+      ? supabaseDatabaseUrl
+      : process.env.DATABASE_URL;
   assert.ok(databaseUrl, "SUPABASE_DATABASE_URL or DATABASE_URL is required for the persistence integration test");
   const pool = new Pool({ connectionString: databaseUrl });
   const client = await pool.connect();

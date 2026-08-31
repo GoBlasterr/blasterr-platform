@@ -1,3 +1,4 @@
 - [Preview video compatibility](preview-video-compatibility.md) — provide WebM before MP4 when Replit preview browsers may not decode otherwise-valid H.264/AAC.
 - [Profile media signing](profile-media-signing.md) — cache and deduplicate signed GET URLs because sidecar signing can stall and duplicate during concurrent image loads.
 - [Social persistence boundary](social-persistence-boundary.md) — social and clip metadata remain in memory for now; keep relational schemas ready for the later persistence migration.
+- [Supabase database connectivity](supabase-database-connectivity.md) — use an IPv4-compatible pooler URI; the direct database host may resolve IPv6-only from Replit.
