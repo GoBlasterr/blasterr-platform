@@ -1,0 +1,465 @@
+# BLASTER CMS — CONNECT ADMIN DASHBOARD TO BLASTER WEBSITE
+
+## PROJECT OBJECTIVE
+
+I already have **two separate projects**:
+
+1. **Blaster Website** (the public website users visit).
+2. **Blaster Admin Dashboard** (the private admin panel I built).
+
+Your job is to connect both projects into **one centralized content management system (CMS)** where **every change made in the Admin Dashboard instantly updates the Blaster Website**.
+
+Do NOT rebuild either project. Extend the existing architecture.
+
+---
+
+# IMPORTANT RULES
+
+* Do NOT redesign the Blaster website.
+* Do NOT redesign the Admin Dashboard.
+* Keep the existing UI and routing.
+* Connect both projects through **Supabase** as the primary database.
+* Use **Cloudflare R2** for all media storage.
+* Everything should sync in real time.
+
+The Admin Dashboard becomes the **single source of truth**.
+
+---
+
+# SYSTEM ARCHITECTURE
+
+## Backend
+
+Use Supabase for:
+
+* Database
+* Authentication
+* Realtime subscriptions
+* Row Level Security (RLS)
+
+Use Cloudflare R2 for:
+
+* Images
+* Videos
+* PDFs
+* Audio
+* Documents
+* Website assets
+
+The public website should never store media locally.
+
+---
+
+# CONNECT ADMIN TO WEBSITE
+
+Every CRUD operation in the Admin Dashboard must immediately update the website.
+
+Supported actions:
+
+* Create
+* Edit
+* Publish
+* Unpublish
+* Archive
+* Delete
+* Restore
+
+Changes must appear on the website without redeploying.
+
+Use Supabase Realtime subscriptions.
+
+---
+
+# CONTENT MANAGEMENT MODULES
+
+## 1. Homepage CMS
+
+Admin can edit:
+
+* Hero title.
+* Hero subtitle.
+* CTA button.
+* Hero background image/video.
+* Featured sections.
+* Statistics counters.
+* Testimonials.
+* Logos.
+* Footer.
+
+Website updates instantly.
+
+---
+
+## 2. Blog CMS
+
+Admin can:
+
+* Create blog posts.
+* Rich text editor.
+* Categories.
+* Tags.
+* SEO title.
+* Meta description.
+* Featured image.
+* Publish date.
+* Draft mode.
+
+Website automatically displays published posts.
+
+---
+
+## 3. Services CMS
+
+Admin manages:
+
+* Service title.
+* Description.
+* Price.
+* Icon.
+* Banner.
+* Gallery.
+* Status.
+
+Website updates immediately.
+
+---
+
+## 4. Portfolio CMS
+
+Admin uploads:
+
+* Images.
+* Videos.
+* Before/After.
+* Project description.
+* Client name.
+* Project category.
+
+Store media in Cloudflare R2.
+
+Website portfolio updates instantly.
+
+---
+
+## 5. Team CMS
+
+Admin controls:
+
+* Team members.
+* Position.
+* Bio.
+* Profile image.
+* Social links.
+
+Realtime sync.
+
+---
+
+## 6. Testimonials CMS
+
+Admin adds:
+
+* Customer name.
+* Company.
+* Review.
+* Rating.
+* Avatar.
+
+Display on homepage automatically.
+
+---
+
+## 7. FAQ CMS
+
+Admin creates FAQs.
+
+Website accordion updates instantly.
+
+---
+
+## 8. Contact CMS
+
+Admin controls:
+
+* Phone.
+* Email.
+* Address.
+* Google Maps.
+* Social media links.
+
+Website footer updates automatically.
+
+---
+
+# MEDIA LIBRARY (Cloudflare R2)
+
+Integrate Cloudflare R2.
+
+Environment Variables:
+
+* CLOUDFLARE_R2_ACCOUNT_ID
+* CLOUDFLARE_R2_BUCKET
+* CLOUDFLARE_R2_ACCESS_KEY_ID
+* CLOUDFLARE_R2_SECRET_ACCESS_KEY
+* CLOUDFLARE_R2_ENDPOINT
+
+## Upload Features
+
+Support:
+
+* Images.
+* Videos.
+* PDFs.
+* Documents.
+* Audio.
+
+Features:
+
+* Drag & Drop.
+* Progress Bar.
+* Preview.
+* Rename.
+* Delete.
+* Folder organization.
+
+Generate optimized public URLs.
+
+Store URLs in Supabase.
+
+---
+
+# DATABASE DESIGN (Supabase)
+
+Create tables only if missing.
+
+## Pages
+
+* id
+* slug
+* title
+* content
+* seoTitle
+* metaDescription
+* published
+* updatedAt
+
+## Blog Posts
+
+* id
+* title
+* slug
+* content
+* category
+* featuredImage
+* author
+* published
+* createdAt
+
+## Services
+
+* id
+* title
+* description
+* price
+* image
+* active
+
+## Portfolio
+
+* id
+* title
+* description
+* gallery
+* category
+* featuredImage
+
+## Testimonials
+
+* id
+* name
+* company
+* review
+* rating
+* avatar
+
+## Team Members
+
+* id
+* name
+* role
+* bio
+* avatar
+* socials
+
+## Media Library
+
+* id
+* filename
+* url
+* type
+* size
+* uploadedAt
+
+---
+
+# REALTIME WEBSITE SYNC
+
+Every admin update should trigger:
+
+* Supabase realtime event.
+* Website cache refresh.
+* Live UI update.
+
+No manual refresh required.
+
+---
+
+# AUTHENTICATION
+
+Only admins can access dashboard.
+
+Roles:
+
+* Super Admin.
+* Admin.
+* Editor.
+* Content Manager.
+
+Protect routes using Supabase Auth.
+
+---
+
+# ADMIN DASHBOARD FEATURES
+
+## Dashboard Overview
+
+Show:
+
+* Total Pages.
+* Total Blog Posts.
+* Portfolio Projects.
+* Services.
+* Testimonials.
+* Team Members.
+* Media Files.
+* Website Visitors (placeholder analytics).
+
+---
+
+## Activity Feed
+
+Show recent edits:
+
+* User.
+* Module.
+* Action.
+* Timestamp.
+
+---
+
+## Search
+
+Global search for all content.
+
+---
+
+## Draft & Publish Workflow
+
+Content states:
+
+* Draft.
+* Published.
+* Scheduled.
+* Archived.
+
+Website shows only published content.
+
+---
+
+# SEO MANAGEMENT
+
+Admin controls:
+
+* SEO Title.
+* Meta Description.
+* Open Graph Image.
+* Canonical URL.
+* Robots settings.
+* Sitemap updates.
+
+Automatically generate slugs.
+
+---
+
+# WEBSITE SETTINGS PANEL
+
+Admin can change:
+
+* Website Name.
+* Logo.
+* Favicon.
+* Brand Colors.
+* Fonts.
+* Footer copyright.
+* Privacy Policy.
+* Terms.
+* Cookie Banner.
+
+Updates instantly.
+
+---
+
+# FILE STORAGE RULES
+
+Never store uploaded media inside Replit.
+
+Always upload to Cloudflare R2.
+
+Save only metadata and URLs in Supabase.
+
+Use signed upload URLs where appropriate.
+
+---
+
+# PERFORMANCE
+
+* Lazy load media.
+* Optimize images.
+* Cache R2 assets.
+* Use responsive image sizes.
+* CDN delivery through Cloudflare.
+
+---
+
+# SECURITY
+
+* Row Level Security enabled.
+* Admin-only write permissions.
+* Public website has read-only access.
+* Validate uploads.
+* Limit file sizes.
+* Sanitize HTML content.
+
+---
+
+# TESTING
+
+After implementation, run an end-to-end test.
+
+Verify:
+
+1. Upload image from Admin → stored in Cloudflare R2.
+2. URL saved in Supabase.
+3. Website displays image instantly.
+4. Edit homepage text → website updates.
+5. Publish blog → appears on website.
+6. Delete testimonial → removed from website.
+7. Update service price → website updates immediately.
+
+Generate a PASS/FAIL report for every module.
+
+---
+
+# FINAL RESULT
+
+The Blaster Admin Dashboard must become a fully functional CMS that controls the entire Blaster website in real time using Supabase and Cloudflare R2, without rebuilding the existing projects or changing the current UI.
