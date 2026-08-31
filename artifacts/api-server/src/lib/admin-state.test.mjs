@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import test from "node:test";
+import { createRequire } from "node:module";
 import { getTableName } from "drizzle-orm";
 import {
   developmentAdvertisingFixtures,
   seedDevelopmentAdvertising,
   shouldSeedDevelopmentState,
 } from "./admin-seeding.ts";
+
+const requireFromDbPackage = createRequire(
+  new URL("../../../../lib/db/package.json", import.meta.url),
+);
+const { Pool } = requireFromDbPackage("pg");
 
 test("development fixtures are never enabled for production or tests", () => {
   assert.equal(shouldSeedDevelopmentState("development"), true);
@@ -148,7 +155,7 @@ test("moderation reports and their audit history persist in PostgreSQL", {
   assert.ok(databaseUrl, "SUPABASE_DATABASE_URL or DATABASE_URL is required for the persistence integration test");
   const pool = new Pool({ connectionString: databaseUrl, max: 1 });
   const client = await pool.connect();
-  const suffix = crypto.randomUUID();
+  const suffix = randomUUID();
   const reportId = `test-report-${suffix}`;
   const auditId = `test-audit-${suffix}`;
 
