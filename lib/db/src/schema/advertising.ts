@@ -75,6 +75,51 @@ export const advertisingAuditLogsTable = pgTable("advertising_audit_logs", {
   entityId: text("entity_id"), reason: text("reason"), details: jsonb("details").notNull().default({}), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("advertising_audit_created_idx").on(t.createdAt), index("advertising_audit_entity_idx").on(t.entityType, t.entityId)]);
 
+export const adBillingProfilesTable = pgTable("ad_billing_profiles", {
+  id: id(), advertiserId: text("advertiser_id").notNull().references(() => advertisersTable.id),
+  provider: text("provider").notNull(), providerCustomerId: text("provider_customer_id").notNull(),
+  status: text("status").notNull().default("active"), currency: text("currency").notNull().default("usd"),
+  ...audited,
+}, (t) => [
+  uniqueIndex("ad_billing_profiles_advertiser_unique").on(t.advertiserId),
+  uniqueIndex("ad_billing_profiles_provider_customer_unique").on(t.provider, t.providerCustomerId),
+]);
+
+export const adTransactionsTable = pgTable("ad_transactions", {
+  id: id(), advertiserId: text("advertiser_id").references(() => advertisersTable.id),
+  campaignId: text("campaign_id").references(() => campaignsTable.id), provider: text("provider").notNull(),
+  providerTransactionId: text("provider_transaction_id").notNull(), transactionType: text("transaction_type").notNull(),
+  status: text("status").notNull(), amountMinor: integer("amount_minor").notNull(), refundedAmountMinor: integer("refunded_amount_minor").notNull().default(0),
+  currency: text("currency").notNull(), invoiceUrl: text("invoice_url"), providerCreatedAt: timestamp("provider_created_at", { withTimezone: true }),
+  metadata: jsonb("metadata").notNull().default({}), ...audited,
+}, (t) => [
+  uniqueIndex("ad_transactions_provider_id_unique").on(t.provider, t.providerTransactionId),
+  index("ad_transactions_advertiser_created_idx").on(t.advertiserId, t.createdAt),
+  index("ad_transactions_status_created_idx").on(t.status, t.createdAt),
+]);
+
+export const adBillingEventsTable = pgTable("ad_billing_events", {
+  id: id(), provider: text("provider").notNull(), providerEventId: text("provider_event_id").notNull(),
+  eventType: text("event_type").notNull(), status: text("status").notNull().default("processed"),
+  receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex("ad_billing_events_provider_id_unique").on(t.provider, t.providerEventId),
+  index("ad_billing_events_received_idx").on(t.receivedAt),
+]);
+
+export const adRefundsTable = pgTable("ad_refunds", {
+  id: id(), transactionId: text("transaction_id").notNull().references(() => adTransactionsTable.id),
+  provider: text("provider").notNull(), providerRefundId: text("provider_refund_id"),
+  amountMinor: integer("amount_minor").notNull(), currency: text("currency").notNull(),
+  status: text("status").notNull(), reason: text("reason"), requestedByClerkId: text("requested_by_clerk_id"),
+  authorizationConfirmedAt: timestamp("authorization_confirmed_at", { withTimezone: true }),
+  providerCreatedAt: timestamp("provider_created_at", { withTimezone: true }),
+  ...audited,
+}, (t) => [
+  uniqueIndex("ad_refunds_provider_id_unique").on(t.provider, t.providerRefundId),
+  index("ad_refunds_transaction_idx").on(t.transactionId),
+]);
+
 export const advertisingSettingsTable = pgTable("advertising_settings", {
   id: text("id").primaryKey().default("singleton"), enabled: boolean("enabled").notNull().default(true),
   emergencyShutdown: boolean("emergency_shutdown").notNull().default(false), placementSettings: jsonb("placement_settings").notNull().default({}),

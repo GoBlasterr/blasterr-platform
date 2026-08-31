@@ -32,6 +32,9 @@ import PausedAdsPage from '@/pages/advertising/paused';
 import RejectedAdsPage from '@/pages/advertising/rejected';
 import AdvertisingSettingsPage from '@/pages/advertising/settings';
 import AdvertisingAuditPage from '@/pages/advertising/audit';
+import AdvertisingBillingPage from '@/pages/advertising/billing';
+import AdvertisingTransactionsPage from '@/pages/advertising/transactions';
+import AdvertisingRevenuePage from '@/pages/advertising/revenue';
 import UsersPage from '@/pages/users';
 import ContentPage from '@/pages/content';
 import ReportsPage from '@/pages/reports';
@@ -82,9 +85,9 @@ function AdminRouter() {
           <Route path="/advertising/targeting" component={() => <IntegrationRequired moduleName="Audience Targeting" />} />
           <Route path="/advertising/budgets" component={() => <IntegrationRequired moduleName="Budget Controls" />} />
 
-          <Route path="/advertising/billing" component={() => <IntegrationRequired moduleName="Billing & Payments" />} />
-          <Route path="/advertising/transactions" component={() => <IntegrationRequired moduleName="Transactions" />} />
-          <Route path="/advertising/revenue" component={() => <IntegrationRequired moduleName="Ad Revenue" />} />
+          <Route path="/advertising/billing" component={AdvertisingBillingPage} />
+          <Route path="/advertising/transactions" component={AdvertisingTransactionsPage} />
+          <Route path="/advertising/revenue" component={AdvertisingRevenuePage} />
           
           <Route path="/advertising/analytics" component={() => <IntegrationRequired moduleName="Advertising Analytics" />} />
           <Route path="/advertising/reports" component={() => <IntegrationRequired moduleName="Advertising Reports" />} />

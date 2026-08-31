@@ -1,12 +1,13 @@
 import { clerkClient, getAuth } from "@clerk/express";
 import * as v from "@workspace/api-zod";
 import {
-  adApprovalRecordsTable, adEventsTable, advertisementsTable, advertisersTable, advertisingAuditLogsTable,
-  advertisingSettingsTable, campaignsTable, db,
+  adApprovalRecordsTable, adEventsTable, adTransactionsTable, advertisementsTable, advertisersTable,
+  advertisingAuditLogsTable, advertisingSettingsTable, campaignsTable, db,
 } from "@workspace/db";
-import { and, count, desc, eq, gte, ilike, inArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { getBillingProvider } from "../lib/ad-billing";
 
 const router: IRouter = Router();
 const placements = ["home_feed", "following_feed", "search", "trending", "profile", "clips", "right_rail"] as const;
@@ -15,6 +16,7 @@ const now = () => new Date();
 const stamp = (value: Date | null) => value?.toISOString() ?? null;
 const object = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 type DeliveryTokenPayload = { adId: string; placement: Placement; sessionId: string; tokenId: string; expiresAt: number };
+
 function createDeliveryToken(payload: DeliveryTokenPayload): string | null {
   const secret = process.env.SESSION_SECRET;
   if (!secret) return null;
@@ -32,11 +34,8 @@ function verifyDeliveryToken(token: string): DeliveryTokenPayload | null {
   try {
     const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as DeliveryTokenPayload;
     return payload.expiresAt > Date.now() ? payload : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
-
 async function admin(req: Request): Promise<string | null> {
   const { userId } = getAuth(req);
   if (!userId) return null;
@@ -51,9 +50,7 @@ function isHttpUrl(value: string | undefined): boolean {
   try {
     const url = new URL(value);
     return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 }
 async function requireAdmin(req: Request, res: Response): Promise<string | null> {
   const actor = await admin(req);
@@ -67,16 +64,43 @@ const advertiserPayload = (row: typeof advertisersTable.$inferSelect) => ({ ...r
 const campaignPayload = (row: typeof campaignsTable.$inferSelect) => ({ ...row, placements: Array.isArray(row.placements) ? row.placements as string[] : [], targeting: object(row.targeting), dailyBudget: row.dailyBudget === null ? null : Number(row.dailyBudget), totalBudget: row.totalBudget === null ? null : Number(row.totalBudget), startsAt: stamp(row.startsAt), endsAt: stamp(row.endsAt), createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() });
 const advertisementPayload = (row: typeof advertisementsTable.$inferSelect) => ({ ...row, adGroupId: row.adGroupId ?? null, creativeId: row.creativeId ?? null, mediaUrl: row.mediaUrl ?? null, destinationUrl: row.destinationUrl ?? null, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() });
 const auditPayload = (row: typeof advertisingAuditLogsTable.$inferSelect) => ({ ...row, entityId: row.entityId ?? null, reason: row.reason ?? null, actorClerkId: row.actorClerkId ?? null, createdAt: row.createdAt.toISOString() });
-function page<T>(items: T[], pageNumber: number, limit: number) { return { items: items.slice((pageNumber - 1) * limit, pageNumber * limit), page: pageNumber, limit, total: items.length, hasMore: pageNumber * limit < items.length }; }
+const transactionPayload = (row: typeof adTransactionsTable.$inferSelect) => ({
+  id: row.id, advertiserId: row.advertiserId ?? null, campaignId: row.campaignId ?? null, provider: row.provider,
+  providerTransactionId: row.providerTransactionId, transactionType: row.transactionType, status: row.status,
+  amountMinor: row.amountMinor, refundedAmountMinor: row.refundedAmountMinor, currency: row.currency,
+  invoiceUrl: row.invoiceUrl ?? null, providerCreatedAt: stamp(row.providerCreatedAt), createdAt: row.createdAt.toISOString(),
+});
+function page<T>(items: T[], pageNumber: number, limit: number) {
+  return { items: items.slice((pageNumber - 1) * limit, pageNumber * limit), page: pageNumber, limit, total: items.length, hasMore: pageNumber * limit < items.length };
+}
+function requireBillingProvider(res: Response): "stripe" | null {
+  const provider = getBillingProvider();
+  if (!provider) res.status(503).json({ error: "Approved billing provider is not connected." });
+  return provider;
+}
+function financialBalances(rows: (typeof adTransactionsTable.$inferSelect)[]) {
+  const balances = new Map<string, { currency: string; grossAmountMinor: number; refundedAmountMinor: number; netAmountMinor: number; settledTransactionCount: number }>();
+  for (const row of rows.filter((item) => ["settled", "partially_refunded", "refunded"].includes(item.status))) {
+    const balance = balances.get(row.currency) ?? { currency: row.currency, grossAmountMinor: 0, refundedAmountMinor: 0, netAmountMinor: 0, settledTransactionCount: 0 };
+    balance.grossAmountMinor += row.amountMinor;
+    balance.refundedAmountMinor += row.refundedAmountMinor;
+    balance.netAmountMinor = balance.grossAmountMinor - balance.refundedAmountMinor;
+    balance.settledTransactionCount += 1;
+    balances.set(row.currency, balance);
+  }
+  return Array.from(balances.values()).sort((a, b) => a.currency.localeCompare(b.currency));
+}
 
 router.get("/admin/advertising/overview", async (req, res): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   const [advertisers, campaigns, active, events, activity] = await Promise.all([
-    db.select({ value: count() }).from(advertisersTable), db.select({ value: count() }).from(campaignsTable),
+    db.select({ value: count() }).from(advertisersTable),
+    db.select({ value: count() }).from(campaignsTable),
     db.select({ value: count() }).from(advertisementsTable).where(eq(advertisementsTable.status, "active")),
-    db.select({ value: count() }).from(adEventsTable).where(gte(adEventsTable.occurredAt, new Date(Date.now() - 24 * 60 * 60 * 1000))), db.select().from(advertisingAuditLogsTable).orderBy(desc(advertisingAuditLogsTable.createdAt)).limit(20),
+    db.select({ value: count() }).from(adEventsTable).where(gte(adEventsTable.occurredAt, new Date(Date.now() - 24 * 60 * 60 * 1000))),
+    db.select().from(advertisingAuditLogsTable).orderBy(desc(advertisingAuditLogsTable.createdAt)).limit(20),
   ]);
-  res.json(v.GetAdminAdvertisingOverviewResponse.parse({ advertiserCount: advertisers[0]?.value ?? 0, campaignCount: campaigns[0]?.value ?? 0, activeAdvertisementCount: active[0]?.value ?? 0, eventCount: events[0]?.value ?? 0, series: [], activity: activity.map(auditPayload), billingIntegrationAvailable: false }));
+  res.json(v.GetAdminAdvertisingOverviewResponse.parse({ advertiserCount: advertisers[0]?.value ?? 0, campaignCount: campaigns[0]?.value ?? 0, activeAdvertisementCount: active[0]?.value ?? 0, eventCount: events[0]?.value ?? 0, series: [], activity: activity.map(auditPayload), billingIntegrationAvailable: getBillingProvider() !== null }));
 });
 
 router.get("/admin/advertising/advertisers", async (req, res): Promise<void> => {
@@ -90,27 +114,34 @@ router.post("/admin/advertising/advertisers", async (req, res): Promise<void> =>
   const actor = await requireAdmin(req, res); if (!actor) return;
   const body = v.CreateAdminAdvertiserBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "Invalid advertiser." });
   const [row] = await db.insert(advertisersTable).values({ name: body.data.name.trim(), ownerClerkId: body.data.ownerClerkId, contactEmail: body.data.contactEmail }).returning();
-  await audit(actor, "advertiser_created", "advertiser", row.id); res.status(201).json(v.CreateAdminAdvertiserResponse.parse(advertiserPayload(row)));
+  await audit(actor, "advertiser_created", "advertiser", row.id);
+  res.status(201).json(v.CreateAdminAdvertiserResponse.parse(advertiserPayload(row)));
 });
 router.patch("/admin/advertising/advertisers/:id/status", async (req, res): Promise<void> => {
   const actor = await requireAdmin(req, res); if (!actor) return;
   const params = v.UpdateAdminAdvertiserStatusParams.safeParse(req.params), body = v.UpdateAdminAdvertiserStatusBody.safeParse(req.body);
   if (!params.success || !body.success || (["suspended", "paused"].includes(body.data.status) && !body.data.reason)) return void res.status(400).json({ error: "A reason is required for this status change." });
   const [row] = await db.update(advertisersTable).set({ status: body.data.status, updatedAt: now() }).where(eq(advertisersTable.id, params.data.id)).returning();
-  if (!row) return void res.status(404).json({ error: "Advertiser not found." }); await audit(actor, "advertiser_status_updated", "advertiser", row.id, body.data.reason); res.json(v.UpdateAdminAdvertiserStatusResponse.parse(advertiserPayload(row)));
+  if (!row) return void res.status(404).json({ error: "Advertiser not found." });
+  await audit(actor, "advertiser_status_updated", "advertiser", row.id, body.data.reason);
+  res.json(v.UpdateAdminAdvertiserStatusResponse.parse(advertiserPayload(row)));
 });
 
 router.get("/admin/advertising/campaigns", async (req, res): Promise<void> => {
-  if (!await requireAdmin(req, res)) return; const parsed = v.ListAdminCampaignsQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
-  const rows = await db.select().from(campaignsTable).orderBy(desc(campaignsTable.createdAt)); const filtered = rows.filter((x) => (!parsed.data.status || x.status === parsed.data.status) && (!parsed.data.search || x.name.toLowerCase().includes(parsed.data.search.toLowerCase())));
+  if (!await requireAdmin(req, res)) return;
+  const parsed = v.ListAdminCampaignsQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
+  const rows = await db.select().from(campaignsTable).orderBy(desc(campaignsTable.createdAt));
+  const filtered = rows.filter((x) => (!parsed.data.status || x.status === parsed.data.status) && (!parsed.data.search || x.name.toLowerCase().includes(parsed.data.search.toLowerCase())));
   res.json(v.ListAdminCampaignsResponse.parse(page(filtered.map(campaignPayload), parsed.data.page, parsed.data.limit)));
 });
 router.post("/admin/advertising/campaigns", async (req, res): Promise<void> => {
-  const actor = await requireAdmin(req, res); if (!actor) return; const body = v.CreateAdminCampaignBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "Invalid campaign." });
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const body = v.CreateAdminCampaignBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "Invalid campaign." });
   const config = settingsPayload(await settings()); if (!config.enabled || config.emergencyShutdown) return void res.status(409).json({ error: "Advertising creation is disabled by platform settings." });
   const [advertiser] = await db.select({ id: advertisersTable.id }).from(advertisersTable).where(eq(advertisersTable.id, body.data.advertiserId)); if (!advertiser) return void res.status(404).json({ error: "Advertiser not found." });
   const [row] = await db.insert(campaignsTable).values({ ...body.data, name: body.data.name.trim(), targeting: body.data.targeting ?? {}, dailyBudget: body.data.dailyBudget?.toString(), totalBudget: body.data.totalBudget?.toString(), startsAt: body.data.startsAt ? new Date(body.data.startsAt) : null, endsAt: body.data.endsAt ? new Date(body.data.endsAt) : null }).returning();
-  await audit(actor, "campaign_created", "campaign", row.id); res.status(201).json(v.CreateAdminCampaignResponse.parse(campaignPayload(row)));
+  await audit(actor, "campaign_created", "campaign", row.id);
+  res.status(201).json(v.CreateAdminCampaignResponse.parse(campaignPayload(row)));
 });
 router.patch("/admin/advertising/campaigns/:id/status", async (req, res): Promise<void> => {
   const actor = await requireAdmin(req, res); if (!actor) return;
@@ -127,41 +158,84 @@ router.patch("/admin/advertising/campaigns/:id/status", async (req, res): Promis
 });
 
 router.get("/admin/advertising/advertisements", async (req, res): Promise<void> => {
-  if (!await requireAdmin(req, res)) return; const parsed = v.ListAdminAdvertisementsQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
-  const rows = await db.select().from(advertisementsTable).orderBy(desc(advertisementsTable.createdAt)); const filtered = rows.filter((x) => (!parsed.data.status || x.status === parsed.data.status) && (!parsed.data.search || `${x.name} ${x.headline}`.toLowerCase().includes(parsed.data.search.toLowerCase())));
+  if (!await requireAdmin(req, res)) return;
+  const parsed = v.ListAdminAdvertisementsQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
+  const rows = await db.select().from(advertisementsTable).orderBy(desc(advertisementsTable.createdAt));
+  const filtered = rows.filter((x) => (!parsed.data.status || x.status === parsed.data.status) && (!parsed.data.search || `${x.name} ${x.headline}`.toLowerCase().includes(parsed.data.search.toLowerCase())));
   res.json(v.ListAdminAdvertisementsResponse.parse(page(filtered.map(advertisementPayload), parsed.data.page, parsed.data.limit)));
 });
 router.post("/admin/advertising/advertisements", async (req, res): Promise<void> => {
-  const actor = await requireAdmin(req, res); if (!actor) return; const body = v.CreateAdminAdvertisementBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "Invalid advertisement." });
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const body = v.CreateAdminAdvertisementBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "Invalid advertisement." });
   if (!isHttpUrl(body.data.mediaUrl) || !isHttpUrl(body.data.destinationUrl)) return void res.status(400).json({ error: "Media and destination URLs must be absolute HTTP(S) URLs." });
   const config = settingsPayload(await settings()); if (!config.enabled || config.emergencyShutdown) return void res.status(409).json({ error: "Advertising creation is disabled by platform settings." });
   const [campaign] = await db.select({ id: campaignsTable.id }).from(campaignsTable).where(eq(campaignsTable.id, body.data.campaignId)); if (!campaign) return void res.status(404).json({ error: "Campaign not found." });
   const [row] = await db.insert(advertisementsTable).values({ ...body.data, name: body.data.name.trim(), headline: body.data.headline.trim(), body: body.data.body ?? "", status: "pending_approval" }).returning();
-  await db.insert(adApprovalRecordsTable).values({ advertisementId: row.id, action: "submitted" }); await audit(actor, "advertisement_created", "advertisement", row.id);
+  await db.insert(adApprovalRecordsTable).values({ advertisementId: row.id, action: "submitted" });
+  await audit(actor, "advertisement_created", "advertisement", row.id);
   res.status(201).json(v.CreateAdminAdvertisementResponse.parse(advertisementPayload(row)));
 });
 router.post("/admin/advertising/advertisements/:id/review", async (req, res): Promise<void> => {
-  const actor = await requireAdmin(req, res); if (!actor) return; const params = v.ReviewAdminAdvertisementParams.safeParse(req.params), body = v.ReviewAdminAdvertisementBody.safeParse(req.body);
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const params = v.ReviewAdminAdvertisementParams.safeParse(req.params), body = v.ReviewAdminAdvertisementBody.safeParse(req.body);
   if (!params.success || !body.success || (body.data.action !== "approve" && !body.data.reason)) return void res.status(400).json({ error: "A reason is required for this review action." });
   const status = body.data.action === "approve" || body.data.action === "resume" ? "active" : body.data.action === "pause" ? "paused" : body.data.action;
-  const [row] = await db.update(advertisementsTable).set({ status, updatedAt: now() }).where(eq(advertisementsTable.id, params.data.id)).returning(); if (!row) return void res.status(404).json({ error: "Advertisement not found." });
-  await db.insert(adApprovalRecordsTable).values({ advertisementId: row.id, action: body.data.action, reason: body.data.reason, reviewerClerkId: actor }); await audit(actor, `advertisement_${body.data.action}`, "advertisement", row.id, body.data.reason);
+  const [row] = await db.update(advertisementsTable).set({ status, updatedAt: now() }).where(eq(advertisementsTable.id, params.data.id)).returning();
+  if (!row) return void res.status(404).json({ error: "Advertisement not found." });
+  await db.insert(adApprovalRecordsTable).values({ advertisementId: row.id, action: body.data.action, reason: body.data.reason, reviewerClerkId: actor });
+  await audit(actor, `advertisement_${body.data.action}`, "advertisement", row.id, body.data.reason);
   res.json(v.ReviewAdminAdvertisementResponse.parse(advertisementPayload(row)));
 });
 
-async function settings() { const [row] = await db.select().from(advertisingSettingsTable).where(eq(advertisingSettingsTable.id, "singleton")); return row; }
-const settingsPayload = (row: typeof advertisingSettingsTable.$inferSelect | undefined) => ({ enabled: row?.enabled ?? true, emergencyShutdown: row?.emergencyShutdown ?? false, placementSettings: object(row?.placementSettings), frequencySettings: object(row?.frequencySettings), featureFlags: object(row?.featureFlags), billingIntegrationAvailable: false, updatedAt: row?.updatedAt.toISOString() ?? new Date(0).toISOString() });
-router.get("/admin/advertising/settings", async (req, res): Promise<void> => { if (!await requireAdmin(req, res)) return; res.json(v.GetAdminAdvertisingSettingsResponse.parse(settingsPayload(await settings()))); });
+async function settings() {
+  const [row] = await db.select().from(advertisingSettingsTable).where(eq(advertisingSettingsTable.id, "singleton"));
+  return row;
+}
+const settingsPayload = (row: typeof advertisingSettingsTable.$inferSelect | undefined) => ({ enabled: row?.enabled ?? true, emergencyShutdown: row?.emergencyShutdown ?? false, placementSettings: object(row?.placementSettings), frequencySettings: object(row?.frequencySettings), featureFlags: object(row?.featureFlags), billingIntegrationAvailable: getBillingProvider() !== null, updatedAt: row?.updatedAt.toISOString() ?? new Date(0).toISOString() });
+router.get("/admin/advertising/settings", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  res.json(v.GetAdminAdvertisingSettingsResponse.parse(settingsPayload(await settings())));
+});
 router.patch("/admin/advertising/settings", async (req, res): Promise<void> => {
-  const actor = await requireAdmin(req, res); if (!actor) return; const body = v.UpdateAdminAdvertisingSettingsBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "A reason is required for settings updates." });
-  const current = await settings(); const values = { id: "singleton", enabled: body.data.enabled ?? current?.enabled ?? true, emergencyShutdown: body.data.emergencyShutdown ?? current?.emergencyShutdown ?? false, placementSettings: body.data.placementSettings ?? object(current?.placementSettings), frequencySettings: body.data.frequencySettings ?? object(current?.frequencySettings), featureFlags: body.data.featureFlags ?? object(current?.featureFlags), updatedByClerkId: actor, updatedAt: now() };
-  const [row] = await db.insert(advertisingSettingsTable).values(values).onConflictDoUpdate({ target: advertisingSettingsTable.id, set: values }).returning(); await audit(actor, values.emergencyShutdown ? "emergency_shutdown_updated" : "settings_updated", "settings", "singleton", body.data.reason);
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const body = v.UpdateAdminAdvertisingSettingsBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "A reason is required for settings updates." });
+  const current = await settings();
+  const values = { id: "singleton", enabled: body.data.enabled ?? current?.enabled ?? true, emergencyShutdown: body.data.emergencyShutdown ?? current?.emergencyShutdown ?? false, placementSettings: body.data.placementSettings ?? object(current?.placementSettings), frequencySettings: body.data.frequencySettings ?? object(current?.frequencySettings), featureFlags: body.data.featureFlags ?? object(current?.featureFlags), updatedByClerkId: actor, updatedAt: now() };
+  const [row] = await db.insert(advertisingSettingsTable).values(values).onConflictDoUpdate({ target: advertisingSettingsTable.id, set: values }).returning();
+  await audit(actor, values.emergencyShutdown ? "emergency_shutdown_updated" : "settings_updated", "settings", "singleton", body.data.reason);
   res.json(v.UpdateAdminAdvertisingSettingsResponse.parse(settingsPayload(row)));
 });
-router.get("/admin/advertising/audit", async (req, res): Promise<void> => { if (!await requireAdmin(req, res)) return; const parsed = v.ListAdminAdvertisingAuditQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." }); const rows = await db.select().from(advertisingAuditLogsTable).orderBy(desc(advertisingAuditLogsTable.createdAt)); res.json(v.ListAdminAdvertisingAuditResponse.parse(page(rows.map(auditPayload), parsed.data.page, parsed.data.limit))); });
+router.get("/admin/advertising/audit", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const parsed = v.ListAdminAdvertisingAuditQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
+  const rows = await db.select().from(advertisingAuditLogsTable).orderBy(desc(advertisingAuditLogsTable.createdAt));
+  res.json(v.ListAdminAdvertisingAuditResponse.parse(page(rows.map(auditPayload), parsed.data.page, parsed.data.limit)));
+});
+
+router.get("/admin/advertising/billing", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const provider = requireBillingProvider(res); if (!provider) return;
+  const rows = await db.select().from(adTransactionsTable).where(eq(adTransactionsTable.provider, provider)).orderBy(desc(adTransactionsTable.createdAt));
+  res.json(v.GetAdminAdvertisingBillingResponse.parse({ provider, balances: financialBalances(rows), transactionCount: rows.length, available: true }));
+});
+router.get("/admin/advertising/transactions", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const provider = requireBillingProvider(res); if (!provider) return;
+  const parsed = v.ListAdminAdvertisingTransactionsQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
+  const rows = await db.select().from(adTransactionsTable).where(eq(adTransactionsTable.provider, provider)).orderBy(desc(adTransactionsTable.createdAt));
+  const filtered = parsed.data.status ? rows.filter((row) => row.status === parsed.data.status) : rows;
+  res.json(v.ListAdminAdvertisingTransactionsResponse.parse(page(filtered.map(transactionPayload), parsed.data.page, parsed.data.limit)));
+});
+router.get("/admin/advertising/revenue", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const provider = requireBillingProvider(res); if (!provider) return;
+  const rows = await db.select().from(adTransactionsTable).where(eq(adTransactionsTable.provider, provider)).orderBy(desc(adTransactionsTable.createdAt));
+  res.json(v.GetAdminAdvertisingRevenueResponse.parse({ provider, balances: financialBalances(rows), available: true }));
+});
 
 router.get("/advertising/placement", async (req, res): Promise<void> => {
-  const parsed = v.GetAdPlacementQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid placement request." }); const placement = parsed.data.placement as Placement, config = settingsPayload(await settings());
+  const parsed = v.GetAdPlacementQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid placement request." });
+  const placement = parsed.data.placement as Placement, config = settingsPayload(await settings());
   if (!config.enabled || config.emergencyShutdown || object(config.featureFlags).advertisingEnabled === false || object(config.placementSettings)[placement] === false) return void res.json(v.GetAdPlacementResponse.parse({ ad: null }));
   const delivery = await db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${parsed.data.sessionId}))`);
@@ -193,14 +267,10 @@ router.post("/advertising/events", async (req, res): Promise<void> => {
   const token = verifyDeliveryToken(body.data.deliveryToken);
   if (!token || token.adId !== body.data.advertisementId || token.placement !== body.data.placement || token.sessionId !== body.data.sessionId) return void res.status(400).json({ error: "Invalid or expired delivery proof." });
   const [eligible] = await db.select({ ad: advertisementsTable, campaign: campaignsTable, advertiser: advertisersTable })
-    .from(advertisementsTable)
-    .innerJoin(campaignsTable, eq(advertisementsTable.campaignId, campaignsTable.id))
-    .innerJoin(advertisersTable, eq(campaignsTable.advertiserId, advertisersTable.id))
-    .where(eq(advertisementsTable.id, body.data.advertisementId));
+    .from(advertisementsTable).innerJoin(campaignsTable, eq(advertisementsTable.campaignId, campaignsTable.id))
+    .innerJoin(advertisersTable, eq(campaignsTable.advertiserId, advertisersTable.id)).where(eq(advertisementsTable.id, body.data.advertisementId));
   const config = settingsPayload(await settings());
-  const ad = eligible?.ad;
-  const campaign = eligible?.campaign;
-  const advertiser = eligible?.advertiser;
+  const ad = eligible?.ad, campaign = eligible?.campaign, advertiser = eligible?.advertiser;
   const isScheduled = campaign && (!campaign.startsAt || campaign.startsAt <= now()) && (!campaign.endsAt || campaign.endsAt >= now());
   if (!ad || !campaign || !advertiser || ad.status !== "active" || campaign.status !== "active" || advertiser.status !== "active" || ad.placement !== body.data.placement || !isScheduled || !config.enabled || config.emergencyShutdown || object(config.featureFlags).advertisingEnabled === false || object(config.placementSettings)[body.data.placement] === false) return void res.status(404).json({ error: "Eligible advertisement not found." });
   const [issued] = await db.select({ id: adEventsTable.id }).from(adEventsTable).where(and(eq(adEventsTable.deliveryTokenId, token.tokenId), eq(adEventsTable.eventType, "delivery"))).limit(1);

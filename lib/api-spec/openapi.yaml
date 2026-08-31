@@ -979,6 +979,46 @@ paths:
       tags: [admin, advertising]
       parameters: [{ $ref: "#/components/parameters/Page" }, { $ref: "#/components/parameters/Limit" }]
       responses: { "200": { description: Audit history, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingAuditPage" } } } } }
+  /admin/advertising/billing:
+    get:
+      operationId: getAdminAdvertisingBilling
+      tags: [admin, advertising, billing]
+      responses:
+        "200":
+          description: Provider-backed advertising billing summary
+          content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingBillingSummary" } } }
+        "503": { description: Approved billing provider is not connected }
+  /admin/advertising/transactions:
+    get:
+      operationId: listAdminAdvertisingTransactions
+      tags: [admin, advertising, billing]
+      parameters: [{ $ref: "#/components/parameters/Page" }, { $ref: "#/components/parameters/Limit" }, { $ref: "#/components/parameters/Status" }]
+      responses:
+        "200":
+          description: Provider-backed advertising transactions
+          content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingTransactionPage" } } }
+        "503": { description: Approved billing provider is not connected }
+  /admin/advertising/revenue:
+    get:
+      operationId: getAdminAdvertisingRevenue
+      tags: [admin, advertising, billing]
+      responses:
+        "200":
+          description: Provider-backed advertising revenue summary
+          content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingRevenueSummary" } } }
+        "503": { description: Approved billing provider is not connected }
+  /advertising/billing/webhook:
+    post:
+      operationId: receiveAdvertisingBillingWebhook
+      tags: [advertising, billing]
+      description: Provider webhook endpoint. Requests must include a provider signature; card data is never accepted.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisingBillingWebhookEvent" } } }
+      responses:
+        "200": { description: Event accepted or already processed }
+        "400": { description: Invalid or missing provider signature }
+        "503": { description: Billing provider is not configured }
   /advertising/placement:
     get:
       operationId: getAdPlacement
@@ -1643,6 +1683,54 @@ components:
         series: { type: array, items: { type: object, required: [date, impressions, clicks], properties: { date: { type: string }, impressions: { type: number }, clicks: { type: number } } } }
         activity: { type: array, items: { $ref: "#/components/schemas/AdvertisingAudit" } }
         billingIntegrationAvailable: { type: boolean }
+    AdvertisingBillingSummary:
+      type: object
+      required: [provider, balances, transactionCount, available]
+      properties:
+        provider: { type: [string, "null"], enum: [stripe, whop, null] }
+        balances: { type: array, items: { $ref: "#/components/schemas/AdvertisingFinancialBalance" } }
+        transactionCount: { type: number }
+        available: { type: boolean }
+    AdvertisingFinancialBalance:
+      type: object
+      required: [currency, grossAmountMinor, refundedAmountMinor, netAmountMinor, settledTransactionCount]
+      properties:
+        currency: { type: string }
+        grossAmountMinor: { type: number }
+        refundedAmountMinor: { type: number }
+        netAmountMinor: { type: number }
+        settledTransactionCount: { type: number }
+    AdvertisingTransaction:
+      type: object
+      required: [id, advertiserId, campaignId, provider, providerTransactionId, transactionType, status, amountMinor, refundedAmountMinor, currency, invoiceUrl, providerCreatedAt, createdAt]
+      properties:
+        id: { type: string }
+        advertiserId: { type: [string, "null"] }
+        campaignId: { type: [string, "null"] }
+        provider: { type: string, enum: [stripe, whop] }
+        providerTransactionId: { type: string }
+        transactionType: { type: string }
+        status: { type: string }
+        amountMinor: { type: number }
+        refundedAmountMinor: { type: number }
+        currency: { type: string }
+        invoiceUrl: { type: [string, "null"] }
+        providerCreatedAt: { type: [string, "null"] }
+        createdAt: { type: string }
+    AdvertisingTransactionPage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties: { items: { type: array, items: { $ref: "#/components/schemas/AdvertisingTransaction" } }, page: { type: number }, limit: { type: number }, total: { type: number }, hasMore: { type: boolean } }
+    AdvertisingRevenueSummary:
+      type: object
+      required: [provider, balances, available]
+      properties:
+        provider: { type: [string, "null"], enum: [stripe, whop, null] }
+        balances: { type: array, items: { $ref: "#/components/schemas/AdvertisingFinancialBalance" } }
+        available: { type: boolean }
+    AdvertisingBillingWebhookEvent:
+      type: object
+      additionalProperties: true
     AdminUser:
       allOf:
         - $ref: "#/components/schemas/User"

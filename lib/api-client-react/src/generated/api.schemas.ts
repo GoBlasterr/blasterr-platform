@@ -904,6 +904,10 @@ export interface AdvertisingOverview {
   billingIntegrationAvailable: boolean;
 }
 
+/**
+ * @nullable
+ */
+export type AdvertisingBillingSummaryProvider = typeof AdvertisingBillingSummaryProvider[keyof typeof AdvertisingBillingSummaryProvider] | null;
 export type AdminUserRole = typeof AdminUserRole[keyof typeof AdminUserRole];
 
 
@@ -1442,6 +1446,18 @@ page?: PageParameter;
 limit?: LimitParameter;
 };
 
+export type ListAdminAdvertisingTransactionsParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: StatusParameter;
+};
 export type GetAdPlacementParams = {
 placement: GetAdPlacementPlacement;
 /**
@@ -1472,3 +1488,78 @@ export type RecordAdEvent201 = {
   recorded: boolean;
 };
 
+
+export interface AdvertisingRevenueSummary {
+  /** @nullable */
+  provider: AdvertisingRevenueSummaryProvider;
+  balances: AdvertisingFinancialBalance[];
+  available: boolean;
+}
+
+export const AdvertisingBillingSummaryProvider = {
+  stripe: 'stripe',
+  whop: 'whop',
+} as const;
+
+export interface AdvertisingFinancialBalance {
+  currency: string;
+  grossAmountMinor: number;
+  refundedAmountMinor: number;
+  netAmountMinor: number;
+  settledTransactionCount: number;
+}
+
+export type AdvertisingTransactionProvider = typeof AdvertisingTransactionProvider[keyof typeof AdvertisingTransactionProvider];
+
+export interface AdvertisingTransaction {
+  id: string;
+  /** @nullable */
+  advertiserId: string | null;
+  /** @nullable */
+  campaignId: string | null;
+  provider: AdvertisingTransactionProvider;
+  providerTransactionId: string;
+  transactionType: string;
+  status: string;
+  amountMinor: number;
+  refundedAmountMinor: number;
+  currency: string;
+  /** @nullable */
+  invoiceUrl: string | null;
+  /** @nullable */
+  providerCreatedAt: string | null;
+  createdAt: string;
+}
+
+export interface AdvertisingBillingWebhookEvent { [key: string]: unknown }
+
+export interface AdvertisingBillingSummary {
+  /** @nullable */
+  provider: AdvertisingBillingSummaryProvider;
+  balances: AdvertisingFinancialBalance[];
+  transactionCount: number;
+  available: boolean;
+}
+
+export const AdvertisingTransactionProvider = {
+  stripe: 'stripe',
+  whop: 'whop',
+} as const;
+
+export const AdvertisingRevenueSummaryProvider = {
+  stripe: 'stripe',
+  whop: 'whop',
+} as const;
+
+/**
+ * @nullable
+ */
+export type AdvertisingRevenueSummaryProvider = typeof AdvertisingRevenueSummaryProvider[keyof typeof AdvertisingRevenueSummaryProvider] | null;
+
+export interface AdvertisingTransactionPage {
+  items: AdvertisingTransaction[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}

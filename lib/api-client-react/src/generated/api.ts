@@ -55,9 +55,13 @@ import type {
   AdvertiserInput,
   AdvertiserPage,
   AdvertisingAuditPage,
+  AdvertisingBillingSummary,
+  AdvertisingBillingWebhookEvent,
   AdvertisingOverview,
+  AdvertisingRevenueSummary,
   AdvertisingSettings,
   AdvertisingSettingsUpdate,
+  AdvertisingTransactionPage,
   Blast,
   BlastInput,
   BlastUpdate,
@@ -86,6 +90,7 @@ import type {
   ListAdminAdvertisementsParams,
   ListAdminAdvertisersParams,
   ListAdminAdvertisingAuditParams,
+  ListAdminAdvertisingTransactionsParams,
   ListAdminCampaignsParams,
   ListTargetsParams,
   Notification,
@@ -4940,6 +4945,294 @@ export function useListAdminAdvertisingAudit<TData = Awaited<ReturnType<typeof l
 
 
 
+
+export const getGetAdminAdvertisingBillingUrl = () => {
+
+
+
+
+  return `/api/admin/advertising/billing`
+}
+
+export const getAdminAdvertisingBilling = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdvertisingBillingSummary> => {
+
+  return customFetch<AdvertisingBillingSummary>(getGetAdminAdvertisingBillingUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminAdvertisingBillingQueryKey = () => {
+    return [
+    `/api/admin/advertising/billing`
+    ] as const;
+    }
+
+
+export const getGetAdminAdvertisingBillingQueryOptions = <TData = Awaited<ReturnType<typeof getAdminAdvertisingBilling>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminAdvertisingBilling>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminAdvertisingBillingQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminAdvertisingBilling>>> = ({ signal }) => getAdminAdvertisingBilling({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminAdvertisingBilling>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminAdvertisingBillingQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminAdvertisingBilling>>>
+export type GetAdminAdvertisingBillingQueryError = ErrorType<void>
+
+
+
+export function useGetAdminAdvertisingBilling<TData = Awaited<ReturnType<typeof getAdminAdvertisingBilling>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminAdvertisingBilling>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminAdvertisingBillingQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListAdminAdvertisingTransactionsUrl = (params?: ListAdminAdvertisingTransactionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/advertising/transactions?${stringifiedParams}` : `/api/admin/advertising/transactions`
+}
+
+export const listAdminAdvertisingTransactions = async (params?: ListAdminAdvertisingTransactionsParams, options?: Parameters<typeof customFetch>[1]): Promise<AdvertisingTransactionPage> => {
+
+  return customFetch<AdvertisingTransactionPage>(getListAdminAdvertisingTransactionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminAdvertisingTransactionsQueryKey = (params?: ListAdminAdvertisingTransactionsParams,) => {
+    return [
+    `/api/admin/advertising/transactions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminAdvertisingTransactionsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminAdvertisingTransactions>>, TError = ErrorType<void>>(params?: ListAdminAdvertisingTransactionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingTransactions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminAdvertisingTransactionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminAdvertisingTransactions>>> = ({ signal }) => listAdminAdvertisingTransactions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingTransactions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminAdvertisingTransactionsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminAdvertisingTransactions>>>
+export type ListAdminAdvertisingTransactionsQueryError = ErrorType<void>
+
+
+
+export function useListAdminAdvertisingTransactions<TData = Awaited<ReturnType<typeof listAdminAdvertisingTransactions>>, TError = ErrorType<void>>(
+ params?: ListAdminAdvertisingTransactionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAdvertisingTransactions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminAdvertisingTransactionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAdminAdvertisingRevenueUrl = () => {
+
+
+
+
+  return `/api/admin/advertising/revenue`
+}
+
+export const getAdminAdvertisingRevenue = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdvertisingRevenueSummary> => {
+
+  return customFetch<AdvertisingRevenueSummary>(getGetAdminAdvertisingRevenueUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminAdvertisingRevenueQueryKey = () => {
+    return [
+    `/api/admin/advertising/revenue`
+    ] as const;
+    }
+
+
+export const getGetAdminAdvertisingRevenueQueryOptions = <TData = Awaited<ReturnType<typeof getAdminAdvertisingRevenue>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminAdvertisingRevenue>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminAdvertisingRevenueQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminAdvertisingRevenue>>> = ({ signal }) => getAdminAdvertisingRevenue({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminAdvertisingRevenue>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminAdvertisingRevenueQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminAdvertisingRevenue>>>
+export type GetAdminAdvertisingRevenueQueryError = ErrorType<void>
+
+
+
+export function useGetAdminAdvertisingRevenue<TData = Awaited<ReturnType<typeof getAdminAdvertisingRevenue>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminAdvertisingRevenue>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminAdvertisingRevenueQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReceiveAdvertisingBillingWebhookUrl = () => {
+
+
+
+
+  return `/api/advertising/billing/webhook`
+}
+
+/**
+ * Provider webhook endpoint. Requests must include a provider signature; card data is never accepted.
+ */
+export const receiveAdvertisingBillingWebhook = async (advertisingBillingWebhookEvent: AdvertisingBillingWebhookEvent, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getReceiveAdvertisingBillingWebhookUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(advertisingBillingWebhookEvent)
+  }
+);}
+
+
+
+
+
+export const getReceiveAdvertisingBillingWebhookMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveAdvertisingBillingWebhook>>, TError,{data: BodyType<AdvertisingBillingWebhookEvent>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof receiveAdvertisingBillingWebhook>>, TError,{data: BodyType<AdvertisingBillingWebhookEvent>}, TContext> => {
+
+const mutationKey = ['receiveAdvertisingBillingWebhook'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof receiveAdvertisingBillingWebhook>>, {data: BodyType<AdvertisingBillingWebhookEvent>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  receiveAdvertisingBillingWebhook(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReceiveAdvertisingBillingWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof receiveAdvertisingBillingWebhook>>>
+    export type ReceiveAdvertisingBillingWebhookMutationBody = BodyType<AdvertisingBillingWebhookEvent>
+    export type ReceiveAdvertisingBillingWebhookMutationError = ErrorType<void>
+
+    export const useReceiveAdvertisingBillingWebhook = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveAdvertisingBillingWebhook>>, TError,{data: BodyType<AdvertisingBillingWebhookEvent>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof receiveAdvertisingBillingWebhook>>,
+        TError,
+        {data: BodyType<AdvertisingBillingWebhookEvent>},
+        TContext
+      > => {
+      return useMutation(getReceiveAdvertisingBillingWebhookMutationOptions(options));
+    }
 
 export const getGetAdPlacementUrl = (params: GetAdPlacementParams,) => {
   const normalizedParams = new URLSearchParams();

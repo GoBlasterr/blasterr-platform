@@ -12,6 +12,7 @@ import {
 } from "./middlewares/clerkProxyMiddleware";
 import { adminSettings, ensureAdminState } from "./lib/admin-state";
 import { isSuspended } from "./lib/admin-auth";
+import { handleAdvertisingBillingWebhook } from "./lib/ad-billing";
 
 const app: Express = express();
 
@@ -36,6 +37,11 @@ app.use(
 );
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 app.use(cors({ credentials: true, origin: true }));
+app.post(
+  "/api/advertising/billing/webhook",
+  express.raw({ type: "application/json", limit: "1mb" }),
+  handleAdvertisingBillingWebhook,
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
