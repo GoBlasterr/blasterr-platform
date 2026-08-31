@@ -2507,6 +2507,32 @@ export const ListAdminCampaignsQueryParams = zod.object({
   "search": zod.coerce.string().optional()
 })
 
+export const listAdminCampaignsResponseItemsItemTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const listAdminCampaignsResponseItemsItemTargetingGeographiesMax = 50;
+
+export const listAdminCampaignsResponseItemsItemTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const listAdminCampaignsResponseItemsItemTargetingLanguagesMax = 20;
+
+export const listAdminCampaignsResponseItemsItemTargetingDevicesMax = 3;
+
+export const listAdminCampaignsResponseItemsItemTargetingInterestsItemMax = 80;
+
+export const listAdminCampaignsResponseItemsItemTargetingInterestsMax = 50;
+
+export const listAdminCampaignsResponseItemsItemTargetingCategoriesItemMax = 80;
+
+export const listAdminCampaignsResponseItemsItemTargetingCategoriesMax = 50;
+
+export const listAdminCampaignsResponseItemsItemTargetingKeywordsItemMax = 80;
+
+export const listAdminCampaignsResponseItemsItemTargetingKeywordsMax = 100;
+
+export const listAdminCampaignsResponseItemsItemTargetingExclusionsItemMax = 80;
+
+export const listAdminCampaignsResponseItemsItemTargetingExclusionsMax = 100;
+
+
+
 export const ListAdminCampaignsResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -2514,9 +2540,20 @@ export const ListAdminCampaignsResponse = zod.object({
   "name": zod.string(),
   "status": zod.string(),
   "placements": zod.array(zod.string()),
-  "targeting": zod.record(zod.string(), zod.unknown()),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(listAdminCampaignsResponseItemsItemTargetingGeographiesItemRegExp)).max(listAdminCampaignsResponseItemsItemTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(listAdminCampaignsResponseItemsItemTargetingLanguagesItemRegExp)).max(listAdminCampaignsResponseItemsItemTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(listAdminCampaignsResponseItemsItemTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(listAdminCampaignsResponseItemsItemTargetingInterestsItemMax)).max(listAdminCampaignsResponseItemsItemTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(listAdminCampaignsResponseItemsItemTargetingCategoriesItemMax)).max(listAdminCampaignsResponseItemsItemTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(listAdminCampaignsResponseItemsItemTargetingKeywordsItemMax)).max(listAdminCampaignsResponseItemsItemTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(listAdminCampaignsResponseItemsItemTargetingExclusionsItemMax)).max(listAdminCampaignsResponseItemsItemTargetingExclusionsMax).optional()
+}),
   "dailyBudget": zod.number().nullable(),
   "totalBudget": zod.number().nullable(),
+  "pricingModel": zod.enum(['cpm', 'cpc', 'cpv']),
+  "bidAmount": zod.number().nullable(),
+  "spentAmount": zod.number(),
   "startsAt": zod.string().nullable(),
   "endsAt": zod.string().nullable(),
   "createdAt": zod.string(),
@@ -2532,9 +2569,35 @@ export const ListAdminCampaignsResponse = zod.object({
 export const createAdminCampaignBodyNameMax = 160;
 
 
+export const createAdminCampaignBodyTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const createAdminCampaignBodyTargetingGeographiesMax = 50;
+
+export const createAdminCampaignBodyTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const createAdminCampaignBodyTargetingLanguagesMax = 20;
+
+export const createAdminCampaignBodyTargetingDevicesMax = 3;
+
+export const createAdminCampaignBodyTargetingInterestsItemMax = 80;
+
+export const createAdminCampaignBodyTargetingInterestsMax = 50;
+
+export const createAdminCampaignBodyTargetingCategoriesItemMax = 80;
+
+export const createAdminCampaignBodyTargetingCategoriesMax = 50;
+
+export const createAdminCampaignBodyTargetingKeywordsItemMax = 80;
+
+export const createAdminCampaignBodyTargetingKeywordsMax = 100;
+
+export const createAdminCampaignBodyTargetingExclusionsItemMax = 80;
+
+export const createAdminCampaignBodyTargetingExclusionsMax = 100;
+
 export const createAdminCampaignBodyDailyBudgetMin = 0;
 
 export const createAdminCampaignBodyTotalBudgetMin = 0;
+
+export const createAdminCampaignBodyBidAmountMin = 0.0001;
 
 
 
@@ -2542,13 +2605,49 @@ export const CreateAdminCampaignBody = zod.object({
   "advertiserId": zod.string(),
   "name": zod.string().min(1).max(createAdminCampaignBodyNameMax),
   "placements": zod.array(zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail'])).min(1),
-  "targeting": zod.record(zod.string(), zod.unknown()).optional(),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(createAdminCampaignBodyTargetingGeographiesItemRegExp)).max(createAdminCampaignBodyTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(createAdminCampaignBodyTargetingLanguagesItemRegExp)).max(createAdminCampaignBodyTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(createAdminCampaignBodyTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(createAdminCampaignBodyTargetingInterestsItemMax)).max(createAdminCampaignBodyTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(createAdminCampaignBodyTargetingCategoriesItemMax)).max(createAdminCampaignBodyTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(createAdminCampaignBodyTargetingKeywordsItemMax)).max(createAdminCampaignBodyTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(createAdminCampaignBodyTargetingExclusionsItemMax)).max(createAdminCampaignBodyTargetingExclusionsMax).optional()
+}).optional(),
   "dailyBudget": zod.number().min(createAdminCampaignBodyDailyBudgetMin).optional(),
   "totalBudget": zod.number().min(createAdminCampaignBodyTotalBudgetMin).optional(),
+  "pricingModel": zod.enum(['cpm', 'cpc', 'cpv']).optional(),
+  "bidAmount": zod.number().min(createAdminCampaignBodyBidAmountMin).optional(),
   "startsAt": zod.string().optional(),
   "endsAt": zod.string().optional(),
   "status": zod.enum(['draft', 'active', 'paused']).optional()
 })
+
+export const createAdminCampaignResponseTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const createAdminCampaignResponseTargetingGeographiesMax = 50;
+
+export const createAdminCampaignResponseTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const createAdminCampaignResponseTargetingLanguagesMax = 20;
+
+export const createAdminCampaignResponseTargetingDevicesMax = 3;
+
+export const createAdminCampaignResponseTargetingInterestsItemMax = 80;
+
+export const createAdminCampaignResponseTargetingInterestsMax = 50;
+
+export const createAdminCampaignResponseTargetingCategoriesItemMax = 80;
+
+export const createAdminCampaignResponseTargetingCategoriesMax = 50;
+
+export const createAdminCampaignResponseTargetingKeywordsItemMax = 80;
+
+export const createAdminCampaignResponseTargetingKeywordsMax = 100;
+
+export const createAdminCampaignResponseTargetingExclusionsItemMax = 80;
+
+export const createAdminCampaignResponseTargetingExclusionsMax = 100;
+
+
 
 export const CreateAdminCampaignResponse = zod.object({
   "id": zod.string(),
@@ -2556,9 +2655,20 @@ export const CreateAdminCampaignResponse = zod.object({
   "name": zod.string(),
   "status": zod.string(),
   "placements": zod.array(zod.string()),
-  "targeting": zod.record(zod.string(), zod.unknown()),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(createAdminCampaignResponseTargetingGeographiesItemRegExp)).max(createAdminCampaignResponseTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(createAdminCampaignResponseTargetingLanguagesItemRegExp)).max(createAdminCampaignResponseTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(createAdminCampaignResponseTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(createAdminCampaignResponseTargetingInterestsItemMax)).max(createAdminCampaignResponseTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(createAdminCampaignResponseTargetingCategoriesItemMax)).max(createAdminCampaignResponseTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(createAdminCampaignResponseTargetingKeywordsItemMax)).max(createAdminCampaignResponseTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(createAdminCampaignResponseTargetingExclusionsItemMax)).max(createAdminCampaignResponseTargetingExclusionsMax).optional()
+}),
   "dailyBudget": zod.number().nullable(),
   "totalBudget": zod.number().nullable(),
+  "pricingModel": zod.enum(['cpm', 'cpc', 'cpv']),
+  "bidAmount": zod.number().nullable(),
+  "spentAmount": zod.number(),
   "startsAt": zod.string().nullable(),
   "endsAt": zod.string().nullable(),
   "createdAt": zod.string(),
@@ -2579,17 +2689,674 @@ export const UpdateAdminCampaignStatusBody = zod.object({
   "reason": zod.string().min(1).max(updateAdminCampaignStatusBodyReasonMax).optional()
 })
 
+export const updateAdminCampaignStatusResponseTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const updateAdminCampaignStatusResponseTargetingGeographiesMax = 50;
+
+export const updateAdminCampaignStatusResponseTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const updateAdminCampaignStatusResponseTargetingLanguagesMax = 20;
+
+export const updateAdminCampaignStatusResponseTargetingDevicesMax = 3;
+
+export const updateAdminCampaignStatusResponseTargetingInterestsItemMax = 80;
+
+export const updateAdminCampaignStatusResponseTargetingInterestsMax = 50;
+
+export const updateAdminCampaignStatusResponseTargetingCategoriesItemMax = 80;
+
+export const updateAdminCampaignStatusResponseTargetingCategoriesMax = 50;
+
+export const updateAdminCampaignStatusResponseTargetingKeywordsItemMax = 80;
+
+export const updateAdminCampaignStatusResponseTargetingKeywordsMax = 100;
+
+export const updateAdminCampaignStatusResponseTargetingExclusionsItemMax = 80;
+
+export const updateAdminCampaignStatusResponseTargetingExclusionsMax = 100;
+
+
+
 export const UpdateAdminCampaignStatusResponse = zod.object({
   "id": zod.string(),
   "advertiserId": zod.string(),
   "name": zod.string(),
   "status": zod.string(),
   "placements": zod.array(zod.string()),
-  "targeting": zod.record(zod.string(), zod.unknown()),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(updateAdminCampaignStatusResponseTargetingGeographiesItemRegExp)).max(updateAdminCampaignStatusResponseTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(updateAdminCampaignStatusResponseTargetingLanguagesItemRegExp)).max(updateAdminCampaignStatusResponseTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(updateAdminCampaignStatusResponseTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(updateAdminCampaignStatusResponseTargetingInterestsItemMax)).max(updateAdminCampaignStatusResponseTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(updateAdminCampaignStatusResponseTargetingCategoriesItemMax)).max(updateAdminCampaignStatusResponseTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(updateAdminCampaignStatusResponseTargetingKeywordsItemMax)).max(updateAdminCampaignStatusResponseTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(updateAdminCampaignStatusResponseTargetingExclusionsItemMax)).max(updateAdminCampaignStatusResponseTargetingExclusionsMax).optional()
+}),
   "dailyBudget": zod.number().nullable(),
   "totalBudget": zod.number().nullable(),
+  "pricingModel": zod.enum(['cpm', 'cpc', 'cpv']),
+  "bidAmount": zod.number().nullable(),
+  "spentAmount": zod.number(),
   "startsAt": zod.string().nullable(),
   "endsAt": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const UpdateAdminCampaignParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminCampaignBodyNameMax = 160;
+
+
+export const updateAdminCampaignBodyTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const updateAdminCampaignBodyTargetingGeographiesMax = 50;
+
+export const updateAdminCampaignBodyTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const updateAdminCampaignBodyTargetingLanguagesMax = 20;
+
+export const updateAdminCampaignBodyTargetingDevicesMax = 3;
+
+export const updateAdminCampaignBodyTargetingInterestsItemMax = 80;
+
+export const updateAdminCampaignBodyTargetingInterestsMax = 50;
+
+export const updateAdminCampaignBodyTargetingCategoriesItemMax = 80;
+
+export const updateAdminCampaignBodyTargetingCategoriesMax = 50;
+
+export const updateAdminCampaignBodyTargetingKeywordsItemMax = 80;
+
+export const updateAdminCampaignBodyTargetingKeywordsMax = 100;
+
+export const updateAdminCampaignBodyTargetingExclusionsItemMax = 80;
+
+export const updateAdminCampaignBodyTargetingExclusionsMax = 100;
+
+export const updateAdminCampaignBodyDailyBudgetMin = 0;
+
+export const updateAdminCampaignBodyTotalBudgetMin = 0;
+
+export const updateAdminCampaignBodyBidAmountMin = 0.0001;
+
+
+
+export const UpdateAdminCampaignBody = zod.object({
+  "name": zod.string().min(1).max(updateAdminCampaignBodyNameMax).optional(),
+  "placements": zod.array(zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail'])).min(1).optional(),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(updateAdminCampaignBodyTargetingGeographiesItemRegExp)).max(updateAdminCampaignBodyTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(updateAdminCampaignBodyTargetingLanguagesItemRegExp)).max(updateAdminCampaignBodyTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(updateAdminCampaignBodyTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(updateAdminCampaignBodyTargetingInterestsItemMax)).max(updateAdminCampaignBodyTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(updateAdminCampaignBodyTargetingCategoriesItemMax)).max(updateAdminCampaignBodyTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(updateAdminCampaignBodyTargetingKeywordsItemMax)).max(updateAdminCampaignBodyTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(updateAdminCampaignBodyTargetingExclusionsItemMax)).max(updateAdminCampaignBodyTargetingExclusionsMax).optional()
+}).optional(),
+  "dailyBudget": zod.number().min(updateAdminCampaignBodyDailyBudgetMin).nullish(),
+  "totalBudget": zod.number().min(updateAdminCampaignBodyTotalBudgetMin).nullish(),
+  "pricingModel": zod.enum(['cpm', 'cpc', 'cpv']).optional(),
+  "bidAmount": zod.number().min(updateAdminCampaignBodyBidAmountMin).nullish(),
+  "startsAt": zod.string().nullish(),
+  "endsAt": zod.string().nullish()
+})
+
+export const updateAdminCampaignResponseTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const updateAdminCampaignResponseTargetingGeographiesMax = 50;
+
+export const updateAdminCampaignResponseTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const updateAdminCampaignResponseTargetingLanguagesMax = 20;
+
+export const updateAdminCampaignResponseTargetingDevicesMax = 3;
+
+export const updateAdminCampaignResponseTargetingInterestsItemMax = 80;
+
+export const updateAdminCampaignResponseTargetingInterestsMax = 50;
+
+export const updateAdminCampaignResponseTargetingCategoriesItemMax = 80;
+
+export const updateAdminCampaignResponseTargetingCategoriesMax = 50;
+
+export const updateAdminCampaignResponseTargetingKeywordsItemMax = 80;
+
+export const updateAdminCampaignResponseTargetingKeywordsMax = 100;
+
+export const updateAdminCampaignResponseTargetingExclusionsItemMax = 80;
+
+export const updateAdminCampaignResponseTargetingExclusionsMax = 100;
+
+
+
+export const UpdateAdminCampaignResponse = zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "placements": zod.array(zod.string()),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(updateAdminCampaignResponseTargetingGeographiesItemRegExp)).max(updateAdminCampaignResponseTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(updateAdminCampaignResponseTargetingLanguagesItemRegExp)).max(updateAdminCampaignResponseTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(updateAdminCampaignResponseTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(updateAdminCampaignResponseTargetingInterestsItemMax)).max(updateAdminCampaignResponseTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(updateAdminCampaignResponseTargetingCategoriesItemMax)).max(updateAdminCampaignResponseTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(updateAdminCampaignResponseTargetingKeywordsItemMax)).max(updateAdminCampaignResponseTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(updateAdminCampaignResponseTargetingExclusionsItemMax)).max(updateAdminCampaignResponseTargetingExclusionsMax).optional()
+}),
+  "dailyBudget": zod.number().nullable(),
+  "totalBudget": zod.number().nullable(),
+  "pricingModel": zod.enum(['cpm', 'cpc', 'cpv']),
+  "bidAmount": zod.number().nullable(),
+  "spentAmount": zod.number(),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const listAdminAdGroupsQueryPageDefault = 1;
+
+export const listAdminAdGroupsQueryLimitDefault = 25;
+export const listAdminAdGroupsQueryLimitMax = 100;
+
+
+
+export const ListAdminAdGroupsQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminAdGroupsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminAdGroupsQueryLimitMax).default(listAdminAdGroupsQueryLimitDefault),
+  "status": zod.coerce.string().optional(),
+  "search": zod.coerce.string().optional(),
+  "campaignId": zod.coerce.string().optional()
+})
+
+export const listAdminAdGroupsResponseItemsItemTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const listAdminAdGroupsResponseItemsItemTargetingGeographiesMax = 50;
+
+export const listAdminAdGroupsResponseItemsItemTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const listAdminAdGroupsResponseItemsItemTargetingLanguagesMax = 20;
+
+export const listAdminAdGroupsResponseItemsItemTargetingDevicesMax = 3;
+
+export const listAdminAdGroupsResponseItemsItemTargetingInterestsItemMax = 80;
+
+export const listAdminAdGroupsResponseItemsItemTargetingInterestsMax = 50;
+
+export const listAdminAdGroupsResponseItemsItemTargetingCategoriesItemMax = 80;
+
+export const listAdminAdGroupsResponseItemsItemTargetingCategoriesMax = 50;
+
+export const listAdminAdGroupsResponseItemsItemTargetingKeywordsItemMax = 80;
+
+export const listAdminAdGroupsResponseItemsItemTargetingKeywordsMax = 100;
+
+export const listAdminAdGroupsResponseItemsItemTargetingExclusionsItemMax = 80;
+
+export const listAdminAdGroupsResponseItemsItemTargetingExclusionsMax = 100;
+
+export const listAdminAdGroupsResponseItemsItemFrequencyCapMultipleOf = 1;
+
+
+
+export const ListAdminAdGroupsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "campaignId": zod.string(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'paused']),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(listAdminAdGroupsResponseItemsItemTargetingGeographiesItemRegExp)).max(listAdminAdGroupsResponseItemsItemTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(listAdminAdGroupsResponseItemsItemTargetingLanguagesItemRegExp)).max(listAdminAdGroupsResponseItemsItemTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(listAdminAdGroupsResponseItemsItemTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(listAdminAdGroupsResponseItemsItemTargetingInterestsItemMax)).max(listAdminAdGroupsResponseItemsItemTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(listAdminAdGroupsResponseItemsItemTargetingCategoriesItemMax)).max(listAdminAdGroupsResponseItemsItemTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(listAdminAdGroupsResponseItemsItemTargetingKeywordsItemMax)).max(listAdminAdGroupsResponseItemsItemTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(listAdminAdGroupsResponseItemsItemTargetingExclusionsItemMax)).max(listAdminAdGroupsResponseItemsItemTargetingExclusionsMax).optional()
+}),
+  "frequencyCap": zod.number().min(1).multipleOf(listAdminAdGroupsResponseItemsItemFrequencyCapMultipleOf).nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+export const createAdminAdGroupBodyNameMax = 160;
+
+export const createAdminAdGroupBodyTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const createAdminAdGroupBodyTargetingGeographiesMax = 50;
+
+export const createAdminAdGroupBodyTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const createAdminAdGroupBodyTargetingLanguagesMax = 20;
+
+export const createAdminAdGroupBodyTargetingDevicesMax = 3;
+
+export const createAdminAdGroupBodyTargetingInterestsItemMax = 80;
+
+export const createAdminAdGroupBodyTargetingInterestsMax = 50;
+
+export const createAdminAdGroupBodyTargetingCategoriesItemMax = 80;
+
+export const createAdminAdGroupBodyTargetingCategoriesMax = 50;
+
+export const createAdminAdGroupBodyTargetingKeywordsItemMax = 80;
+
+export const createAdminAdGroupBodyTargetingKeywordsMax = 100;
+
+export const createAdminAdGroupBodyTargetingExclusionsItemMax = 80;
+
+export const createAdminAdGroupBodyTargetingExclusionsMax = 100;
+
+export const createAdminAdGroupBodyFrequencyCapMax = 1000;
+export const createAdminAdGroupBodyFrequencyCapMultipleOf = 1;
+
+
+
+export const CreateAdminAdGroupBody = zod.object({
+  "campaignId": zod.string(),
+  "name": zod.string().min(1).max(createAdminAdGroupBodyNameMax),
+  "status": zod.enum(['active', 'paused']).optional(),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(createAdminAdGroupBodyTargetingGeographiesItemRegExp)).max(createAdminAdGroupBodyTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(createAdminAdGroupBodyTargetingLanguagesItemRegExp)).max(createAdminAdGroupBodyTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(createAdminAdGroupBodyTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(createAdminAdGroupBodyTargetingInterestsItemMax)).max(createAdminAdGroupBodyTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(createAdminAdGroupBodyTargetingCategoriesItemMax)).max(createAdminAdGroupBodyTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(createAdminAdGroupBodyTargetingKeywordsItemMax)).max(createAdminAdGroupBodyTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(createAdminAdGroupBodyTargetingExclusionsItemMax)).max(createAdminAdGroupBodyTargetingExclusionsMax).optional()
+}).optional(),
+  "frequencyCap": zod.number().min(1).max(createAdminAdGroupBodyFrequencyCapMax).multipleOf(createAdminAdGroupBodyFrequencyCapMultipleOf).optional()
+})
+
+export const createAdminAdGroupResponseTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const createAdminAdGroupResponseTargetingGeographiesMax = 50;
+
+export const createAdminAdGroupResponseTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const createAdminAdGroupResponseTargetingLanguagesMax = 20;
+
+export const createAdminAdGroupResponseTargetingDevicesMax = 3;
+
+export const createAdminAdGroupResponseTargetingInterestsItemMax = 80;
+
+export const createAdminAdGroupResponseTargetingInterestsMax = 50;
+
+export const createAdminAdGroupResponseTargetingCategoriesItemMax = 80;
+
+export const createAdminAdGroupResponseTargetingCategoriesMax = 50;
+
+export const createAdminAdGroupResponseTargetingKeywordsItemMax = 80;
+
+export const createAdminAdGroupResponseTargetingKeywordsMax = 100;
+
+export const createAdminAdGroupResponseTargetingExclusionsItemMax = 80;
+
+export const createAdminAdGroupResponseTargetingExclusionsMax = 100;
+
+export const createAdminAdGroupResponseFrequencyCapMultipleOf = 1;
+
+
+
+export const CreateAdminAdGroupResponse = zod.object({
+  "id": zod.string(),
+  "campaignId": zod.string(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'paused']),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(createAdminAdGroupResponseTargetingGeographiesItemRegExp)).max(createAdminAdGroupResponseTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(createAdminAdGroupResponseTargetingLanguagesItemRegExp)).max(createAdminAdGroupResponseTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(createAdminAdGroupResponseTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(createAdminAdGroupResponseTargetingInterestsItemMax)).max(createAdminAdGroupResponseTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(createAdminAdGroupResponseTargetingCategoriesItemMax)).max(createAdminAdGroupResponseTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(createAdminAdGroupResponseTargetingKeywordsItemMax)).max(createAdminAdGroupResponseTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(createAdminAdGroupResponseTargetingExclusionsItemMax)).max(createAdminAdGroupResponseTargetingExclusionsMax).optional()
+}),
+  "frequencyCap": zod.number().min(1).multipleOf(createAdminAdGroupResponseFrequencyCapMultipleOf).nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const UpdateAdminAdGroupParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminAdGroupBodyNameMax = 160;
+
+export const updateAdminAdGroupBodyTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const updateAdminAdGroupBodyTargetingGeographiesMax = 50;
+
+export const updateAdminAdGroupBodyTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const updateAdminAdGroupBodyTargetingLanguagesMax = 20;
+
+export const updateAdminAdGroupBodyTargetingDevicesMax = 3;
+
+export const updateAdminAdGroupBodyTargetingInterestsItemMax = 80;
+
+export const updateAdminAdGroupBodyTargetingInterestsMax = 50;
+
+export const updateAdminAdGroupBodyTargetingCategoriesItemMax = 80;
+
+export const updateAdminAdGroupBodyTargetingCategoriesMax = 50;
+
+export const updateAdminAdGroupBodyTargetingKeywordsItemMax = 80;
+
+export const updateAdminAdGroupBodyTargetingKeywordsMax = 100;
+
+export const updateAdminAdGroupBodyTargetingExclusionsItemMax = 80;
+
+export const updateAdminAdGroupBodyTargetingExclusionsMax = 100;
+
+export const updateAdminAdGroupBodyFrequencyCapMax = 1000;
+export const updateAdminAdGroupBodyFrequencyCapMultipleOf = 1;
+
+
+
+export const UpdateAdminAdGroupBody = zod.object({
+  "name": zod.string().min(1).max(updateAdminAdGroupBodyNameMax).optional(),
+  "status": zod.enum(['active', 'paused']).optional(),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(updateAdminAdGroupBodyTargetingGeographiesItemRegExp)).max(updateAdminAdGroupBodyTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(updateAdminAdGroupBodyTargetingLanguagesItemRegExp)).max(updateAdminAdGroupBodyTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(updateAdminAdGroupBodyTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(updateAdminAdGroupBodyTargetingInterestsItemMax)).max(updateAdminAdGroupBodyTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(updateAdminAdGroupBodyTargetingCategoriesItemMax)).max(updateAdminAdGroupBodyTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(updateAdminAdGroupBodyTargetingKeywordsItemMax)).max(updateAdminAdGroupBodyTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(updateAdminAdGroupBodyTargetingExclusionsItemMax)).max(updateAdminAdGroupBodyTargetingExclusionsMax).optional()
+}).optional(),
+  "frequencyCap": zod.number().min(1).max(updateAdminAdGroupBodyFrequencyCapMax).multipleOf(updateAdminAdGroupBodyFrequencyCapMultipleOf).nullish()
+})
+
+export const updateAdminAdGroupResponseTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const updateAdminAdGroupResponseTargetingGeographiesMax = 50;
+
+export const updateAdminAdGroupResponseTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const updateAdminAdGroupResponseTargetingLanguagesMax = 20;
+
+export const updateAdminAdGroupResponseTargetingDevicesMax = 3;
+
+export const updateAdminAdGroupResponseTargetingInterestsItemMax = 80;
+
+export const updateAdminAdGroupResponseTargetingInterestsMax = 50;
+
+export const updateAdminAdGroupResponseTargetingCategoriesItemMax = 80;
+
+export const updateAdminAdGroupResponseTargetingCategoriesMax = 50;
+
+export const updateAdminAdGroupResponseTargetingKeywordsItemMax = 80;
+
+export const updateAdminAdGroupResponseTargetingKeywordsMax = 100;
+
+export const updateAdminAdGroupResponseTargetingExclusionsItemMax = 80;
+
+export const updateAdminAdGroupResponseTargetingExclusionsMax = 100;
+
+export const updateAdminAdGroupResponseFrequencyCapMultipleOf = 1;
+
+
+
+export const UpdateAdminAdGroupResponse = zod.object({
+  "id": zod.string(),
+  "campaignId": zod.string(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'paused']),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(updateAdminAdGroupResponseTargetingGeographiesItemRegExp)).max(updateAdminAdGroupResponseTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(updateAdminAdGroupResponseTargetingLanguagesItemRegExp)).max(updateAdminAdGroupResponseTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(updateAdminAdGroupResponseTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(updateAdminAdGroupResponseTargetingInterestsItemMax)).max(updateAdminAdGroupResponseTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(updateAdminAdGroupResponseTargetingCategoriesItemMax)).max(updateAdminAdGroupResponseTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(updateAdminAdGroupResponseTargetingKeywordsItemMax)).max(updateAdminAdGroupResponseTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(updateAdminAdGroupResponseTargetingExclusionsItemMax)).max(updateAdminAdGroupResponseTargetingExclusionsMax).optional()
+}),
+  "frequencyCap": zod.number().min(1).multipleOf(updateAdminAdGroupResponseFrequencyCapMultipleOf).nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const DeleteAdminAdGroupParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteAdminAdGroupResponse = zod.void()
+
+
+export const listAdminCreativesQueryPageDefault = 1;
+
+export const listAdminCreativesQueryLimitDefault = 25;
+export const listAdminCreativesQueryLimitMax = 100;
+
+
+
+export const ListAdminCreativesQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminCreativesQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminCreativesQueryLimitMax).default(listAdminCreativesQueryLimitDefault),
+  "status": zod.coerce.string().optional(),
+  "search": zod.coerce.string().optional(),
+  "advertiserId": zod.coerce.string().optional()
+})
+
+export const ListAdminCreativesResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "name": zod.string(),
+  "type": zod.enum(['image', 'video', 'text']),
+  "headline": zod.string(),
+  "body": zod.string(),
+  "mediaUrl": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "metadata": zod.record(zod.string(), zod.unknown()),
+  "status": zod.enum(['active', 'paused', 'archived']),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+export const createAdminCreativeBodyNameMax = 160;
+
+export const createAdminCreativeBodyHeadlineMax = 200;
+
+export const createAdminCreativeBodyBodyMax = 1000;
+
+export const createAdminCreativeBodyMediaUrlMax = 2000;
+
+export const createAdminCreativeBodyDestinationUrlMax = 2000;
+
+
+
+export const CreateAdminCreativeBody = zod.object({
+  "advertiserId": zod.string(),
+  "name": zod.string().min(1).max(createAdminCreativeBodyNameMax),
+  "type": zod.enum(['image', 'video', 'text']),
+  "headline": zod.string().max(createAdminCreativeBodyHeadlineMax),
+  "body": zod.string().max(createAdminCreativeBodyBodyMax).optional(),
+  "mediaUrl": zod.string().max(createAdminCreativeBodyMediaUrlMax).nullish(),
+  "destinationUrl": zod.string().max(createAdminCreativeBodyDestinationUrlMax).nullish(),
+  "metadata": zod.record(zod.string(), zod.unknown()).optional()
+})
+
+export const CreateAdminCreativeResponse = zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "name": zod.string(),
+  "type": zod.enum(['image', 'video', 'text']),
+  "headline": zod.string(),
+  "body": zod.string(),
+  "mediaUrl": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "metadata": zod.record(zod.string(), zod.unknown()),
+  "status": zod.enum(['active', 'paused', 'archived']),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const UpdateAdminCreativeParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminCreativeBodyNameMax = 160;
+
+export const updateAdminCreativeBodyHeadlineMax = 200;
+
+export const updateAdminCreativeBodyBodyMax = 1000;
+
+export const updateAdminCreativeBodyMediaUrlMax = 2000;
+
+export const updateAdminCreativeBodyDestinationUrlMax = 2000;
+
+
+
+export const UpdateAdminCreativeBody = zod.object({
+  "name": zod.string().min(1).max(updateAdminCreativeBodyNameMax).optional(),
+  "type": zod.enum(['image', 'video', 'text']).optional(),
+  "headline": zod.string().max(updateAdminCreativeBodyHeadlineMax).optional(),
+  "body": zod.string().max(updateAdminCreativeBodyBodyMax).optional(),
+  "mediaUrl": zod.string().max(updateAdminCreativeBodyMediaUrlMax).nullish(),
+  "destinationUrl": zod.string().max(updateAdminCreativeBodyDestinationUrlMax).nullish(),
+  "metadata": zod.record(zod.string(), zod.unknown()).optional(),
+  "status": zod.enum(['active', 'paused', 'archived']).optional()
+})
+
+export const UpdateAdminCreativeResponse = zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "name": zod.string(),
+  "type": zod.enum(['image', 'video', 'text']),
+  "headline": zod.string(),
+  "body": zod.string(),
+  "mediaUrl": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "metadata": zod.record(zod.string(), zod.unknown()),
+  "status": zod.enum(['active', 'paused', 'archived']),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const DeleteAdminCreativeParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteAdminCreativeResponse = zod.void()
+
+
+export const listAdminPromotionsQueryPageDefault = 1;
+
+export const listAdminPromotionsQueryLimitDefault = 25;
+export const listAdminPromotionsQueryLimitMax = 100;
+
+
+
+export const ListAdminPromotionsQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminPromotionsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminPromotionsQueryLimitMax).default(listAdminPromotionsQueryLimitDefault),
+  "status": zod.coerce.string().optional(),
+  "type": zod.enum(['sponsored_content', 'sponsored_trend', 'sponsored_hashtag', 'featured_promotion']).optional()
+})
+
+export const ListAdminPromotionsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "campaignId": zod.string().nullable(),
+  "type": zod.enum(['sponsored_content', 'sponsored_trend', 'sponsored_hashtag', 'featured_promotion']),
+  "name": zod.string(),
+  "description": zod.string(),
+  "status": zod.enum(['pending_approval', 'approved', 'rejected', 'paused']),
+  "eligibility": zod.record(zod.string(), zod.unknown()),
+  "budget": zod.number().nullable(),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "reviewedByClerkId": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewReason": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+export const createAdminPromotionBodyNameMax = 160;
+
+export const createAdminPromotionBodyDescriptionMax = 1000;
+
+export const createAdminPromotionBodyBudgetMin = 0;
+
+
+
+export const CreateAdminPromotionBody = zod.object({
+  "advertiserId": zod.string(),
+  "campaignId": zod.string().nullish(),
+  "type": zod.enum(['sponsored_content', 'sponsored_trend', 'sponsored_hashtag', 'featured_promotion']),
+  "name": zod.string().min(1).max(createAdminPromotionBodyNameMax),
+  "description": zod.string().max(createAdminPromotionBodyDescriptionMax).optional(),
+  "eligibility": zod.record(zod.string(), zod.unknown()),
+  "budget": zod.number().min(createAdminPromotionBodyBudgetMin).nullish(),
+  "startsAt": zod.string().nullish(),
+  "endsAt": zod.string().nullish()
+})
+
+export const CreateAdminPromotionResponse = zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "campaignId": zod.string().nullable(),
+  "type": zod.enum(['sponsored_content', 'sponsored_trend', 'sponsored_hashtag', 'featured_promotion']),
+  "name": zod.string(),
+  "description": zod.string(),
+  "status": zod.enum(['pending_approval', 'approved', 'rejected', 'paused']),
+  "eligibility": zod.record(zod.string(), zod.unknown()),
+  "budget": zod.number().nullable(),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "reviewedByClerkId": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewReason": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+export const ReviewAdminPromotionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reviewAdminPromotionBodyReasonMax = 1000;
+
+
+
+export const ReviewAdminPromotionBody = zod.object({
+  "action": zod.enum(['approve', 'reject', 'pause', 'resume']),
+  "reason": zod.string().min(1).max(reviewAdminPromotionBodyReasonMax)
+})
+
+export const ReviewAdminPromotionResponse = zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "campaignId": zod.string().nullable(),
+  "type": zod.enum(['sponsored_content', 'sponsored_trend', 'sponsored_hashtag', 'featured_promotion']),
+  "name": zod.string(),
+  "description": zod.string(),
+  "status": zod.enum(['pending_approval', 'approved', 'rejected', 'paused']),
+  "eligibility": zod.record(zod.string(), zod.unknown()),
+  "budget": zod.number().nullable(),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "reviewedByClerkId": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewReason": zod.string().nullable(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -2609,6 +3376,32 @@ export const ListAdminAdvertisementsQueryParams = zod.object({
   "search": zod.coerce.string().optional()
 })
 
+export const listAdminAdvertisementsResponseItemsItemTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const listAdminAdvertisementsResponseItemsItemTargetingGeographiesMax = 50;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const listAdminAdvertisementsResponseItemsItemTargetingLanguagesMax = 20;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingDevicesMax = 3;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingInterestsItemMax = 80;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingInterestsMax = 50;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingCategoriesItemMax = 80;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingCategoriesMax = 50;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingKeywordsItemMax = 80;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingKeywordsMax = 100;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingExclusionsItemMax = 80;
+
+export const listAdminAdvertisementsResponseItemsItemTargetingExclusionsMax = 100;
+
+
+
 export const ListAdminAdvertisementsResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -2623,7 +3416,16 @@ export const ListAdminAdvertisementsResponse = zod.object({
   "mediaUrl": zod.string().nullable(),
   "destinationUrl": zod.string().nullable(),
   "createdAt": zod.string(),
-  "updatedAt": zod.string()
+  "updatedAt": zod.string(),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(listAdminAdvertisementsResponseItemsItemTargetingGeographiesItemRegExp)).max(listAdminAdvertisementsResponseItemsItemTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(listAdminAdvertisementsResponseItemsItemTargetingLanguagesItemRegExp)).max(listAdminAdvertisementsResponseItemsItemTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(listAdminAdvertisementsResponseItemsItemTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(listAdminAdvertisementsResponseItemsItemTargetingInterestsItemMax)).max(listAdminAdvertisementsResponseItemsItemTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(listAdminAdvertisementsResponseItemsItemTargetingCategoriesItemMax)).max(listAdminAdvertisementsResponseItemsItemTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(listAdminAdvertisementsResponseItemsItemTargetingKeywordsItemMax)).max(listAdminAdvertisementsResponseItemsItemTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(listAdminAdvertisementsResponseItemsItemTargetingExclusionsItemMax)).max(listAdminAdvertisementsResponseItemsItemTargetingExclusionsMax).optional()
+})
 })),
   "page": zod.number(),
   "limit": zod.number(),
@@ -2642,6 +3444,30 @@ export const createAdminAdvertisementBodyMediaUrlMax = 2000;
 
 export const createAdminAdvertisementBodyDestinationUrlMax = 2000;
 
+export const createAdminAdvertisementBodyTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const createAdminAdvertisementBodyTargetingGeographiesMax = 50;
+
+export const createAdminAdvertisementBodyTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const createAdminAdvertisementBodyTargetingLanguagesMax = 20;
+
+export const createAdminAdvertisementBodyTargetingDevicesMax = 3;
+
+export const createAdminAdvertisementBodyTargetingInterestsItemMax = 80;
+
+export const createAdminAdvertisementBodyTargetingInterestsMax = 50;
+
+export const createAdminAdvertisementBodyTargetingCategoriesItemMax = 80;
+
+export const createAdminAdvertisementBodyTargetingCategoriesMax = 50;
+
+export const createAdminAdvertisementBodyTargetingKeywordsItemMax = 80;
+
+export const createAdminAdvertisementBodyTargetingKeywordsMax = 100;
+
+export const createAdminAdvertisementBodyTargetingExclusionsItemMax = 80;
+
+export const createAdminAdvertisementBodyTargetingExclusionsMax = 100;
+
 
 
 export const CreateAdminAdvertisementBody = zod.object({
@@ -2653,8 +3479,43 @@ export const CreateAdminAdvertisementBody = zod.object({
   "headline": zod.string().min(1).max(createAdminAdvertisementBodyHeadlineMax),
   "body": zod.string().max(createAdminAdvertisementBodyBodyMax).optional(),
   "mediaUrl": zod.string().max(createAdminAdvertisementBodyMediaUrlMax).optional().describe('Absolute HTTP(S) URL; enforced by the API.'),
-  "destinationUrl": zod.string().max(createAdminAdvertisementBodyDestinationUrlMax).optional().describe('Absolute HTTP(S) URL; enforced by the API.')
+  "destinationUrl": zod.string().max(createAdminAdvertisementBodyDestinationUrlMax).optional().describe('Absolute HTTP(S) URL; enforced by the API.'),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(createAdminAdvertisementBodyTargetingGeographiesItemRegExp)).max(createAdminAdvertisementBodyTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(createAdminAdvertisementBodyTargetingLanguagesItemRegExp)).max(createAdminAdvertisementBodyTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(createAdminAdvertisementBodyTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(createAdminAdvertisementBodyTargetingInterestsItemMax)).max(createAdminAdvertisementBodyTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(createAdminAdvertisementBodyTargetingCategoriesItemMax)).max(createAdminAdvertisementBodyTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(createAdminAdvertisementBodyTargetingKeywordsItemMax)).max(createAdminAdvertisementBodyTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(createAdminAdvertisementBodyTargetingExclusionsItemMax)).max(createAdminAdvertisementBodyTargetingExclusionsMax).optional()
+}).optional()
 })
+
+export const createAdminAdvertisementResponseTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const createAdminAdvertisementResponseTargetingGeographiesMax = 50;
+
+export const createAdminAdvertisementResponseTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const createAdminAdvertisementResponseTargetingLanguagesMax = 20;
+
+export const createAdminAdvertisementResponseTargetingDevicesMax = 3;
+
+export const createAdminAdvertisementResponseTargetingInterestsItemMax = 80;
+
+export const createAdminAdvertisementResponseTargetingInterestsMax = 50;
+
+export const createAdminAdvertisementResponseTargetingCategoriesItemMax = 80;
+
+export const createAdminAdvertisementResponseTargetingCategoriesMax = 50;
+
+export const createAdminAdvertisementResponseTargetingKeywordsItemMax = 80;
+
+export const createAdminAdvertisementResponseTargetingKeywordsMax = 100;
+
+export const createAdminAdvertisementResponseTargetingExclusionsItemMax = 80;
+
+export const createAdminAdvertisementResponseTargetingExclusionsMax = 100;
+
+
 
 export const CreateAdminAdvertisementResponse = zod.object({
   "id": zod.string(),
@@ -2669,7 +3530,16 @@ export const CreateAdminAdvertisementResponse = zod.object({
   "mediaUrl": zod.string().nullable(),
   "destinationUrl": zod.string().nullable(),
   "createdAt": zod.string(),
-  "updatedAt": zod.string()
+  "updatedAt": zod.string(),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(createAdminAdvertisementResponseTargetingGeographiesItemRegExp)).max(createAdminAdvertisementResponseTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(createAdminAdvertisementResponseTargetingLanguagesItemRegExp)).max(createAdminAdvertisementResponseTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(createAdminAdvertisementResponseTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(createAdminAdvertisementResponseTargetingInterestsItemMax)).max(createAdminAdvertisementResponseTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(createAdminAdvertisementResponseTargetingCategoriesItemMax)).max(createAdminAdvertisementResponseTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(createAdminAdvertisementResponseTargetingKeywordsItemMax)).max(createAdminAdvertisementResponseTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(createAdminAdvertisementResponseTargetingExclusionsItemMax)).max(createAdminAdvertisementResponseTargetingExclusionsMax).optional()
+})
 })
 
 
@@ -2686,6 +3556,32 @@ export const ReviewAdminAdvertisementBody = zod.object({
   "reason": zod.string().min(1).max(reviewAdminAdvertisementBodyReasonMax).optional()
 })
 
+export const reviewAdminAdvertisementResponseTargetingGeographiesItemRegExp = new RegExp('^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$');
+export const reviewAdminAdvertisementResponseTargetingGeographiesMax = 50;
+
+export const reviewAdminAdvertisementResponseTargetingLanguagesItemRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const reviewAdminAdvertisementResponseTargetingLanguagesMax = 20;
+
+export const reviewAdminAdvertisementResponseTargetingDevicesMax = 3;
+
+export const reviewAdminAdvertisementResponseTargetingInterestsItemMax = 80;
+
+export const reviewAdminAdvertisementResponseTargetingInterestsMax = 50;
+
+export const reviewAdminAdvertisementResponseTargetingCategoriesItemMax = 80;
+
+export const reviewAdminAdvertisementResponseTargetingCategoriesMax = 50;
+
+export const reviewAdminAdvertisementResponseTargetingKeywordsItemMax = 80;
+
+export const reviewAdminAdvertisementResponseTargetingKeywordsMax = 100;
+
+export const reviewAdminAdvertisementResponseTargetingExclusionsItemMax = 80;
+
+export const reviewAdminAdvertisementResponseTargetingExclusionsMax = 100;
+
+
+
 export const ReviewAdminAdvertisementResponse = zod.object({
   "id": zod.string(),
   "campaignId": zod.string(),
@@ -2699,7 +3595,16 @@ export const ReviewAdminAdvertisementResponse = zod.object({
   "mediaUrl": zod.string().nullable(),
   "destinationUrl": zod.string().nullable(),
   "createdAt": zod.string(),
-  "updatedAt": zod.string()
+  "updatedAt": zod.string(),
+  "targeting": zod.object({
+  "geographies": zod.array(zod.string().regex(reviewAdminAdvertisementResponseTargetingGeographiesItemRegExp)).max(reviewAdminAdvertisementResponseTargetingGeographiesMax).optional(),
+  "languages": zod.array(zod.string().regex(reviewAdminAdvertisementResponseTargetingLanguagesItemRegExp)).max(reviewAdminAdvertisementResponseTargetingLanguagesMax).optional(),
+  "devices": zod.array(zod.enum(['mobile', 'tablet', 'desktop'])).max(reviewAdminAdvertisementResponseTargetingDevicesMax).optional(),
+  "interests": zod.array(zod.string().min(1).max(reviewAdminAdvertisementResponseTargetingInterestsItemMax)).max(reviewAdminAdvertisementResponseTargetingInterestsMax).optional(),
+  "categories": zod.array(zod.string().min(1).max(reviewAdminAdvertisementResponseTargetingCategoriesItemMax)).max(reviewAdminAdvertisementResponseTargetingCategoriesMax).optional(),
+  "keywords": zod.array(zod.string().min(1).max(reviewAdminAdvertisementResponseTargetingKeywordsItemMax)).max(reviewAdminAdvertisementResponseTargetingKeywordsMax).optional(),
+  "exclusions": zod.array(zod.string().min(1).max(reviewAdminAdvertisementResponseTargetingExclusionsItemMax)).max(reviewAdminAdvertisementResponseTargetingExclusionsMax).optional()
+})
 })
 
 
@@ -2841,11 +3746,26 @@ export const ReceiveAdvertisingBillingWebhookResponse = zod.unknown()
 export const getAdPlacementQuerySessionIdMin = 12;
 export const getAdPlacementQuerySessionIdMax = 200;
 
+export const getAdPlacementQueryLanguageRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
+export const getAdPlacementQueryGeographyMax = 80;
+
+export const getAdPlacementQueryInterestsMax = 1000;
+
+export const getAdPlacementQueryCategoriesMax = 1000;
+
+export const getAdPlacementQueryKeywordsMax = 1000;
+
 
 
 export const GetAdPlacementQueryParams = zod.object({
   "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
-  "sessionId": zod.coerce.string().min(getAdPlacementQuerySessionIdMin).max(getAdPlacementQuerySessionIdMax)
+  "sessionId": zod.coerce.string().min(getAdPlacementQuerySessionIdMin).max(getAdPlacementQuerySessionIdMax),
+  "language": zod.coerce.string().regex(getAdPlacementQueryLanguageRegExp).optional(),
+  "device": zod.enum(['mobile', 'tablet', 'desktop']).optional(),
+  "geography": zod.coerce.string().max(getAdPlacementQueryGeographyMax).optional(),
+  "interests": zod.coerce.string().max(getAdPlacementQueryInterestsMax).optional(),
+  "categories": zod.coerce.string().max(getAdPlacementQueryCategoriesMax).optional(),
+  "keywords": zod.coerce.string().max(getAdPlacementQueryKeywordsMax).optional()
 })
 
 export const GetAdPlacementResponse = zod.object({
@@ -2859,6 +3779,7 @@ export const GetAdPlacementResponse = zod.object({
   "body": zod.string(),
   "mediaUrl": zod.string().nullable(),
   "destinationUrl": zod.string().nullable(),
+  "paidLabel": zod.enum(['Sponsored']),
   "deliveryToken": zod.string()
 }),zod.null()])
 })

@@ -45,6 +45,11 @@ import SystemPage from '@/pages/system';
 import AuditLogPage from '@/pages/audit-log';
 import AnnouncementsPage from '@/pages/announcements';
 import FeatureControlsPage from '@/pages/feature-controls';
+import AdGroupsPage from '@/pages/advertising/ad-groups';
+import CreativesPage from '@/pages/advertising/creatives';
+import TargetingPage from '@/pages/advertising/targeting';
+import BudgetsPage from '@/pages/advertising/budgets';
+import PromotionsPage from '@/pages/advertising/promotions';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -62,9 +67,9 @@ function AdminRouter() {
           <Route path="/advertising" component={AdvertisingOverviewPage} />
           <Route path="/advertising/advertisers" component={AdvertisersPage} />
           <Route path="/advertising/campaigns" component={CampaignsPage} />
-          <Route path="/advertising/ad-groups" component={() => <IntegrationRequired moduleName="Ad Groups" />} />
+          <Route path="/advertising/ad-groups" component={AdGroupsPage} />
           <Route path="/advertising/advertisements" component={AdvertisementsPage} />
-          <Route path="/advertising/creatives" component={() => <IntegrationRequired moduleName="Ad Creatives" />} />
+          <Route path="/advertising/creatives" component={CreativesPage} />
           <Route path="/advertising/approvals" component={ApprovalsPage} />
 
           {/* Advertising Sub-views */}
@@ -78,12 +83,12 @@ function AdminRouter() {
 
           {/* Integration Required Advertising Routes */}
           <Route path="/advertising/boosted" component={() => <IntegrationRequired moduleName="Boosted Content" />} />
-          <Route path="/advertising/sponsored" component={() => <IntegrationRequired moduleName="Sponsored Content" />} />
-          <Route path="/advertising/trends" component={() => <IntegrationRequired moduleName="Trends Targeting" />} />
-          <Route path="/advertising/hashtags" component={() => <IntegrationRequired moduleName="Hashtags Targeting" />} />
-          <Route path="/advertising/promotions" component={() => <IntegrationRequired moduleName="Promotions" />} />
-          <Route path="/advertising/targeting" component={() => <IntegrationRequired moduleName="Audience Targeting" />} />
-          <Route path="/advertising/budgets" component={() => <IntegrationRequired moduleName="Budget Controls" />} />
+          <Route path="/advertising/sponsored" component={() => <PromotionsPage defaultType="sponsored_content" />} />
+          <Route path="/advertising/trends" component={() => <PromotionsPage defaultType="sponsored_trend" />} />
+          <Route path="/advertising/hashtags" component={() => <PromotionsPage defaultType="sponsored_hashtag" />} />
+          <Route path="/advertising/promotions" component={() => <PromotionsPage defaultType="featured_promotion" />} />
+          <Route path="/advertising/targeting" component={TargetingPage} />
+          <Route path="/advertising/budgets" component={BudgetsPage} />
 
           <Route path="/advertising/billing" component={AdvertisingBillingPage} />
           <Route path="/advertising/transactions" component={AdvertisingTransactionsPage} />

@@ -119,7 +119,7 @@ export function SponsoredBlastCard({
             </span>
             
             <div className="shrink-0 flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded text-[10px] uppercase font-bold text-muted-foreground tracking-wider border border-white/5">
-              <span>Sponsored</span>
+              <span>{ad.paidLabel}</span>
             </div>
           </div>
           

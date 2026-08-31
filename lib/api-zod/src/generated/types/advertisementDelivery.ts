@@ -5,6 +5,7 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { AdvertisementDeliveryPaidLabel } from './advertisementDeliveryPaidLabel';
 
 export interface AdvertisementDelivery {
   id: string;
@@ -18,5 +19,6 @@ export interface AdvertisementDelivery {
   mediaUrl: string | null;
   /** @nullable */
   destinationUrl: string | null;
+  paidLabel: AdvertisementDeliveryPaidLabel;
   deliveryToken: string;
 }

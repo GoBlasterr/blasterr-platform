@@ -576,6 +576,54 @@ export interface AdminClipsOverview {
   clips: Clip[];
 }
 
+export type TargetingDevicesItem = typeof TargetingDevicesItem[keyof typeof TargetingDevicesItem];
+
+
+export const TargetingDevicesItem = {
+  mobile: 'mobile',
+  tablet: 'tablet',
+  desktop: 'desktop',
+} as const;
+
+export interface Targeting {
+  /**
+     * @maxItems 50
+     * @items.pattern ^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$
+     */
+  geographies?: string[];
+  /**
+     * @maxItems 20
+     * @items.pattern ^[a-z]{2}(-[A-Z]{2})?$
+     */
+  languages?: string[];
+  /** @maxItems 3 */
+  devices?: TargetingDevicesItem[];
+  /**
+     * @maxItems 50
+     * @items.minLength 1
+     * @items.maxLength 80
+     */
+  interests?: string[];
+  /**
+     * @maxItems 50
+     * @items.minLength 1
+     * @items.maxLength 80
+     */
+  categories?: string[];
+  /**
+     * @maxItems 100
+     * @items.minLength 1
+     * @items.maxLength 80
+     */
+  keywords?: string[];
+  /**
+     * @maxItems 100
+     * @items.minLength 1
+     * @items.maxLength 80
+     */
+  exclusions?: string[];
+}
+
 export interface Advertiser {
   id: string;
   name: string;
@@ -600,7 +648,14 @@ export interface AdvertiserInput {
   contactEmail?: string;
 }
 
-export type CampaignTargeting = { [key: string]: unknown };
+export type CampaignPricingModel = typeof CampaignPricingModel[keyof typeof CampaignPricingModel];
+
+
+export const CampaignPricingModel = {
+  cpm: 'cpm',
+  cpc: 'cpc',
+  cpv: 'cpv',
+} as const;
 
 export interface Campaign {
   id: string;
@@ -608,11 +663,15 @@ export interface Campaign {
   name: string;
   status: string;
   placements: string[];
-  targeting: CampaignTargeting;
+  targeting: Targeting;
   /** @nullable */
   dailyBudget: number | null;
   /** @nullable */
   totalBudget: number | null;
+  pricingModel: CampaignPricingModel;
+  /** @nullable */
+  bidAmount: number | null;
+  spentAmount: number;
   /** @nullable */
   startsAt: string | null;
   /** @nullable */
@@ -634,7 +693,14 @@ export const CampaignInputPlacementsItem = {
   right_rail: 'right_rail',
 } as const;
 
-export type CampaignInputTargeting = { [key: string]: unknown };
+export type CampaignInputPricingModel = typeof CampaignInputPricingModel[keyof typeof CampaignInputPricingModel];
+
+
+export const CampaignInputPricingModel = {
+  cpm: 'cpm',
+  cpc: 'cpc',
+  cpv: 'cpv',
+} as const;
 
 export type CampaignInputStatus = typeof CampaignInputStatus[keyof typeof CampaignInputStatus];
 
@@ -654,14 +720,362 @@ export interface CampaignInput {
   name: string;
   /** @minItems 1 */
   placements: CampaignInputPlacementsItem[];
-  targeting?: CampaignInputTargeting;
+  targeting?: Targeting;
   /** @minimum 0 */
   dailyBudget?: number;
   /** @minimum 0 */
   totalBudget?: number;
+  pricingModel?: CampaignInputPricingModel;
+  /** @minimum 0.0001 */
+  bidAmount?: number;
   startsAt?: string;
   endsAt?: string;
   status?: CampaignInputStatus;
+}
+
+export type CampaignUpdatePlacementsItem = typeof CampaignUpdatePlacementsItem[keyof typeof CampaignUpdatePlacementsItem];
+
+
+export const CampaignUpdatePlacementsItem = {
+  home_feed: 'home_feed',
+  following_feed: 'following_feed',
+  search: 'search',
+  trending: 'trending',
+  profile: 'profile',
+  clips: 'clips',
+  right_rail: 'right_rail',
+} as const;
+
+export type CampaignUpdatePricingModel = typeof CampaignUpdatePricingModel[keyof typeof CampaignUpdatePricingModel];
+
+
+export const CampaignUpdatePricingModel = {
+  cpm: 'cpm',
+  cpc: 'cpc',
+  cpv: 'cpv',
+} as const;
+
+export interface CampaignUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name?: string;
+  /** @minItems 1 */
+  placements?: CampaignUpdatePlacementsItem[];
+  targeting?: Targeting;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  dailyBudget?: number | null;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  totalBudget?: number | null;
+  pricingModel?: CampaignUpdatePricingModel;
+  /**
+     * @minimum 0.0001
+     * @nullable
+     */
+  bidAmount?: number | null;
+  /** @nullable */
+  startsAt?: string | null;
+  /** @nullable */
+  endsAt?: string | null;
+}
+
+export type AdGroupStatus = typeof AdGroupStatus[keyof typeof AdGroupStatus];
+
+
+export const AdGroupStatus = {
+  active: 'active',
+  paused: 'paused',
+} as const;
+
+export interface AdGroup {
+  id: string;
+  campaignId: string;
+  name: string;
+  status: AdGroupStatus;
+  targeting: Targeting;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  frequencyCap: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AdGroupInputStatus = typeof AdGroupInputStatus[keyof typeof AdGroupInputStatus];
+
+
+export const AdGroupInputStatus = {
+  active: 'active',
+  paused: 'paused',
+} as const;
+
+export interface AdGroupInput {
+  campaignId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  status?: AdGroupInputStatus;
+  targeting?: Targeting;
+  /**
+     * @minimum 1
+     * @maximum 1000
+     */
+  frequencyCap?: number;
+}
+
+export type AdGroupUpdateStatus = typeof AdGroupUpdateStatus[keyof typeof AdGroupUpdateStatus];
+
+
+export const AdGroupUpdateStatus = {
+  active: 'active',
+  paused: 'paused',
+} as const;
+
+export interface AdGroupUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name?: string;
+  status?: AdGroupUpdateStatus;
+  targeting?: Targeting;
+  /**
+     * @minimum 1
+     * @maximum 1000
+     * @nullable
+     */
+  frequencyCap?: number | null;
+}
+
+export type CreativeType = typeof CreativeType[keyof typeof CreativeType];
+
+
+export const CreativeType = {
+  image: 'image',
+  video: 'video',
+  text: 'text',
+} as const;
+
+export type CreativeMetadata = { [key: string]: unknown };
+
+export type CreativeStatus = typeof CreativeStatus[keyof typeof CreativeStatus];
+
+
+export const CreativeStatus = {
+  active: 'active',
+  paused: 'paused',
+  archived: 'archived',
+} as const;
+
+export interface Creative {
+  id: string;
+  advertiserId: string;
+  name: string;
+  type: CreativeType;
+  headline: string;
+  body: string;
+  /** @nullable */
+  mediaUrl: string | null;
+  /** @nullable */
+  destinationUrl: string | null;
+  metadata: CreativeMetadata;
+  status: CreativeStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreativeInputType = typeof CreativeInputType[keyof typeof CreativeInputType];
+
+
+export const CreativeInputType = {
+  image: 'image',
+  video: 'video',
+  text: 'text',
+} as const;
+
+export type CreativeInputMetadata = { [key: string]: unknown };
+
+export interface CreativeInput {
+  advertiserId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  type: CreativeInputType;
+  /** @maxLength 200 */
+  headline: string;
+  /** @maxLength 1000 */
+  body?: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  mediaUrl?: string | null;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  destinationUrl?: string | null;
+  metadata?: CreativeInputMetadata;
+}
+
+export type CreativeUpdateType = typeof CreativeUpdateType[keyof typeof CreativeUpdateType];
+
+
+export const CreativeUpdateType = {
+  image: 'image',
+  video: 'video',
+  text: 'text',
+} as const;
+
+export type CreativeUpdateMetadata = { [key: string]: unknown };
+
+export type CreativeUpdateStatus = typeof CreativeUpdateStatus[keyof typeof CreativeUpdateStatus];
+
+
+export const CreativeUpdateStatus = {
+  active: 'active',
+  paused: 'paused',
+  archived: 'archived',
+} as const;
+
+export interface CreativeUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name?: string;
+  type?: CreativeUpdateType;
+  /** @maxLength 200 */
+  headline?: string;
+  /** @maxLength 1000 */
+  body?: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  mediaUrl?: string | null;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  destinationUrl?: string | null;
+  metadata?: CreativeUpdateMetadata;
+  status?: CreativeUpdateStatus;
+}
+
+export type PromotionType = typeof PromotionType[keyof typeof PromotionType];
+
+
+export const PromotionType = {
+  sponsored_content: 'sponsored_content',
+  sponsored_trend: 'sponsored_trend',
+  sponsored_hashtag: 'sponsored_hashtag',
+  featured_promotion: 'featured_promotion',
+} as const;
+
+export type PromotionStatus = typeof PromotionStatus[keyof typeof PromotionStatus];
+
+
+export const PromotionStatus = {
+  pending_approval: 'pending_approval',
+  approved: 'approved',
+  rejected: 'rejected',
+  paused: 'paused',
+} as const;
+
+export type PromotionEligibility = { [key: string]: unknown };
+
+export interface Promotion {
+  id: string;
+  advertiserId: string;
+  /** @nullable */
+  campaignId: string | null;
+  type: PromotionType;
+  name: string;
+  description: string;
+  status: PromotionStatus;
+  eligibility: PromotionEligibility;
+  /** @nullable */
+  budget: number | null;
+  /** @nullable */
+  startsAt: string | null;
+  /** @nullable */
+  endsAt: string | null;
+  /** @nullable */
+  reviewedByClerkId: string | null;
+  /** @nullable */
+  reviewedAt: string | null;
+  /** @nullable */
+  reviewReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type PromotionInputType = typeof PromotionInputType[keyof typeof PromotionInputType];
+
+
+export const PromotionInputType = {
+  sponsored_content: 'sponsored_content',
+  sponsored_trend: 'sponsored_trend',
+  sponsored_hashtag: 'sponsored_hashtag',
+  featured_promotion: 'featured_promotion',
+} as const;
+
+export type PromotionInputEligibility = { [key: string]: unknown };
+
+export interface PromotionInput {
+  advertiserId: string;
+  /** @nullable */
+  campaignId?: string | null;
+  type: PromotionInputType;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /** @maxLength 1000 */
+  description?: string;
+  eligibility: PromotionInputEligibility;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  budget?: number | null;
+  /** @nullable */
+  startsAt?: string | null;
+  /** @nullable */
+  endsAt?: string | null;
+}
+
+export type PromotionReviewAction = typeof PromotionReviewAction[keyof typeof PromotionReviewAction];
+
+
+export const PromotionReviewAction = {
+  approve: 'approve',
+  reject: 'reject',
+  pause: 'pause',
+  resume: 'resume',
+} as const;
+
+export interface PromotionReview {
+  action: PromotionReviewAction;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  reason: string;
 }
 
 export interface Advertisement {
@@ -682,6 +1096,7 @@ export interface Advertisement {
   destinationUrl: string | null;
   createdAt: string;
   updatedAt: string;
+  targeting: Targeting;
 }
 
 export type AdvertisementInputPlacement = typeof AdvertisementInputPlacement[keyof typeof AdvertisementInputPlacement];
@@ -724,6 +1139,7 @@ export interface AdvertisementInput {
      * @maxLength 2000
      */
   destinationUrl?: string;
+  targeting?: Targeting;
 }
 
 export type AdvertisementReviewAction = typeof AdvertisementReviewAction[keyof typeof AdvertisementReviewAction];
@@ -755,6 +1171,13 @@ export interface StatusUpdate {
   reason?: string;
 }
 
+export type AdvertisementDeliveryPaidLabel = typeof AdvertisementDeliveryPaidLabel[keyof typeof AdvertisementDeliveryPaidLabel];
+
+
+export const AdvertisementDeliveryPaidLabel = {
+  Sponsored: 'Sponsored',
+} as const;
+
 export interface AdvertisementDelivery {
   id: string;
   advertiserId: string;
@@ -767,6 +1190,7 @@ export interface AdvertisementDelivery {
   mediaUrl: string | null;
   /** @nullable */
   destinationUrl: string | null;
+  paidLabel: AdvertisementDeliveryPaidLabel;
   deliveryToken: string;
 }
 
@@ -866,6 +1290,30 @@ export interface AdvertiserPage {
 
 export interface CampaignPage {
   items: Campaign[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface AdGroupPage {
+  items: AdGroup[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface CreativePage {
+  items: Creative[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface PromotionPage {
+  items: Promotion[];
   page: number;
   limit: number;
   total: number;
@@ -1508,6 +1956,60 @@ status?: StatusParameter;
 search?: SearchParameter;
 };
 
+export type ListAdminAdGroupsParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: StatusParameter;
+search?: SearchParameter;
+campaignId?: string;
+};
+
+export type ListAdminCreativesParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: StatusParameter;
+search?: SearchParameter;
+advertiserId?: string;
+};
+
+export type ListAdminPromotionsParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: StatusParameter;
+type?: ListAdminPromotionsType;
+};
+
+export type ListAdminPromotionsType = typeof ListAdminPromotionsType[keyof typeof ListAdminPromotionsType];
+
+
+export const ListAdminPromotionsType = {
+  sponsored_content: 'sponsored_content',
+  sponsored_trend: 'sponsored_trend',
+  sponsored_hashtag: 'sponsored_hashtag',
+  featured_promotion: 'featured_promotion',
+} as const;
+
 export type ListAdminAdvertisementsParams = {
 /**
  * @minimum 1
@@ -1554,6 +2056,30 @@ placement: GetAdPlacementPlacement;
  * @maxLength 200
  */
 sessionId: string;
+/**
+ * @pattern ^[a-z]{2}(-[A-Z]{2})?$
+ */
+language?: string;
+device?: GetAdPlacementDevice;
+/**
+ * @maxLength 80
+ */
+geography?: string;
+/**
+ * Comma-separated viewer interest slugs.
+ * @maxLength 1000
+ */
+interests?: string;
+/**
+ * Comma-separated content category slugs.
+ * @maxLength 1000
+ */
+categories?: string;
+/**
+ * Comma-separated contextual keywords.
+ * @maxLength 1000
+ */
+keywords?: string;
 };
 
 export type GetAdPlacementPlacement = typeof GetAdPlacementPlacement[keyof typeof GetAdPlacementPlacement];
@@ -1567,6 +2093,15 @@ export const GetAdPlacementPlacement = {
   profile: 'profile',
   clips: 'clips',
   right_rail: 'right_rail',
+} as const;
+
+export type GetAdPlacementDevice = typeof GetAdPlacementDevice[keyof typeof GetAdPlacementDevice];
+
+
+export const GetAdPlacementDevice = {
+  mobile: 'mobile',
+  tablet: 'tablet',
+  desktop: 'desktop',
 } as const;
 
 export type GetAdPlacement200 = {

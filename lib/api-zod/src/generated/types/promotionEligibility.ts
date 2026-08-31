@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type CampaignInputTargeting = { [key: string]: unknown };
+export type PromotionEligibility = { [key: string]: unknown };

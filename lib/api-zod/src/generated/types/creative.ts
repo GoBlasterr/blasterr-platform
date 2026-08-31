@@ -5,25 +5,23 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
-import type { Targeting } from './targeting';
+import type { CreativeMetadata } from './creativeMetadata';
+import type { CreativeStatus } from './creativeStatus';
+import type { CreativeType } from './creativeType';
 
-export interface Advertisement {
+export interface Creative {
   id: string;
-  campaignId: string;
-  /** @nullable */
-  adGroupId: string | null;
-  /** @nullable */
-  creativeId: string | null;
+  advertiserId: string;
   name: string;
-  status: string;
-  placement: string;
+  type: CreativeType;
   headline: string;
   body: string;
   /** @nullable */
   mediaUrl: string | null;
   /** @nullable */
   destinationUrl: string | null;
+  metadata: CreativeMetadata;
+  status: CreativeStatus;
   createdAt: string;
   updatedAt: string;
-  targeting: Targeting;
 }

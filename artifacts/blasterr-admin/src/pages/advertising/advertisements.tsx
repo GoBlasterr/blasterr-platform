@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   useListAdminAdvertisements, 
   useCreateAdminAdvertisement,
-  getListAdminAdvertisementsQueryKey
+  getListAdminAdvertisementsQueryKey,
+  useListAdminAdGroups,
+  useListAdminCreatives
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,12 +23,19 @@ import { useForm as useReactHookForm } from "react-hook-form";
 
 const createAdSchema = z.object({
   campaignId: z.string().min(1, "Campaign ID is required"),
+  adGroupId: z.string().optional(),
+  creativeId: z.string().optional(),
   name: z.string().min(1, "Name is required").max(160),
   placement: z.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
-  headline: z.string().min(1, "Headline is required").max(200),
+  headline: z.string().optional(), // Now optional since creativeId can provide it
   body: z.string().max(1000).optional(),
   mediaUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   destinationUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  // Targeting
+  geographies: z.string().optional(),
+  languages: z.string().optional(),
+  interests: z.string().optional(),
+  keywords: z.string().optional(),
 });
 
 export default function AdvertisementsPage() {
@@ -45,11 +54,14 @@ export default function AdvertisementsPage() {
     ...(statusFilter && statusFilter !== "all" ? { status: statusFilter } : {})
   };
 
-  const { data, isLoading } = useListAdminAdvertisements(queryParams, {
+  const { data, isLoading } = useListAdminAdvertisements(queryParams as any, {
     query: {
-      queryKey: getListAdminAdvertisementsQueryKey(queryParams)
+      queryKey: getListAdminAdvertisementsQueryKey(queryParams as any)
     }
   });
+
+  const { data: adGroupsData } = useListAdminAdGroups({ limit: 100, status: "active" } as any);
+  const { data: creativesData } = useListAdminCreatives({ limit: 100, status: "active" } as any);
 
   const createMutation = useCreateAdminAdvertisement();
 
@@ -57,28 +69,53 @@ export default function AdvertisementsPage() {
     resolver: zodResolver(createAdSchema),
     defaultValues: { 
       campaignId: "", 
+      adGroupId: "",
+      creativeId: "",
       name: "", 
       placement: "home_feed",
       headline: "",
       body: "",
       mediaUrl: "",
-      destinationUrl: ""
+      destinationUrl: "",
+      geographies: "",
+      languages: "",
+      interests: "",
+      keywords: ""
     },
   });
 
   const onSubmitCreate = (values: z.infer<typeof createAdSchema>) => {
+    const toArray = (str?: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : undefined;
+
+    // Use a placeholder if creativeId is set, as the server will pull the real headline
+    const linkedCreativeId = values.creativeId && values.creativeId !== "none" ? values.creativeId : undefined;
+    const finalHeadline = linkedCreativeId && !values.headline ? "Pending Creative Link" : (values.headline || "");
+
+    if (!linkedCreativeId && !finalHeadline) {
+      createForm.setError("headline", { type: "manual", message: "Headline is required if no creative is selected." });
+      return;
+    }
+
     createMutation.mutate({ data: {
       campaignId: values.campaignId,
+      adGroupId: values.adGroupId && values.adGroupId !== "none" ? values.adGroupId : undefined,
+      creativeId: linkedCreativeId,
       name: values.name,
-      placement: values.placement,
-      headline: values.headline,
+      placement: values.placement as any,
+      headline: finalHeadline,
       body: values.body || undefined,
       mediaUrl: values.mediaUrl || undefined,
-      destinationUrl: values.destinationUrl || undefined
+      destinationUrl: values.destinationUrl || undefined,
+      targeting: {
+        geographies: toArray(values.geographies),
+        languages: toArray(values.languages),
+        interests: toArray(values.interests),
+        keywords: toArray(values.keywords),
+      }
     }}, {
       onSuccess: () => {
-        toast({ title: "Advertisement Created", description: "The ad creative has been queued for review." });
-        queryClient.invalidateQueries({ queryKey: getListAdminAdvertisementsQueryKey(queryParams) });
+        toast({ title: "Advertisement Created", description: "The ad has been queued for review." });
+        queryClient.invalidateQueries({ queryKey: getListAdminAdvertisementsQueryKey(queryParams as any) });
         setIsCreateOpen(false);
         createForm.reset();
       },
@@ -88,12 +125,15 @@ export default function AdvertisementsPage() {
     });
   };
 
+  const selectedCreativeId = createForm.watch("creativeId");
+  const isCreativeSelected = !!selectedCreativeId && selectedCreativeId !== "none";
+
   return (
     <div className="p-6 max-w-[1600px] mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Advertisements</h1>
-          <p className="text-muted-foreground">Manage creative assets and delivery status.</p>
+          <p className="text-muted-foreground">Manage individual ad placements and status.</p>
         </div>
         
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -103,10 +143,10 @@ export default function AdvertisementsPage() {
               Create Advertisement
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create Advertisement Creative</DialogTitle>
-              <DialogDescription>New creatives require moderation review before delivery.</DialogDescription>
+              <DialogTitle>Create Advertisement</DialogTitle>
+              <DialogDescription>Create a new ad. Select an existing creative to inherit its content automatically.</DialogDescription>
             </DialogHeader>
             <Form {...createForm}>
               <form onSubmit={createForm.handleSubmit(onSubmitCreate)} className="space-y-6">
@@ -138,96 +178,182 @@ export default function AdvertisementsPage() {
                     )}
                   />
                 </div>
-
-                <FormField
-                  control={createForm.control}
-                  name="placement"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Target Placement</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select placement" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="home_feed">Home Feed</SelectItem>
-                          <SelectItem value="following_feed">Following Feed</SelectItem>
-                          <SelectItem value="search">Search Results</SelectItem>
-                          <SelectItem value="trending">Trending Page</SelectItem>
-                          <SelectItem value="profile">User Profile</SelectItem>
-                          <SelectItem value="clips">Clips Feed</SelectItem>
-                          <SelectItem value="right_rail">Desktop Right Rail</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={createForm.control}
-                  name="headline"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Headline</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Buy our product..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 
-                <FormField
-                  control={createForm.control}
-                  name="body"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Body Copy (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Additional context..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={createForm.control}
-                    name="mediaUrl"
+                    name="adGroupId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Media URL (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://..." {...field} />
-                        </FormControl>
+                        <FormLabel>Ad Group (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="None" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {adGroupsData?.items.map(ag => (
+                              <SelectItem key={ag.id} value={ag.id}>{ag.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   <FormField
                     control={createForm.control}
-                    name="destinationUrl"
+                    name="placement"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Click Destination URL (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://..." {...field} />
-                        </FormControl>
+                        <FormLabel>Target Placement</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select placement" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="home_feed">Home Feed</SelectItem>
+                            <SelectItem value="following_feed">Following Feed</SelectItem>
+                            <SelectItem value="search">Search Results</SelectItem>
+                            <SelectItem value="trending">Trending Page</SelectItem>
+                            <SelectItem value="profile">User Profile</SelectItem>
+                            <SelectItem value="clips">Clips Feed</SelectItem>
+                            <SelectItem value="right_rail">Desktop Right Rail</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
 
+                <div className="p-4 bg-muted/30 border border-dashed rounded-md space-y-4">
+                  <FormField
+                    control={createForm.control}
+                    name="creativeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Creative Asset (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Custom Content" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Custom Content (Fill below)</SelectItem>
+                            {creativesData?.items.map(cr => (
+                              <SelectItem key={cr.id} value={cr.id}>{cr.name} - {cr.headline.slice(0, 20)}...</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">If selected, the server will authoritative override the fields below.</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {!isCreativeSelected && (
+                    <>
+                      <FormField
+                        control={createForm.control}
+                        name="headline"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Headline</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Buy our product..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={createForm.control}
+                        name="body"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Body Copy (Optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Additional context..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={createForm.control}
+                          name="mediaUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Media URL (Optional)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="destinationUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Click Destination (Optional)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  <h3 className="text-sm font-medium">Overrides & Targeting (Optional)</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={createForm.control}
+                      name="geographies"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Geographies</FormLabel>
+                          <FormControl>
+                            <Input placeholder="US, CA, UK" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createForm.control}
+                      name="languages"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Languages</FormLabel>
+                          <FormControl>
+                            <Input placeholder="en, es" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
                   <Button type="submit" disabled={createMutation.isPending}>
                     {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Create Creative
+                    Create Advertisement
                   </Button>
                 </DialogFooter>
               </form>
@@ -269,7 +395,7 @@ export default function AdvertisementsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Creative Name</TableHead>
+                <TableHead>Ad Name</TableHead>
                 <TableHead>Placement</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Headline</TableHead>
@@ -284,14 +410,14 @@ export default function AdvertisementsPage() {
                     <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
-              ) : data?.items.length === 0 ? (
+              ) : !data?.items || data.items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                     No advertisements found.
                   </TableCell>
                 </TableRow>
               ) : (
-                data?.items.map((ad) => (
+                data.items.map((ad) => (
                   <TableRow key={ad.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">

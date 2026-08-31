@@ -5,7 +5,8 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
-import type { CampaignTargeting } from './campaignTargeting';
+import type { CampaignPricingModel } from './campaignPricingModel';
+import type { Targeting } from './targeting';
 
 export interface Campaign {
   id: string;
@@ -13,11 +14,15 @@ export interface Campaign {
   name: string;
   status: string;
   placements: string[];
-  targeting: CampaignTargeting;
+  targeting: Targeting;
   /** @nullable */
   dailyBudget: number | null;
   /** @nullable */
   totalBudget: number | null;
+  pricingModel: CampaignPricingModel;
+  /** @nullable */
+  bidAmount: number | null;
+  spentAmount: number;
   /** @nullable */
   startsAt: string | null;
   /** @nullable */

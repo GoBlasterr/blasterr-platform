@@ -5,6 +5,7 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { GetAdPlacementDevice } from './getAdPlacementDevice';
 import type { GetAdPlacementPlacement } from './getAdPlacementPlacement';
 
 export type GetAdPlacementParams = {
@@ -14,4 +15,28 @@ placement: GetAdPlacementPlacement;
  * @maxLength 200
  */
 sessionId: string;
+/**
+ * @pattern ^[a-z]{2}(-[A-Z]{2})?$
+ */
+language?: string;
+device?: GetAdPlacementDevice;
+/**
+ * @maxLength 80
+ */
+geography?: string;
+/**
+ * Comma-separated viewer interest slugs.
+ * @maxLength 1000
+ */
+interests?: string;
+/**
+ * Comma-separated content category slugs.
+ * @maxLength 1000
+ */
+categories?: string;
+/**
+ * Comma-separated contextual keywords.
+ * @maxLength 1000
+ */
+keywords?: string;
 };

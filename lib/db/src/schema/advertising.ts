@@ -18,6 +18,8 @@ export const campaignsTable = pgTable("ad_campaigns", {
   name: text("name").notNull(), status: text("status").notNull().default("draft"),
   placements: jsonb("placements").notNull().default([]), targeting: jsonb("targeting").notNull().default({}),
   dailyBudget: numeric("daily_budget", { precision: 14, scale: 2 }), totalBudget: numeric("total_budget", { precision: 14, scale: 2 }),
+  pricingModel: text("pricing_model").notNull().default("cpm"), bidAmount: numeric("bid_amount", { precision: 14, scale: 4 }),
+  spentAmount: numeric("spent_amount", { precision: 14, scale: 4 }).notNull().default("0"),
   startsAt: timestamp("starts_at", { withTimezone: true }), endsAt: timestamp("ends_at", { withTimezone: true }),
   ...audited,
 }, (t) => [index("ad_campaigns_advertiser_idx").on(t.advertiserId), index("ad_campaigns_status_schedule_idx").on(t.status, t.startsAt, t.endsAt)]);
@@ -35,6 +37,20 @@ export const creativesTable = pgTable("ad_creatives", {
   body: text("body").notNull().default(""), mediaUrl: text("media_url"), destinationUrl: text("destination_url"),
   metadata: jsonb("metadata").notNull().default({}), status: text("status").notNull().default("active"), ...audited,
 }, (t) => [index("ad_creatives_advertiser_idx").on(t.advertiserId), index("ad_creatives_status_idx").on(t.status)]);
+
+export const adPromotionRequestsTable = pgTable("ad_promotion_requests", {
+  id: id(), advertiserId: text("advertiser_id").notNull().references(() => advertisersTable.id),
+  campaignId: text("campaign_id").references(() => campaignsTable.id),
+  type: text("type").notNull(), name: text("name").notNull(), description: text("description").notNull().default(""),
+  status: text("status").notNull().default("pending_approval"), eligibility: jsonb("eligibility").notNull().default({}),
+  budget: numeric("budget", { precision: 14, scale: 2 }), startsAt: timestamp("starts_at", { withTimezone: true }),
+  endsAt: timestamp("ends_at", { withTimezone: true }), reviewedByClerkId: text("reviewed_by_clerk_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }), reviewReason: text("review_reason"),
+  ...audited,
+}, (t) => [
+  index("ad_promotion_requests_advertiser_idx").on(t.advertiserId),
+  index("ad_promotion_requests_type_status_idx").on(t.type, t.status),
+]);
 
 export const advertisementsTable = pgTable("advertisements", {
   id: id(), campaignId: text("campaign_id").notNull().references(() => campaignsTable.id),
@@ -58,6 +74,19 @@ export const adEventsTable = pgTable("ad_events", {
   index("ad_events_ad_occurred_idx").on(t.advertisementId, t.occurredAt),
   index("ad_events_type_occurred_idx").on(t.eventType, t.occurredAt),
   uniqueIndex("ad_events_delivery_event_unique").on(t.deliveryTokenId, t.eventType),
+]);
+
+export const adSpendLedgerTable = pgTable("ad_spend_ledger", {
+  id: id(), campaignId: text("campaign_id").notNull().references(() => campaignsTable.id),
+  advertisementId: text("advertisement_id").notNull().references(() => advertisementsTable.id),
+  eventId: text("event_id").notNull().references(() => adEventsTable.id),
+  pricingModel: text("pricing_model").notNull(), billableEvent: text("billable_event").notNull(),
+  bidAmount: numeric("bid_amount", { precision: 14, scale: 4 }).notNull(),
+  amount: numeric("amount", { precision: 14, scale: 4 }).notNull(),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex("ad_spend_ledger_event_unique").on(t.eventId),
+  index("ad_spend_ledger_campaign_occurred_idx").on(t.campaignId, t.occurredAt),
 ]);
 
 export const adReportsTable = pgTable("ad_reports", {

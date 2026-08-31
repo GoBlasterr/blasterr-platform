@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AdvertisementInputPlacement } from './advertisementInputPlacement';
+import type { Targeting } from './targeting';
 
 export interface AdvertisementInput {
   campaignId: string;
@@ -34,4 +35,5 @@ export interface AdvertisementInput {
      * @maxLength 2000
      */
   destinationUrl?: string;
+  targeting?: Targeting;
 }

@@ -960,6 +960,77 @@ paths:
       parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/StatusUpdate" } } } }
       responses: { "200": { description: Updated campaign, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } } }
+  /admin/advertising/campaigns/{id}:
+    patch:
+      operationId: updateAdminCampaign
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignUpdate" } } } }
+      responses: { "200": { description: Updated campaign, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } } }
+  /admin/advertising/ad-groups:
+    get:
+      operationId: listAdminAdGroups
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/Page" }, { $ref: "#/components/parameters/Limit" }, { $ref: "#/components/parameters/Status" }, { $ref: "#/components/parameters/Search" }, { name: campaignId, in: query, schema: { type: string } }]
+      responses: { "200": { description: Ad groups, content: { application/json: { schema: { $ref: "#/components/schemas/AdGroupPage" } } } } }
+    post:
+      operationId: createAdminAdGroup
+      tags: [admin, advertising]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AdGroupInput" } } } }
+      responses: { "201": { description: Created ad group, content: { application/json: { schema: { $ref: "#/components/schemas/AdGroup" } } } } }
+  /admin/advertising/ad-groups/{id}:
+    patch:
+      operationId: updateAdminAdGroup
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AdGroupUpdate" } } } }
+      responses: { "200": { description: Updated ad group, content: { application/json: { schema: { $ref: "#/components/schemas/AdGroup" } } } } }
+    delete:
+      operationId: deleteAdminAdGroup
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      responses: { "204": { description: Ad group deleted } }
+  /admin/advertising/creatives:
+    get:
+      operationId: listAdminCreatives
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/Page" }, { $ref: "#/components/parameters/Limit" }, { $ref: "#/components/parameters/Status" }, { $ref: "#/components/parameters/Search" }, { name: advertiserId, in: query, schema: { type: string } }]
+      responses: { "200": { description: Reusable creative assets, content: { application/json: { schema: { $ref: "#/components/schemas/CreativePage" } } } } }
+    post:
+      operationId: createAdminCreative
+      tags: [admin, advertising]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CreativeInput" } } } }
+      responses: { "201": { description: Created creative, content: { application/json: { schema: { $ref: "#/components/schemas/Creative" } } } } }
+  /admin/advertising/creatives/{id}:
+    patch:
+      operationId: updateAdminCreative
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CreativeUpdate" } } } }
+      responses: { "200": { description: Updated creative, content: { application/json: { schema: { $ref: "#/components/schemas/Creative" } } } } }
+    delete:
+      operationId: deleteAdminCreative
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      responses: { "204": { description: Creative deleted } }
+  /admin/advertising/promotions:
+    get:
+      operationId: listAdminPromotions
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/Page" }, { $ref: "#/components/parameters/Limit" }, { $ref: "#/components/parameters/Status" }, { name: type, in: query, schema: { type: string, enum: [sponsored_content, sponsored_trend, sponsored_hashtag, featured_promotion] } }]
+      responses: { "200": { description: Promotion requests, content: { application/json: { schema: { $ref: "#/components/schemas/PromotionPage" } } } } }
+    post:
+      operationId: createAdminPromotion
+      tags: [admin, advertising]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PromotionInput" } } } }
+      responses: { "201": { description: Created promotion request, content: { application/json: { schema: { $ref: "#/components/schemas/Promotion" } } } } }
+  /admin/advertising/promotions/{id}/review:
+    post:
+      operationId: reviewAdminPromotion
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PromotionReview" } } } }
+      responses: { "200": { description: Reviewed promotion, content: { application/json: { schema: { $ref: "#/components/schemas/Promotion" } } } } }
   /admin/advertising/advertisements:
     get:
       operationId: listAdminAdvertisements
@@ -1041,6 +1112,12 @@ paths:
       parameters:
         - { name: placement, in: query, required: true, schema: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] } }
         - { name: sessionId, in: query, required: true, schema: { type: string, minLength: 12, maxLength: 200 } }
+        - { name: language, in: query, schema: { type: string, pattern: '^[a-z]{2}(-[A-Z]{2})?$' } }
+        - { name: device, in: query, schema: { type: string, enum: [mobile, tablet, desktop] } }
+        - { name: geography, in: query, schema: { type: string, maxLength: 80 } }
+        - { name: interests, in: query, schema: { type: string, maxLength: 1000, description: Comma-separated viewer interest slugs. } }
+        - { name: categories, in: query, schema: { type: string, maxLength: 1000, description: Comma-separated content category slugs. } }
+        - { name: keywords, in: query, schema: { type: string, maxLength: 1000, description: Comma-separated contextual keywords. } }
       responses: { "200": { description: Eligible advertisement, content: { application/json: { schema: { type: object, required: [ad], properties: { ad: { anyOf: [{ $ref: "#/components/schemas/AdvertisementDelivery" }, { type: "null" }] } } } } } } }
   /advertising/events:
     post:
@@ -1527,6 +1604,17 @@ components:
         clips:
           type: array
           items: { $ref: "#/components/schemas/Clip" }
+    Targeting:
+      type: object
+      additionalProperties: false
+      properties:
+        geographies: { type: array, maxItems: 50, items: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$' } }
+        languages: { type: array, maxItems: 20, items: { type: string, pattern: '^[a-z]{2}(-[A-Z]{2})?$' } }
+        devices: { type: array, maxItems: 3, items: { type: string, enum: [mobile, tablet, desktop] } }
+        interests: { type: array, maxItems: 50, items: { type: string, minLength: 1, maxLength: 80 } }
+        categories: { type: array, maxItems: 50, items: { type: string, minLength: 1, maxLength: 80 } }
+        keywords: { type: array, maxItems: 100, items: { type: string, minLength: 1, maxLength: 80 } }
+        exclusions: { type: array, maxItems: 100, items: { type: string, minLength: 1, maxLength: 80 } }
     Advertiser:
       type: object
       required: [id, name, status, ownerClerkId, contactEmail, createdAt, updatedAt]
@@ -1547,16 +1635,19 @@ components:
         contactEmail: { type: string, maxLength: 320 }
     Campaign:
       type: object
-      required: [id, advertiserId, name, status, placements, targeting, dailyBudget, totalBudget, startsAt, endsAt, createdAt, updatedAt]
+      required: [id, advertiserId, name, status, placements, targeting, dailyBudget, totalBudget, pricingModel, bidAmount, spentAmount, startsAt, endsAt, createdAt, updatedAt]
       properties:
         id: { type: string }
         advertiserId: { type: string }
         name: { type: string }
         status: { type: string }
         placements: { type: array, items: { type: string } }
-        targeting: { type: object, additionalProperties: true }
+        targeting: { $ref: "#/components/schemas/Targeting" }
         dailyBudget: { type: [number, "null"] }
         totalBudget: { type: [number, "null"] }
+        pricingModel: { type: string, enum: [cpm, cpc, cpv] }
+        bidAmount: { type: [number, "null"] }
+        spentAmount: { type: number }
         startsAt: { type: [string, "null"] }
         endsAt: { type: [string, "null"] }
         createdAt: { type: string }
@@ -1568,15 +1659,135 @@ components:
         advertiserId: { type: string }
         name: { type: string, minLength: 1, maxLength: 160 }
         placements: { type: array, minItems: 1, items: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] } }
-        targeting: { type: object, additionalProperties: true }
+        targeting: { $ref: "#/components/schemas/Targeting" }
         dailyBudget: { type: number, minimum: 0 }
         totalBudget: { type: number, minimum: 0 }
+        pricingModel: { type: string, enum: [cpm, cpc, cpv] }
+        bidAmount: { type: number, minimum: 0.0001 }
         startsAt: { type: string }
         endsAt: { type: string }
         status: { type: string, enum: [draft, active, paused] }
+    CampaignUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        placements: { type: array, minItems: 1, items: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] } }
+        targeting: { $ref: "#/components/schemas/Targeting" }
+        dailyBudget: { type: [number, "null"], minimum: 0 }
+        totalBudget: { type: [number, "null"], minimum: 0 }
+        pricingModel: { type: string, enum: [cpm, cpc, cpv] }
+        bidAmount: { type: [number, "null"], minimum: 0.0001 }
+        startsAt: { type: [string, "null"] }
+        endsAt: { type: [string, "null"] }
+    AdGroup:
+      type: object
+      required: [id, campaignId, name, status, targeting, frequencyCap, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        campaignId: { type: string }
+        name: { type: string }
+        status: { type: string, enum: [active, paused] }
+        targeting: { $ref: "#/components/schemas/Targeting" }
+        frequencyCap: { type: [number, "null"], minimum: 1, multipleOf: 1 }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    AdGroupInput:
+      type: object
+      required: [campaignId, name]
+      properties:
+        campaignId: { type: string }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        status: { type: string, enum: [active, paused] }
+        targeting: { $ref: "#/components/schemas/Targeting" }
+        frequencyCap: { type: number, minimum: 1, maximum: 1000, multipleOf: 1 }
+    AdGroupUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        status: { type: string, enum: [active, paused] }
+        targeting: { $ref: "#/components/schemas/Targeting" }
+        frequencyCap: { type: [number, "null"], minimum: 1, maximum: 1000, multipleOf: 1 }
+    Creative:
+      type: object
+      required: [id, advertiserId, name, type, headline, body, mediaUrl, destinationUrl, metadata, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        advertiserId: { type: string }
+        name: { type: string }
+        type: { type: string, enum: [image, video, text] }
+        headline: { type: string }
+        body: { type: string }
+        mediaUrl: { type: [string, "null"] }
+        destinationUrl: { type: [string, "null"] }
+        metadata: { type: object, additionalProperties: true }
+        status: { type: string, enum: [active, paused, archived] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    CreativeInput:
+      type: object
+      required: [advertiserId, name, type, headline]
+      properties:
+        advertiserId: { type: string }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        type: { type: string, enum: [image, video, text] }
+        headline: { type: string, maxLength: 200 }
+        body: { type: string, maxLength: 1000 }
+        mediaUrl: { type: [string, "null"], maxLength: 2000 }
+        destinationUrl: { type: [string, "null"], maxLength: 2000 }
+        metadata: { type: object, additionalProperties: true }
+    CreativeUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        type: { type: string, enum: [image, video, text] }
+        headline: { type: string, maxLength: 200 }
+        body: { type: string, maxLength: 1000 }
+        mediaUrl: { type: [string, "null"], maxLength: 2000 }
+        destinationUrl: { type: [string, "null"], maxLength: 2000 }
+        metadata: { type: object, additionalProperties: true }
+        status: { type: string, enum: [active, paused, archived] }
+    Promotion:
+      type: object
+      required: [id, advertiserId, campaignId, type, name, description, status, eligibility, budget, startsAt, endsAt, reviewedByClerkId, reviewedAt, reviewReason, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        advertiserId: { type: string }
+        campaignId: { type: [string, "null"] }
+        type: { type: string, enum: [sponsored_content, sponsored_trend, sponsored_hashtag, featured_promotion] }
+        name: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [pending_approval, approved, rejected, paused] }
+        eligibility: { type: object, additionalProperties: true }
+        budget: { type: [number, "null"] }
+        startsAt: { type: [string, "null"] }
+        endsAt: { type: [string, "null"] }
+        reviewedByClerkId: { type: [string, "null"] }
+        reviewedAt: { type: [string, "null"] }
+        reviewReason: { type: [string, "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    PromotionInput:
+      type: object
+      required: [advertiserId, type, name, eligibility]
+      properties:
+        advertiserId: { type: string }
+        campaignId: { type: [string, "null"] }
+        type: { type: string, enum: [sponsored_content, sponsored_trend, sponsored_hashtag, featured_promotion] }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        description: { type: string, maxLength: 1000 }
+        eligibility: { type: object, additionalProperties: true }
+        budget: { type: [number, "null"], minimum: 0 }
+        startsAt: { type: [string, "null"] }
+        endsAt: { type: [string, "null"] }
+    PromotionReview:
+      type: object
+      required: [action, reason]
+      properties:
+        action: { type: string, enum: [approve, reject, pause, resume] }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
     Advertisement:
       type: object
-      required: [id, campaignId, adGroupId, creativeId, name, status, placement, headline, body, mediaUrl, destinationUrl, createdAt, updatedAt]
+      required: [id, campaignId, adGroupId, creativeId, name, status, placement, headline, body, mediaUrl, destinationUrl, targeting, createdAt, updatedAt]
       properties:
         id: { type: string }
         campaignId: { type: string }
@@ -1591,6 +1802,7 @@ components:
         destinationUrl: { type: [string, "null"] }
         createdAt: { type: string }
         updatedAt: { type: string }
+        targeting: { $ref: "#/components/schemas/Targeting" }
     AdvertisementInput:
       type: object
       required: [campaignId, name, placement, headline]
@@ -1604,6 +1816,7 @@ components:
         body: { type: string, maxLength: 1000 }
         mediaUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL; enforced by the API. }
         destinationUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL; enforced by the API. }
+        targeting: { $ref: "#/components/schemas/Targeting" }
     AdvertisementReview:
       type: object
       required: [action]
@@ -1618,7 +1831,7 @@ components:
         reason: { type: string, minLength: 1, maxLength: 1000 }
     AdvertisementDelivery:
       type: object
-      required: [id, advertiserId, advertiserName, campaignId, placement, headline, body, mediaUrl, destinationUrl, deliveryToken]
+      required: [id, advertiserId, advertiserName, campaignId, placement, headline, body, mediaUrl, destinationUrl, paidLabel, deliveryToken]
       properties:
         id: { type: string }
         advertiserId: { type: string }
@@ -1629,6 +1842,7 @@ components:
         body: { type: string }
         mediaUrl: { type: [string, "null"] }
         destinationUrl: { type: [string, "null"] }
+        paidLabel: { type: string, enum: [Sponsored] }
         deliveryToken: { type: string }
     AdEventInput:
       type: object
@@ -1679,6 +1893,18 @@ components:
       type: object
       required: [items, page, limit, total, hasMore]
       properties: { items: { type: array, items: { $ref: "#/components/schemas/Campaign" } }, page: { type: number }, limit: { type: number }, total: { type: number }, hasMore: { type: boolean } }
+    AdGroupPage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties: { items: { type: array, items: { $ref: "#/components/schemas/AdGroup" } }, page: { type: number }, limit: { type: number }, total: { type: number }, hasMore: { type: boolean } }
+    CreativePage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties: { items: { type: array, items: { $ref: "#/components/schemas/Creative" } }, page: { type: number }, limit: { type: number }, total: { type: number }, hasMore: { type: boolean } }
+    PromotionPage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties: { items: { type: array, items: { $ref: "#/components/schemas/Promotion" } }, page: { type: number }, limit: { type: number }, total: { type: number }, hasMore: { type: boolean } }
     AdvertisementPage:
       type: object
       required: [items, page, limit, total, hasMore]

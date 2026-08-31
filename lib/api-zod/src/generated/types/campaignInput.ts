@@ -6,8 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CampaignInputPlacementsItem } from './campaignInputPlacementsItem';
+import type { CampaignInputPricingModel } from './campaignInputPricingModel';
 import type { CampaignInputStatus } from './campaignInputStatus';
-import type { CampaignInputTargeting } from './campaignInputTargeting';
+import type { Targeting } from './targeting';
 
 export interface CampaignInput {
   advertiserId: string;
@@ -18,11 +19,14 @@ export interface CampaignInput {
   name: string;
   /** @minItems 1 */
   placements: CampaignInputPlacementsItem[];
-  targeting?: CampaignInputTargeting;
+  targeting?: Targeting;
   /** @minimum 0 */
   dailyBudget?: number;
   /** @minimum 0 */
   totalBudget?: number;
+  pricingModel?: CampaignInputPricingModel;
+  /** @minimum 0.0001 */
+  bidAmount?: number;
   startsAt?: string;
   endsAt?: string;
   status?: CampaignInputStatus;
