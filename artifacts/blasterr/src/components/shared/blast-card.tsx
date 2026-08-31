@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -59,6 +59,7 @@ export function BlastCard({ blast, showTarget = true, showMedia = false }: { bla
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [blastBackText, setBlastBackText] = useState("");
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   const reactMutation = useReactToBlast();
   const bookmarkMutation = useToggleBookmark();
@@ -66,6 +67,34 @@ export function BlastCard({ blast, showTarget = true, showMedia = false }: { bla
   const blastBackMutation = useCreateBlastBack();
   const { data: currentUser } = useCurrentUser();
   const canDelete = currentUser?.id === blast.author?.id;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !showMedia || blast.mediaType !== "video") return;
+
+    video.muted = true;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+          video.muted = true;
+          void video.play().catch(() => {
+            // Autoplay can still be blocked by a browser policy.
+          });
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: [0, 0.6] },
+    );
+
+    observer.observe(video);
+
+    return () => {
+      observer.disconnect();
+      video.pause();
+    };
+  }, [blast.mediaType, blast.mediaUrl, showMedia]);
 
   const handleReact = (type: ReactionInputType) => {
     reactMutation.mutate(
@@ -203,10 +232,12 @@ export function BlastCard({ blast, showTarget = true, showMedia = false }: { bla
             <div className="mt-3 rounded-2xl overflow-hidden border border-white/10">
               {blast.mediaType === 'video' ? (
                 <video
+                  ref={videoRef}
                   src={blast.mediaUrl}
                   aria-label="Video attached to Blast"
                   className="aspect-video w-full bg-black object-contain"
                   controls
+                  muted
                   playsInline
                   preload="metadata"
                   onClick={(event) => event.stopPropagation()}
