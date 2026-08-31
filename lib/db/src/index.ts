@@ -5,10 +5,7 @@ import * as schema from "./schema/index.ts";
 
 const { Pool } = pg;
 
-const useSupabaseDatabase = process.env.USE_SUPABASE_DATABASE === "true";
-const databaseUrl = useSupabaseDatabase
-  ? getSupabaseDatabaseUrl()
-  : process.env.DATABASE_URL ?? getSupabaseDatabaseUrl();
+const databaseUrl = getSupabaseDatabaseUrl();
 
 export const pool = new Pool({
   connectionString: databaseUrl,
