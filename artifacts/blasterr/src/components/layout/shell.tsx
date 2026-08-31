@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useClerk } from "@clerk/react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { FeedAdPlacement } from "@/components/shared/sponsored-blast-card";
+import { AnnouncementsSurface } from "@/components/shared/announcements";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -146,6 +147,7 @@ export function Shell({ children }: ShellProps) {
       {/* Main Content */}
       <main ref={mainRef} className="min-h-0 flex-1 flex justify-center md:justify-start overflow-y-auto overscroll-contain pb-20 md:pb-0">
         <div className="w-full max-w-2xl min-h-screen border-r border-white/5 bg-background/50 backdrop-blur-sm">
+          <AnnouncementsSurface />
           {children}
         </div>
         

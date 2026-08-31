@@ -14,6 +14,7 @@ tags:
   - name: people
   - name: discovery
   - name: notifications
+  - name: announcements
   - name: admin
   - name: advertising
 paths:
@@ -29,6 +30,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /announcements:
+    get:
+      operationId: getAnnouncements
+      tags: [announcements]
+      summary: Get published announcements for the current viewer
+      responses:
+        "200":
+          description: Published announcements visible to the viewer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnnouncementsResponse"
+        "401":
+          description: Authentication session could not be verified
   /me:
     get:
       operationId: getCurrentUser
@@ -1904,6 +1919,17 @@ components:
         message: { type: string, minLength: 1, maxLength: 1000 }
         audience: { type: string, enum: [all, admins, moderators] }
         status: { type: string, enum: [draft, published] }
+    Announcement:
+      type: object
+      required: [id, title, message, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        message: { type: string }
+        updatedAt: { type: string }
+    AnnouncementsResponse:
+      type: array
+      items: { $ref: "#/components/schemas/Announcement" }
     AdminFeatureFlag:
       type: object
       required: [key, label, description, enabled, updatedAt]

@@ -88,6 +88,8 @@ export * from './advertisingSettingsUpdatePlacementSettings';
 export * from './advertisingTransaction';
 export * from './advertisingTransactionPage';
 export * from './advertisingTransactionProvider';
+export * from './announcement';
+export * from './announcementsResponse';
 export * from './blast';
 export * from './blastInput';
 export * from './blastInputMediaType';

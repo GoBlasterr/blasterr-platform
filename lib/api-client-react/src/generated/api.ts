@@ -62,6 +62,7 @@ import type {
   AdvertisingSettings,
   AdvertisingSettingsUpdate,
   AdvertisingTransactionPage,
+  AnnouncementsResponse,
   Blast,
   BlastInput,
   BlastUpdate,
@@ -204,6 +205,83 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getHealthCheckQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAnnouncementsUrl = () => {
+
+
+
+
+  return `/api/announcements`
+}
+
+/**
+ * @summary Get published announcements for the current viewer
+ */
+export const getAnnouncements = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnnouncementsResponse> => {
+
+  return customFetch<AnnouncementsResponse>(getGetAnnouncementsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnnouncementsQueryKey = () => {
+    return [
+    `/api/announcements`
+    ] as const;
+    }
+
+
+export const getGetAnnouncementsQueryOptions = <TData = Awaited<ReturnType<typeof getAnnouncements>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnnouncements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnnouncementsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnnouncements>>> = ({ signal }) => getAnnouncements({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnnouncements>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnnouncementsQueryResult = NonNullable<Awaited<ReturnType<typeof getAnnouncements>>>
+export type GetAnnouncementsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get published announcements for the current viewer
+ */
+
+export function useGetAnnouncements<TData = Awaited<ReturnType<typeof getAnnouncements>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnnouncements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnnouncementsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

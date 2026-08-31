@@ -17,6 +17,18 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Get published announcements for the current viewer
+ */
+export const GetAnnouncementsResponseItem = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetAnnouncementsResponse = zod.array(GetAnnouncementsResponseItem)
+
+
+/**
  * @summary Get the current signed-in profile
  */
 export const GetCurrentUserResponse = zod.object({
@@ -57,6 +69,7 @@ export const updateCurrentUserBodyZipCodeRegExp = new RegExp('^(?:[0-9]{5}(?:-[0
 export const updateCurrentUserBodyAvatarUrlMax = 500;
 
 export const updateCurrentUserBodyCoverUrlMax = 500;
+
 
 
 export const UpdateCurrentUserBody = zod.object({
@@ -107,6 +120,7 @@ export const getFeedQueryRadiusDefault = 20;
 export const getFeedQueryRadiusMax = 100;
 
 
+
 export const GetFeedQueryParams = zod.object({
   "tab": zod.enum(['for-you', 'following', 'trending', 'nearby']).default(getFeedQueryTabDefault),
   "page": zod.coerce.number().min(1).default(getFeedQueryPageDefault),
@@ -117,6 +131,7 @@ export const GetFeedQueryParams = zod.object({
 
 export const getFeedResponseItemsItemTargetMatchScoreMin = 0;
 export const getFeedResponseItemsItemTargetMatchScoreMax = 1;
+
 
 
 export const GetFeedResponse = zod.object({
@@ -186,6 +201,7 @@ export const getTrendingResponseBlastsItemTargetMatchScoreMax = 1;
 
 export const getTrendingResponseTargetsItemMatchScoreMin = 0;
 export const getTrendingResponseTargetsItemMatchScoreMax = 1;
+
 
 
 export const GetTrendingResponse = zod.object({
@@ -272,6 +288,7 @@ export const searchResponseBlastsItemTargetMatchScoreMax = 1;
 
 export const searchResponseTargetsItemMatchScoreMin = 0;
 export const searchResponseTargetsItemMatchScoreMax = 1;
+
 
 
 export const SearchResponse = zod.object({
@@ -370,6 +387,7 @@ export const listTargetsResponseMatchScoreMin = 0;
 export const listTargetsResponseMatchScoreMax = 1;
 
 
+
 export const ListTargetsResponseItem = zod.object({
   "id": zod.string(),
   "name": zod.string(),
@@ -412,6 +430,7 @@ export const createTargetResponseMatchScoreMin = 0;
 export const createTargetResponseMatchScoreMax = 1;
 
 
+
 export const CreateTargetResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
@@ -439,6 +458,7 @@ export const getTargetResponseTargetMatchScoreMax = 1;
 
 export const getTargetResponseBlastsItemTargetMatchScoreMin = 0;
 export const getTargetResponseBlastsItemTargetMatchScoreMax = 1;
+
 
 
 export const GetTargetResponse = zod.object({
@@ -527,6 +547,7 @@ export const getUserProfileResponseTwoBlastsItemTargetMatchScoreMax = 1;
 
 export const getUserProfileResponseTwoMediaItemTargetMatchScoreMin = 0;
 export const getUserProfileResponseTwoMediaItemTargetMatchScoreMax = 1;
+
 
 
 export const GetUserProfileResponse = zod.object({
@@ -670,6 +691,7 @@ export const ToggleFollowResponse = zod.object({
 export const createBlastBodyContentMax = 1000;
 
 
+
 export const CreateBlastBody = zod.object({
   "content": zod.string().min(1).max(createBlastBodyContentMax),
   "targetId": zod.string(),
@@ -680,6 +702,7 @@ export const CreateBlastBody = zod.object({
 
 export const createBlastResponseTargetMatchScoreMin = 0;
 export const createBlastResponseTargetMatchScoreMax = 1;
+
 
 
 export const CreateBlastResponse = zod.object({
@@ -745,6 +768,7 @@ export const UpdateBlastParams = zod.object({
 export const updateBlastBodyContentMax = 1000;
 
 
+
 export const UpdateBlastBody = zod.object({
   "content": zod.string().min(1).max(updateBlastBodyContentMax).optional(),
   "location": zod.string().optional()
@@ -752,6 +776,7 @@ export const UpdateBlastBody = zod.object({
 
 export const updateBlastResponseTargetMatchScoreMin = 0;
 export const updateBlastResponseTargetMatchScoreMax = 1;
+
 
 
 export const UpdateBlastResponse = zod.object({
@@ -828,6 +853,7 @@ export const GetMyClipsQueryParams = zod.object({
 
 export const getMyClipsResponseBlastTargetMatchScoreMin = 0;
 export const getMyClipsResponseBlastTargetMatchScoreMax = 1;
+
 
 
 export const GetMyClipsResponseItem = zod.object({
@@ -936,6 +962,7 @@ export const createClipBodyBackgroundMax = 80;
 export const createClipBodyCtaTextMax = 120;
 
 
+
 export const CreateClipBody = zod.object({
   "blastId": zod.string(),
   "style": zod.enum(['BREAKING', 'FUNNY', 'DRAMATIC', 'RECEIPTS', 'DEBATE', 'STORY']),
@@ -952,6 +979,7 @@ export const CreateClipBody = zod.object({
 
 export const createClipResponseBlastTargetMatchScoreMin = 0;
 export const createClipResponseBlastTargetMatchScoreMax = 1;
+
 
 
 export const CreateClipResponse = zod.object({
@@ -1056,6 +1084,7 @@ export const GetClipParams = zod.object({
 
 export const getClipResponseBlastTargetMatchScoreMin = 0;
 export const getClipResponseBlastTargetMatchScoreMax = 1;
+
 
 
 export const GetClipResponse = zod.object({
@@ -1165,6 +1194,7 @@ export const updateClipBodyDescriptionMax = 500;
 export const updateClipBodyCtaTextMax = 120;
 
 
+
 export const UpdateClipBody = zod.object({
   "title": zod.string().max(updateClipBodyTitleMax).optional(),
   "description": zod.string().max(updateClipBodyDescriptionMax).optional(),
@@ -1179,6 +1209,7 @@ export const UpdateClipBody = zod.object({
 
 export const updateClipResponseBlastTargetMatchScoreMin = 0;
 export const updateClipResponseBlastTargetMatchScoreMax = 1;
+
 
 
 export const UpdateClipResponse = zod.object({
@@ -1293,6 +1324,7 @@ export const RetryClipParams = zod.object({
 
 export const retryClipResponseBlastTargetMatchScoreMin = 0;
 export const retryClipResponseBlastTargetMatchScoreMax = 1;
+
 
 
 export const RetryClipResponse = zod.object({
@@ -1431,6 +1463,7 @@ export const CreateCommentParams = zod.object({
 export const createCommentBodyContentMax = 500;
 
 
+
 export const CreateCommentBody = zod.object({
   "content": zod.string().min(1).max(createCommentBodyContentMax),
   "parentCommentId": zod.string().optional()
@@ -1471,6 +1504,7 @@ export const CreateBlastBackParams = zod.object({
 export const createBlastBackBodyContentMax = 1000;
 
 
+
 export const CreateBlastBackBody = zod.object({
   "content": zod.string().min(1).max(createBlastBackBodyContentMax),
   "targetId": zod.string(),
@@ -1481,6 +1515,7 @@ export const CreateBlastBackBody = zod.object({
 
 export const createBlastBackResponseTargetMatchScoreMin = 0;
 export const createBlastBackResponseTargetMatchScoreMax = 1;
+
 
 
 export const CreateBlastBackResponse = zod.object({
@@ -1584,6 +1619,7 @@ export const getBookmarksResponseTargetMatchScoreMin = 0;
 export const getBookmarksResponseTargetMatchScoreMax = 1;
 
 
+
 export const GetBookmarksResponseItem = zod.object({
   "id": zod.string(),
   "content": zod.string(),
@@ -1644,6 +1680,7 @@ export const GetBookmarksResponse = zod.array(GetBookmarksResponseItem)
 export const createReportBodyDescriptionMax = 1000;
 
 
+
 export const CreateReportBody = zod.object({
   "targetType": zod.enum(['blast', 'comment', 'user']),
   "targetId": zod.string(),
@@ -1692,6 +1729,7 @@ export const GetAdminOverviewResponse = zod.object({
  */
 export const getAdminClipsResponseClipsItemBlastTargetMatchScoreMin = 0;
 export const getAdminClipsResponseClipsItemBlastTargetMatchScoreMax = 1;
+
 
 
 export const GetAdminClipsResponse = zod.object({
@@ -1880,6 +1918,7 @@ export const getAdminContentResponseItemsItemOneTargetMatchScoreMin = 0;
 export const getAdminContentResponseItemsItemOneTargetMatchScoreMax = 1;
 
 
+
 export const GetAdminContentResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -1952,6 +1991,7 @@ export const UpdateAdminContentBody = zod.object({
 
 export const updateAdminContentResponseOneTargetMatchScoreMin = 0;
 export const updateAdminContentResponseOneTargetMatchScoreMax = 1;
+
 
 
 export const UpdateAdminContentResponse = zod.object({
@@ -2068,6 +2108,7 @@ export const UpdateAdminReportParams = zod.object({
 export const updateAdminReportBodyNoteMax = 500;
 
 
+
 export const UpdateAdminReportBody = zod.object({
   "status": zod.enum(['open', 'in_review', 'resolved', 'dismissed']),
   "note": zod.string().max(updateAdminReportBodyNoteMax).optional()
@@ -2139,6 +2180,7 @@ export const GetAdminModerationResponse = zod.object({
  * @summary Take a moderation action
  */
 export const createAdminModerationActionBodyNoteMax = 500;
+
 
 
 export const CreateAdminModerationActionBody = zod.object({
@@ -2218,6 +2260,7 @@ export const GetAdminSettingsResponse = zod.object({
 export const updateAdminSettingsBodySupportEmailMax = 160;
 
 
+
 export const UpdateAdminSettingsBody = zod.object({
   "maintenanceMode": zod.boolean().optional(),
   "contentReviewMode": zod.boolean().optional(),
@@ -2254,6 +2297,7 @@ export const createAdminAnnouncementBodyTitleMax = 120;
 export const createAdminAnnouncementBodyMessageMax = 1000;
 
 
+
 export const CreateAdminAnnouncementBody = zod.object({
   "title": zod.string().min(1).max(createAdminAnnouncementBodyTitleMax),
   "message": zod.string().min(1).max(createAdminAnnouncementBodyMessageMax),
@@ -2282,6 +2326,7 @@ export const UpdateAdminAnnouncementParams = zod.object({
 export const updateAdminAnnouncementBodyTitleMax = 120;
 
 export const updateAdminAnnouncementBodyMessageMax = 1000;
+
 
 
 export const UpdateAdminAnnouncementBody = zod.object({
@@ -2374,6 +2419,7 @@ export const listAdminAdvertisersQueryLimitDefault = 25;
 export const listAdminAdvertisersQueryLimitMax = 100;
 
 
+
 export const ListAdminAdvertisersQueryParams = zod.object({
   "page": zod.coerce.number().min(1).default(listAdminAdvertisersQueryPageDefault),
   "limit": zod.coerce.number().min(1).max(listAdminAdvertisersQueryLimitMax).default(listAdminAdvertisersQueryLimitDefault),
@@ -2405,6 +2451,7 @@ export const createAdminAdvertiserBodyOwnerClerkIdMax = 200;
 export const createAdminAdvertiserBodyContactEmailMax = 320;
 
 
+
 export const CreateAdminAdvertiserBody = zod.object({
   "name": zod.string().min(1).max(createAdminAdvertiserBodyNameMax),
   "ownerClerkId": zod.string().max(createAdminAdvertiserBodyOwnerClerkIdMax).optional(),
@@ -2429,6 +2476,7 @@ export const UpdateAdminAdvertiserStatusParams = zod.object({
 export const updateAdminAdvertiserStatusBodyReasonMax = 1000;
 
 
+
 export const UpdateAdminAdvertiserStatusBody = zod.object({
   "status": zod.string(),
   "reason": zod.string().min(1).max(updateAdminAdvertiserStatusBodyReasonMax).optional()
@@ -2449,6 +2497,7 @@ export const listAdminCampaignsQueryPageDefault = 1;
 
 export const listAdminCampaignsQueryLimitDefault = 25;
 export const listAdminCampaignsQueryLimitMax = 100;
+
 
 
 export const ListAdminCampaignsQueryParams = zod.object({
@@ -2488,6 +2537,7 @@ export const createAdminCampaignBodyDailyBudgetMin = 0;
 export const createAdminCampaignBodyTotalBudgetMin = 0;
 
 
+
 export const CreateAdminCampaignBody = zod.object({
   "advertiserId": zod.string(),
   "name": zod.string().min(1).max(createAdminCampaignBodyNameMax),
@@ -2523,6 +2573,7 @@ export const UpdateAdminCampaignStatusParams = zod.object({
 export const updateAdminCampaignStatusBodyReasonMax = 1000;
 
 
+
 export const UpdateAdminCampaignStatusBody = zod.object({
   "status": zod.string(),
   "reason": zod.string().min(1).max(updateAdminCampaignStatusBodyReasonMax).optional()
@@ -2548,6 +2599,7 @@ export const listAdminAdvertisementsQueryPageDefault = 1;
 
 export const listAdminAdvertisementsQueryLimitDefault = 25;
 export const listAdminAdvertisementsQueryLimitMax = 100;
+
 
 
 export const ListAdminAdvertisementsQueryParams = zod.object({
@@ -2591,6 +2643,7 @@ export const createAdminAdvertisementBodyMediaUrlMax = 2000;
 export const createAdminAdvertisementBodyDestinationUrlMax = 2000;
 
 
+
 export const CreateAdminAdvertisementBody = zod.object({
   "campaignId": zod.string(),
   "adGroupId": zod.string().optional(),
@@ -2625,6 +2678,7 @@ export const ReviewAdminAdvertisementParams = zod.object({
 })
 
 export const reviewAdminAdvertisementBodyReasonMax = 1000;
+
 
 
 export const ReviewAdminAdvertisementBody = zod.object({
@@ -2663,6 +2717,7 @@ export const GetAdminAdvertisingSettingsResponse = zod.object({
 export const updateAdminAdvertisingSettingsBodyReasonMax = 1000;
 
 
+
 export const UpdateAdminAdvertisingSettingsBody = zod.object({
   "enabled": zod.boolean().optional(),
   "emergencyShutdown": zod.boolean().optional(),
@@ -2689,6 +2744,7 @@ export const listAdminAdvertisingAuditQueryLimitDefault = 25;
 export const listAdminAdvertisingAuditQueryLimitMax = 100;
 
 
+
 export const ListAdminAdvertisingAuditQueryParams = zod.object({
   "page": zod.coerce.number().min(1).default(listAdminAdvertisingAuditQueryPageDefault),
   "limit": zod.coerce.number().min(1).max(listAdminAdvertisingAuditQueryLimitMax).default(listAdminAdvertisingAuditQueryLimitDefault)
@@ -2710,6 +2766,7 @@ export const ListAdminAdvertisingAuditResponse = zod.object({
   "hasMore": zod.boolean()
 })
 
+
 export const GetAdminAdvertisingBillingResponse = zod.object({
   "provider": zod.union([zod.literal('stripe'),zod.literal('whop'),zod.literal(null)]).nullable(),
   "balances": zod.array(zod.object({
@@ -2722,8 +2779,68 @@ export const GetAdminAdvertisingBillingResponse = zod.object({
   "transactionCount": zod.number(),
   "available": zod.boolean()
 })
+
+
+export const listAdminAdvertisingTransactionsQueryPageDefault = 1;
+
+export const listAdminAdvertisingTransactionsQueryLimitDefault = 25;
+export const listAdminAdvertisingTransactionsQueryLimitMax = 100;
+
+
+
+export const ListAdminAdvertisingTransactionsQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminAdvertisingTransactionsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminAdvertisingTransactionsQueryLimitMax).default(listAdminAdvertisingTransactionsQueryLimitDefault),
+  "status": zod.coerce.string().optional()
+})
+
+export const ListAdminAdvertisingTransactionsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string().nullable(),
+  "campaignId": zod.string().nullable(),
+  "provider": zod.enum(['stripe', 'whop']),
+  "providerTransactionId": zod.string(),
+  "transactionType": zod.string(),
+  "status": zod.string(),
+  "amountMinor": zod.number(),
+  "refundedAmountMinor": zod.number(),
+  "currency": zod.string(),
+  "invoiceUrl": zod.string().nullable(),
+  "providerCreatedAt": zod.string().nullable(),
+  "createdAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+export const GetAdminAdvertisingRevenueResponse = zod.object({
+  "provider": zod.union([zod.literal('stripe'),zod.literal('whop'),zod.literal(null)]).nullable(),
+  "balances": zod.array(zod.object({
+  "currency": zod.string(),
+  "grossAmountMinor": zod.number(),
+  "refundedAmountMinor": zod.number(),
+  "netAmountMinor": zod.number(),
+  "settledTransactionCount": zod.number()
+})),
+  "available": zod.boolean()
+})
+
+
+/**
+ * Provider webhook endpoint. Requests must include a provider signature; card data is never accepted.
+ */
+export const ReceiveAdvertisingBillingWebhookBody = zod.record(zod.string(), zod.unknown())
+
+export const ReceiveAdvertisingBillingWebhookResponse = zod.unknown()
+
+
 export const getAdPlacementQuerySessionIdMin = 12;
 export const getAdPlacementQuerySessionIdMax = 200;
+
 
 
 export const GetAdPlacementQueryParams = zod.object({
@@ -2754,6 +2871,7 @@ export const recordAdEventBodyDeliveryTokenMin = 20;
 export const recordAdEventBodyDeliveryTokenMax = 2000;
 
 
+
 export const RecordAdEventBody = zod.object({
   "advertisementId": zod.string(),
   "eventType": zod.enum(['impression', 'click', 'video_view']),
@@ -2767,55 +2885,3 @@ export const RecordAdEventResponse = zod.object({
 })
 
 
-export const GetAdminAdvertisingRevenueResponse = zod.object({
-  "provider": zod.union([zod.literal('stripe'),zod.literal('whop'),zod.literal(null)]).nullable(),
-  "balances": zod.array(zod.object({
-  "currency": zod.string(),
-  "grossAmountMinor": zod.number(),
-  "refundedAmountMinor": zod.number(),
-  "netAmountMinor": zod.number(),
-  "settledTransactionCount": zod.number()
-})),
-  "available": zod.boolean()
-})
-
-export const ReceiveAdvertisingBillingWebhookResponse = zod.unknown()
-
-export const listAdminAdvertisingTransactionsQueryLimitDefault = 25;
-
-/**
- * Provider webhook endpoint. Requests must include a provider signature; card data is never accepted.
- */
-export const ReceiveAdvertisingBillingWebhookBody = zod.record(zod.string(), zod.unknown())
-
-export const listAdminAdvertisingTransactionsQueryPageDefault = 1;
-
-export const listAdminAdvertisingTransactionsQueryLimitMax = 100;
-
-export const ListAdminAdvertisingTransactionsResponse = zod.object({
-  "items": zod.array(zod.object({
-  "id": zod.string(),
-  "advertiserId": zod.string().nullable(),
-  "campaignId": zod.string().nullable(),
-  "provider": zod.enum(['stripe', 'whop']),
-  "providerTransactionId": zod.string(),
-  "transactionType": zod.string(),
-  "status": zod.string(),
-  "amountMinor": zod.number(),
-  "refundedAmountMinor": zod.number(),
-  "currency": zod.string(),
-  "invoiceUrl": zod.string().nullable(),
-  "providerCreatedAt": zod.string().nullable(),
-  "createdAt": zod.string()
-})),
-  "page": zod.number(),
-  "limit": zod.number(),
-  "total": zod.number(),
-  "hasMore": zod.boolean()
-})
-
-export const ListAdminAdvertisingTransactionsQueryParams = zod.object({
-  "page": zod.coerce.number().min(1).default(listAdminAdvertisingTransactionsQueryPageDefault),
-  "limit": zod.coerce.number().min(1).max(listAdminAdvertisingTransactionsQueryLimitMax).default(listAdminAdvertisingTransactionsQueryLimitDefault),
-  "status": zod.coerce.string().optional()
-})

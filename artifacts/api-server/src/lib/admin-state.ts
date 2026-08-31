@@ -13,8 +13,14 @@ import {
 } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { seedDevelopmentAdvertising, shouldSeedDevelopmentState } from "./admin-seeding";
+import {
+  filterPublishedAnnouncementsForViewer,
+  type AnnouncementViewerRole,
+  type PublicAnnouncement,
+} from "./announcement-visibility";
 
 export { shouldSeedDevelopmentState } from "./admin-seeding";
+export type { AnnouncementViewerRole, PublicAnnouncement } from "./announcement-visibility";
 
 export type AdminReportStatus = "open" | "in_review" | "resolved" | "dismissed";
 export type AdminContentStatus = "published" | "hidden" | "removed";
@@ -171,6 +177,12 @@ export const adminSettings = {
 };
 export const adminAnnouncements: AdminAnnouncementRecord[] = [];
 export const adminFeatureFlags: AdminFeatureRecord[] = [];
+
+export function getPublishedAnnouncementsForViewer(
+  viewerRole: AnnouncementViewerRole,
+): PublicAnnouncement[] {
+  return filterPublishedAnnouncementsForViewer(adminAnnouncements, viewerRole);
+}
 
 let initialization: Promise<void> | null = null;
 let refreshInFlight: Promise<void> | null = null;
