@@ -1,0 +1,1355 @@
+# BLASTERR MOBILE APP — REPLIT AGENT BUILD PROMPT
+
+## PROJECT OVERVIEW
+
+I already have a fully built **Blasterr website/platform** in this Replit project, including its branding, features, authentication, database, admin dashboard, user system, content system, and backend infrastructure.
+
+I now want you to build a **Blasterr mobile application** that works as the mobile companion/client for the existing Blasterr platform.
+
+### CRITICAL REQUIREMENT
+
+**DO NOT build Blasterr as a separate platform.**
+
+The mobile app must connect to and operate from the **EXACT SAME backend, database, authentication system, APIs, storage infrastructure, business logic, user accounts, content, settings, and administrative controls already being used by the existing Blasterr website.**
+
+The website, mobile app, and admin dashboard must function as **one unified Blasterr ecosystem**.
+
+The existing website is the source of truth for:
+
+* Branding
+* Colors
+* Logos
+* Typography
+* User accounts
+* Profiles
+* Content
+* Posts
+* Comments
+* Reactions
+* Notifications
+* Messaging
+* Locations
+* Categories
+* Media
+* Moderation
+* Settings
+* Permissions
+* Subscription/payment information
+* Admin controls
+* Platform configuration
+* Database structure
+* Business rules
+
+Before writing significant new code, inspect the entire existing Blasterr codebase.
+
+---
+
+# 1. FIRST: AUDIT THE EXISTING BLASTERR PLATFORM
+
+Before building anything, thoroughly inspect the current project.
+
+Identify:
+
+### Frontend
+
+* Framework
+* Routing
+* Components
+* Design system
+* CSS/Tailwind configuration
+* Colors
+* Fonts
+* Logos
+* Icons
+* Navigation
+* Responsive behavior
+* Existing mobile-responsive layouts
+* Reusable UI components
+
+### Backend
+
+Identify:
+
+* Backend framework
+* API routes
+* Server functions
+* Authentication
+* Authorization
+* Database access layer
+* ORM
+* API structure
+* Validation
+* Business logic
+* Error handling
+
+### Database
+
+Determine:
+
+* Database provider
+* Schema
+* Tables
+* Relationships
+* Foreign keys
+* Indexes
+* Row-level security
+* Stored procedures/functions
+* Existing migrations
+* Existing data models
+
+If the platform uses **Supabase**, continue using the existing Supabase project.
+
+DO NOT create another Supabase project.
+
+DO NOT create a second database.
+
+DO NOT duplicate tables unnecessarily.
+
+### Storage
+
+Inspect the current media infrastructure.
+
+If the existing Blasterr platform uses **Cloudflare R2** for media storage, the mobile app must use the exact same R2 infrastructure through the existing backend/storage architecture.
+
+DO NOT create a second media-storage system unless absolutely required.
+
+### Admin
+
+Thoroughly inspect the existing Blasterr admin dashboard.
+
+Determine:
+
+* Admin authentication
+* Admin roles
+* Permissions
+* Moderation controls
+* User management
+* Content management
+* Reports
+* Categories
+* Locations
+* Notifications
+* Platform settings
+* Analytics
+* Feature toggles
+* Bans/suspensions
+* Content removal
+* Media management
+
+The existing admin dashboard must control BOTH:
+
+**BLASTERR WEBSITE + BLASTERR MOBILE APP**
+
+---
+
+# 2. APP ARCHITECTURE
+
+Build the mobile application as a separate mobile client that communicates with the existing Blasterr backend.
+
+Preferred architecture:
+
+### If the existing project supports it:
+
+Use **React Native with Expo**.
+
+Use a structure that allows the application to eventually be published to:
+
+* Apple App Store
+* Google Play Store
+
+The app should not simply be a WebView wrapper around the website.
+
+Build a real mobile application UI.
+
+Use the existing backend APIs/database rather than duplicating backend logic.
+
+---
+
+# 3. SINGLE BLASTERR ECOSYSTEM
+
+The following must all be shared:
+
+### USERS
+
+A user who creates an account on the website must automatically be able to log into the mobile app.
+
+A user who creates an account through the mobile app must automatically be able to log into the website.
+
+There must be ONE account.
+
+Do not create:
+
+* Website accounts
+* Mobile accounts
+
+as separate systems.
+
+There should only be:
+
+**ONE BLASTERR USER ACCOUNT.**
+
+---
+
+# 4. AUTHENTICATION
+
+Use the existing Blasterr authentication system.
+
+Support the same authentication methods already implemented on the website.
+
+Examples may include:
+
+* Email/password
+* Google
+* Apple
+* Phone authentication
+* Magic link
+* Other existing authentication providers
+
+Do not replace the existing authentication system unless there is a technical requirement.
+
+The mobile app must respect the existing:
+
+* User IDs
+* Sessions
+* Roles
+* Permissions
+* Account status
+* Verification status
+* Bans
+* Suspensions
+
+If a user is banned through the admin dashboard, they must also be unable to use the mobile application.
+
+---
+
+# 5. ADMIN CONTROL — EXTREMELY IMPORTANT
+
+The existing Blasterr admin dashboard must remain the **central control center for the entire platform.**
+
+Do not create a separate mobile admin.
+
+The admin should be able to control the app from the existing admin dashboard.
+
+For example:
+
+### USER MANAGEMENT
+
+Admin changes:
+
+* Username
+* Profile
+* Status
+* Verification
+* Role
+* Permissions
+* Ban
+* Suspension
+
+These changes must immediately apply to:
+
+* Website
+* Mobile app
+
+### CONTENT MANAGEMENT
+
+If admin deletes/moderates content from the admin dashboard, it must disappear from the mobile app and website according to the same rules.
+
+### FEATURE MANAGEMENT
+
+If the admin dashboard has feature toggles, those toggles should affect the mobile app as well.
+
+### PLATFORM SETTINGS
+
+Global settings should be controlled centrally.
+
+Do not hard-code platform-wide settings into the mobile application.
+
+---
+
+# 6. RECREATE THE EXISTING BLASTERR DESIGN
+
+The mobile app must visually feel like the official Blasterr application.
+
+Use the exact existing Blasterr:
+
+* Logo
+* Logo variations
+* Brand colors
+* Accent colors
+* Typography
+* Buttons
+* Cards
+* Icons
+* Borders
+* Shadows
+* Gradients
+* Backgrounds
+* Badges
+* Visual language
+
+DO NOT invent a new color palette.
+
+DO NOT create a different logo.
+
+DO NOT redesign the Blasterr brand.
+
+Inspect the existing website and replicate the visual identity in a mobile-optimized way.
+
+The mobile app should feel like:
+
+**"This is Blasterr."**
+
+not:
+
+**"This is a different app that happens to use the Blasterr name."**
+
+---
+
+# 7. MOBILE NAVIGATION
+
+Create a polished mobile navigation system based on the actual features already present on the Blasterr website.
+
+Use a modern bottom navigation structure where appropriate.
+
+Possible sections:
+
+1. Home
+2. Explore
+3. Create/Post
+4. Notifications
+5. Profile
+
+If the existing website has different core sections, use those instead.
+
+Do not invent unnecessary features.
+
+The navigation must be based on the actual Blasterr platform.
+
+---
+
+# 8. HOME FEED
+
+Recreate the Blasterr feed functionality for mobile.
+
+Users should be able to see the same content they are authorized to see on the website.
+
+Support existing features such as:
+
+* Posts
+* Images
+* Videos
+* Text
+* Location
+* Categories
+* Reactions
+* Comments
+* Shares
+* User profiles
+* Timestamps
+* Trending content
+* Other existing engagement functionality
+
+Use pagination/infinite scrolling.
+
+Do not load thousands of records at once.
+
+Implement:
+
+* Cursor pagination where possible
+* Lazy loading
+* Image optimization
+* Video optimization
+* Caching
+* Pull-to-refresh
+
+---
+
+# 9. CREATE/UPLOAD CONTENT
+
+If Blasterr currently allows users to create content, recreate the functionality inside the app.
+
+Users should be able to:
+
+* Create posts
+* Upload photos
+* Upload videos
+* Add text
+* Add location
+* Select categories
+* Add relevant metadata
+* Publish
+* Edit
+* Delete
+
+Use native mobile capabilities where appropriate.
+
+For example:
+
+* Camera
+* Photo library
+* Video library
+* Location services
+* Push notifications
+
+Media should use the existing Blasterr media infrastructure.
+
+If the website currently uploads media through Cloudflare R2, the mobile app should use the same secure upload architecture.
+
+Do not expose private storage credentials in the mobile application.
+
+---
+
+# 10. CLOUDflare R2 MEDIA ARCHITECTURE
+
+If Cloudflare R2 is currently being used by Blasterr:
+
+The mobile app must NOT contain:
+
+* R2 secret keys
+* R2 access keys
+* Private credentials
+
+The mobile application should communicate with the Blasterr backend to obtain secure upload authorization/presigned URLs where appropriate.
+
+Recommended flow:
+
+1. User selects media.
+2. Mobile app requests upload authorization from Blasterr backend.
+3. Backend validates authenticated user.
+4. Backend generates secure upload URL.
+5. Mobile app uploads media directly to R2.
+6. Backend records the resulting media URL/key.
+7. Database associates the media with the user's Blasterr content.
+8. Website and mobile app retrieve the same media.
+
+Make the system resilient to:
+
+* Failed uploads
+* Large files
+* Slow networks
+* Interrupted uploads
+* Duplicate uploads
+* Invalid files
+
+---
+
+# 11. PROFILES
+
+Mobile profiles must use the same profile data as the website.
+
+Display existing fields such as:
+
+* Profile photo
+* Username
+* Display name
+* Bio
+* Location
+* Followers/following if applicable
+* Posts
+* Engagement
+* Verification
+* Other existing profile information
+
+Profile edits from the app must immediately appear on the website.
+
+Website profile edits must immediately appear in the app.
+
+---
+
+# 12. SEARCH / EXPLORE
+
+Recreate the existing Blasterr search and discovery functionality.
+
+Support whatever search functionality currently exists.
+
+Potential categories:
+
+* Users
+* Posts
+* Locations
+* Topics
+* Events
+* Trending content
+* Other platform-specific content
+
+Use optimized backend queries.
+
+Do not download the entire database to the mobile device.
+
+---
+
+# 13. NOTIFICATIONS
+
+Connect the mobile app to the existing Blasterr notification system.
+
+Support existing notification types.
+
+Also implement native push notifications where appropriate.
+
+Examples:
+
+* New follower
+* Comment
+* Reaction
+* Mention
+* Message
+* Admin notification
+* System notification
+* Other existing Blasterr notifications
+
+Important:
+
+Push notifications should respect the user's notification preferences stored in the existing database.
+
+If the user disables a notification type on the website, that preference should apply to mobile push notifications.
+
+---
+
+# 14. MESSAGING
+
+If Blasterr currently has messaging, recreate the messaging experience in the mobile app.
+
+Use the same backend conversations.
+
+Users must see the same conversations on:
+
+* Website
+* Mobile app
+
+Support existing capabilities such as:
+
+* Direct messages
+* Conversation list
+* Read/unread status
+* Message timestamps
+* Media
+* Notifications
+* Blocking
+* Reporting
+
+If the website uses realtime functionality, use the same realtime architecture for mobile.
+
+---
+
+# 15. LOCATION FEATURES
+
+If Blasterr uses location-based content, recreate those capabilities in the app.
+
+Use native mobile location services where appropriate.
+
+Implement:
+
+* Permission requests
+* Current location
+* Nearby content
+* Location selection
+* Location-based discovery
+
+Do not request location access unless the feature actually requires it.
+
+Clearly explain the reason for location permission when required.
+
+---
+
+# 16. ADMIN MODERATION
+
+All moderation rules must come from the existing backend.
+
+The mobile app must respect:
+
+* Deleted posts
+* Removed media
+* Banned users
+* Suspended accounts
+* Blocked users
+* Reported content
+* Hidden content
+* Admin restrictions
+* Age/content restrictions if currently implemented
+
+Never rely exclusively on frontend checks.
+
+Security and authorization must be enforced server-side.
+
+---
+
+# 17. SECURITY
+
+Follow mobile security best practices.
+
+NEVER place in the mobile app:
+
+* Database service-role keys
+* Supabase service-role key
+* R2 secret access keys
+* Admin credentials
+* Private API secrets
+* Payment secrets
+* Encryption secrets
+
+Public client configuration is acceptable only when designed to be public and protected by proper backend/database security.
+
+All privileged operations must occur server-side.
+
+---
+
+# 18. DATABASE
+
+The mobile application must use the existing database.
+
+Do not create duplicate mobile tables simply because this is a mobile application.
+
+For example, do NOT create:
+
+`mobile_users`
+
+when the existing platform already has:
+
+`users`
+
+Likewise, do not create separate:
+
+* mobile_posts
+* mobile_comments
+* mobile_messages
+* mobile_notifications
+
+unless there is a legitimate architectural reason.
+
+The mobile app should operate on the same core data model.
+
+---
+
+# 19. REALTIME
+
+If the existing Blasterr platform uses realtime features, make the mobile app compatible with the same realtime architecture.
+
+Examples:
+
+* New messages
+* New notifications
+* New comments
+* Reactions
+* Live content changes
+* Moderation changes
+
+Avoid excessive polling.
+
+Use realtime subscriptions where appropriate.
+
+---
+
+# 20. OFFLINE / NETWORK HANDLING
+
+Mobile users will frequently have unreliable connections.
+
+Implement:
+
+* Loading states
+* Skeleton screens
+* Retry functionality
+* Network error messages
+* Pull-to-refresh
+* Cached content where appropriate
+* Graceful offline behavior
+* Upload retry behavior
+
+The app should never crash because an API request fails.
+
+---
+
+# 21. PERFORMANCE
+
+Optimize specifically for mobile.
+
+Requirements:
+
+* Fast startup
+* Lazy loading
+* Image resizing
+* Image caching
+* Efficient lists
+* Virtualized feeds
+* Paginated API calls
+* Minimal unnecessary database requests
+* Minimal unnecessary renders
+* Compressed media
+* Efficient video handling
+
+Do not request large datasets when only a small portion is needed.
+
+---
+
+# 22. RESPONSIVE UI
+
+Design for:
+
+* iPhone
+* Android phones
+* Small screens
+* Large phones
+* Different aspect ratios
+* Notches
+* Dynamic Island
+* Safe areas
+* Android navigation areas
+
+The app should feel native and polished.
+
+---
+
+# 23. DEEP LINKS
+
+Implement a deep-link architecture so Blasterr links can open the mobile app when installed.
+
+For example:
+
+A Blasterr post link shared with someone should be able to open:
+
+**Blasterr App → Specific Post**
+
+A profile link should open:
+
+**Blasterr App → Specific Profile**
+
+A notification link should open:
+
+**Blasterr App → Relevant Content**
+
+If the app isn't installed, the link should continue to work through the website.
+
+---
+
+# 24. SHARING
+
+Use native mobile sharing where appropriate.
+
+Users should be able to share Blasterr content through:
+
+* Text
+* Messages
+* Email
+* Social platforms
+* Copy link
+* Other installed apps
+
+Shared links should point back to the correct Blasterr content.
+
+---
+
+# 25. APP SETTINGS
+
+Use the same account settings as the website.
+
+Include existing settings such as:
+
+* Account
+* Privacy
+* Notifications
+* Security
+* Blocked users
+* Content preferences
+* Appearance if supported
+* Logout
+* Delete account
+
+Changes should synchronize with the website.
+
+---
+
+# 26. ERROR HANDLING
+
+Create professional error states.
+
+Examples:
+
+"Something went wrong."
+
+"Unable to load posts."
+
+"Your connection appears to be offline."
+
+"Upload failed. Tap to retry."
+
+"Your session has expired. Please sign in again."
+
+Never expose raw database errors or sensitive backend information to users.
+
+---
+
+# 27. ANALYTICS
+
+If Blasterr already has analytics, integrate the mobile application into the existing analytics architecture.
+
+Track useful events such as:
+
+* App opened
+* Login
+* Signup
+* Post created
+* Post viewed
+* Reaction
+* Comment
+* Share
+* Profile viewed
+* Search
+* Media upload
+* Notification opened
+
+Do not create a completely disconnected analytics system.
+
+---
+
+# 28. ADMIN ANALYTICS
+
+If the existing admin dashboard has platform analytics, ensure mobile activity can be distinguished when useful.
+
+For example:
+
+* Web users
+* iOS users
+* Android users
+
+But aggregate platform metrics should continue to represent the entire Blasterr ecosystem.
+
+---
+
+# 29. VERSION / FEATURE FLAGS
+
+If possible, implement a centralized app configuration system.
+
+The admin should eventually be able to control things such as:
+
+* Feature availability
+* Maintenance mode
+* Announcements
+* App minimum version
+* New feature rollout
+* Emergency disable
+* Platform-wide messaging
+
+These settings should be controlled server-side rather than hard-coded into the application.
+
+---
+
+# 30. ADMIN MAINTENANCE MODE
+
+If the admin activates platform maintenance mode, the mobile application should recognize it.
+
+Display a professional maintenance screen.
+
+Do not allow users to continue performing actions that the backend has disabled.
+
+---
+
+# 31. APP ICON / SPLASH SCREEN
+
+Use the existing official Blasterr logo and branding.
+
+Create:
+
+* App icon
+* Splash screen
+* Loading state
+
+Do not modify the logo unless necessary for platform-specific icon requirements.
+
+Use the same brand identity as the website.
+
+---
+
+# 32. ACCESSIBILITY
+
+Implement:
+
+* Accessible text
+* Proper contrast
+* Screen-reader labels
+* Touch-friendly buttons
+* Sufficient touch targets
+* Accessible navigation
+* Keyboard handling
+* Dynamic text considerations
+
+---
+
+# 33. CODE QUALITY
+
+Keep the mobile application maintainable.
+
+Use:
+
+* Reusable components
+* Centralized API client
+* Centralized authentication
+* Type-safe models where possible
+* Environment variables
+* Proper error handling
+* Clear folder structure
+* Shared utility functions
+* Consistent naming
+
+Avoid:
+
+* Giant components
+* Duplicated code
+* Hard-coded API URLs
+* Hard-coded user IDs
+* Hard-coded content
+* Hard-coded platform settings
+* Hard-coded admin permissions
+
+---
+
+# 34. ENVIRONMENT VARIABLES
+
+Review the existing environment variables.
+
+Reuse existing safe client-side variables where appropriate.
+
+Do not expose server-only secrets.
+
+Clearly separate:
+
+### PUBLIC MOBILE CONFIGURATION
+
+from
+
+### SERVER-ONLY SECRETS
+
+If a new environment variable is required, document it clearly.
+
+Do not silently break the existing website by changing environment variables.
+
+---
+
+# 35. DO NOT BREAK THE EXISTING WEBSITE
+
+This is one of the most important requirements.
+
+The existing Blasterr website is already functional.
+
+Do not:
+
+* Rewrite the existing website unnecessarily
+* Replace working authentication
+* Replace the database
+* Replace the admin dashboard
+* Replace working APIs
+* Delete existing tables
+* Delete existing data
+* Change production data structures without migration
+* Break existing routes
+* Change branding unnecessarily
+
+Before modifying shared code, understand how it is currently being used.
+
+---
+
+# 36. SHARED BACKEND FIRST
+
+If the existing website has duplicated frontend logic that would be difficult for mobile to reuse, refactor carefully toward a shared backend/API architecture.
+
+The goal is:
+
+BLASTERR WEBSITE
+↓
+BLASTERR API
+↓
+DATABASE / STORAGE
+
+BLASTERR MOBILE APP
+↓
+BLASTERR API
+↓
+DATABASE / STORAGE
+
+ADMIN DASHBOARD
+↓
+BLASTERR API
+↓
+DATABASE / STORAGE
+
+All three should operate against the same source of truth.
+
+---
+
+# 37. API DESIGN
+
+If existing APIs are available, reuse them.
+
+If an API is missing, create a proper backend endpoint rather than directly implementing complicated database logic in the mobile application.
+
+The mobile application should have a centralized API service.
+
+For example:
+
+* authService
+* userService
+* postService
+* commentService
+* messageService
+* notificationService
+* mediaService
+* searchService
+* settingsService
+
+Adapt these names to the existing codebase rather than blindly creating duplicates.
+
+---
+
+# 38. DATA CONSISTENCY
+
+The following scenario must work:
+
+### Example
+
+User logs into Blasterr website.
+
+User creates a post.
+
+The post appears in the database.
+
+User opens Blasterr mobile app.
+
+The exact same post appears.
+
+User reacts to the post from the app.
+
+The website immediately reflects the reaction.
+
+Admin removes the post.
+
+The post disappears from both website and mobile app.
+
+This is the expected architecture.
+
+---
+
+# 39. TESTING
+
+Before considering the mobile app complete, test:
+
+### Authentication
+
+* Signup
+* Login
+* Logout
+* Password reset
+* Session persistence
+* Banned account
+* Suspended account
+
+### Content
+
+* Create post
+* Edit post
+* Delete post
+* Upload image
+* Upload video
+* View post
+* Comment
+* React
+* Share
+
+### Synchronization
+
+Test:
+
+Website → Mobile
+
+Mobile → Website
+
+Admin → Website
+
+Admin → Mobile
+
+### Notifications
+
+* In-app
+* Push
+* Read/unread
+* Preferences
+
+### Media
+
+* Upload
+* Display
+* Delete
+* Failed upload
+* Large files
+
+### Security
+
+Attempt unauthorized actions from the mobile client and confirm the backend rejects them.
+
+---
+
+# 40. ADMIN TEST
+
+This is mandatory.
+
+Log into the existing admin dashboard and verify that administrative actions affect the mobile application.
+
+Test at minimum:
+
+1. Create/update platform setting.
+2. Suspend a user.
+3. Unsuspend user.
+4. Delete content.
+5. Modify content.
+6. Change user permissions.
+7. Send/admin notification if supported.
+8. Enable/disable a feature if feature flags exist.
+
+Every relevant action must propagate to the mobile application.
+
+---
+
+# 41. DO NOT DUPLICATE THE ADMIN DASHBOARD
+
+Do not create a second admin application.
+
+The existing Blasterr admin dashboard remains the authoritative administrative interface.
+
+If the admin dashboard needs minor backend/API changes to support mobile functionality, make those changes carefully while preserving the current UI and functionality.
+
+---
+
+# 42. MOBILE-SPECIFIC FEATURES
+
+You may add mobile-specific functionality where it genuinely improves the experience.
+
+Examples:
+
+* Push notifications
+* Native camera
+* Photo library
+* Native video selection
+* Native sharing
+* Location permissions
+* Biometric login if appropriate
+* Deep linking
+* Haptic feedback
+
+However, these should enhance Blasterr rather than create an entirely different product.
+
+---
+
+# 43. FUTURE APP STORE READINESS
+
+Structure the application so it can eventually be prepared for:
+
+### Apple App Store
+
+and
+
+### Google Play Store
+
+Include appropriate:
+
+* App name
+* Bundle/package configuration
+* App icon
+* Splash screen
+* Versioning
+* Permissions
+* Privacy considerations
+* Production API configuration
+
+Do not submit anything automatically.
+
+First make the application production-ready.
+
+---
+
+# 44. FINAL UI QUALITY
+
+The app should NOT look like a developer prototype.
+
+It should look like a professionally funded consumer social/media application.
+
+Pay attention to:
+
+* Spacing
+* Typography
+* Animations
+* Loading states
+* Empty states
+* Transitions
+* Cards
+* Buttons
+* Navigation
+* Media presentation
+* Error states
+* Touch interactions
+
+Use subtle animations where they improve the experience.
+
+Do not over-animate the application.
+
+---
+
+# 45. BEFORE CODING
+
+Your first task is NOT to immediately start generating screens.
+
+First:
+
+1. Inspect the existing Blasterr project.
+2. Map the architecture.
+3. Identify the database.
+4. Identify authentication.
+5. Identify APIs.
+6. Identify storage.
+7. Identify admin architecture.
+8. Identify all major existing features.
+9. Identify the existing branding system.
+10. Identify which components/business logic can be reused.
+11. Identify what must be created specifically for mobile.
+12. Check whether the existing project already has any mobile/PWA infrastructure.
+13. Create a short implementation plan.
+14. Then begin development.
+
+Do not ask me to recreate information that already exists in the project.
+
+---
+
+# 46. IMPORTANT: PRESERVE EXISTING DATA
+
+Before making database changes:
+
+* Inspect existing schema.
+* Back up or safely preserve existing structures.
+* Use migrations.
+* Never delete production data.
+* Never drop tables just to make the mobile app easier to build.
+* Never create duplicate data simply because the mobile app is a separate client.
+
+---
+
+# 47. DELIVERABLE
+
+Build the Blasterr mobile application inside this Replit project while preserving the existing website and admin dashboard.
+
+The finished system should operate like:
+
+```
+             BLASTERR
+                 │
+      ┌──────────┼──────────┐
+      │          │          │
+   WEBSITE      APP       ADMIN
+      │          │          │
+      └──────────┼──────────┘
+                 │
+           BLASTERR API
+                 │
+      ┌──────────┴──────────┐
+      │                     │
+   DATABASE              MEDIA
+   / AUTH                 STORAGE
+      │                     │
+   Supabase              Cloudflare R2
+   (if currently used)   (if currently used)
+```
+
+Everything must remain synchronized.
+
+---
+
+# 48. FINAL ACCEPTANCE CRITERIA
+
+Do not consider this project complete until:
+
+### Branding
+
+* [ ] Same Blasterr logo
+* [ ] Same Blasterr colors
+* [ ] Same visual identity
+* [ ] Same overall brand experience
+
+### Backend
+
+* [ ] Same database
+* [ ] Same authentication
+* [ ] Same backend
+* [ ] Same user accounts
+* [ ] Same media infrastructure
+* [ ] Same business logic
+
+### Admin
+
+* [ ] Existing admin controls mobile
+* [ ] User moderation affects mobile
+* [ ] Content moderation affects mobile
+* [ ] Platform settings affect mobile
+* [ ] Feature controls affect mobile where applicable
+
+### User Experience
+
+* [ ] Login works
+* [ ] Signup works
+* [ ] Feed works
+* [ ] Profiles work
+* [ ] Search works
+* [ ] Posting works
+* [ ] Media uploads work
+* [ ] Comments work
+* [ ] Reactions work
+* [ ] Notifications work
+* [ ] Messaging works if currently available
+* [ ] Settings work
+* [ ] Logout works
+
+### Synchronization
+
+* [ ] Website → App synchronization works
+* [ ] App → Website synchronization works
+* [ ] Admin → App synchronization works
+
+### Security
+
+* [ ] No private secrets inside mobile app
+* [ ] Backend authorization enforced
+* [ ] User permissions enforced
+* [ ] Admin permissions enforced
+* [ ] Storage credentials protected
+
+### Performance
+
+* [ ] Infinite scrolling/pagination
+* [ ] Optimized media
+* [ ] Loading states
+* [ ] Error handling
+* [ ] Network retry
+* [ ] Smooth mobile navigation
+
+### Production
+
+* [ ] iOS-ready architecture
+* [ ] Android-ready architecture
+* [ ] App icon
+* [ ] Splash screen
+* [ ] Environment configuration
+* [ ] Production build configuration
+
+---
+
+# MOST IMPORTANT INSTRUCTION
+
+**DO NOT treat the mobile app as a new independent Blasterr product.**
+
+It is a new interface for the existing Blasterr platform.
+
+The existing Blasterr website and admin dashboard are the source of truth.
+
+Reuse as much of the existing backend, APIs, authentication, database, business logic, branding, storage, and permissions as possible.
+
+If something already exists, **reuse it rather than rebuilding it.**
+
+If something needs to be changed, understand its existing dependencies before changing it.
+
+Do not sacrifice the existing website's functionality to build the mobile app.
+
+Build the mobile experience around the existing Blasterr ecosystem.
