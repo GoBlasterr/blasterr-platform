@@ -1,7 +1,7 @@
 let closePool: (() => Promise<void>) | undefined;
 
 try {
-  const { pool, validateDatabaseConnection } = await import("./index");
+  const { pool, validateDatabaseConnection } = await import("./index.ts");
   closePool = () => pool.end();
   await validateDatabaseConnection();
   console.log("Supabase database connection validated.");

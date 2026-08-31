@@ -5,7 +5,6 @@
     "composite": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
-    "allowImportingTsExtensions": true,
     "outDir": "dist",
     "rootDir": "src",
     "types": ["node"]

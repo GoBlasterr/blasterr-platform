@@ -19,7 +19,7 @@ export const adminReportsTable = pgTable(
   (table) => [
     index("admin_reports_status_created_idx").on(table.status, table.createdAt),
     index("admin_reports_target_idx").on(table.targetType, table.targetId),
-    check("admin_reports_status_check", sql`${table.status} in ('open', 'reviewing', 'resolved', 'dismissed')`),
+    check("admin_reports_status_check", sql`${table.status} in ('open', 'in_review', 'resolved', 'dismissed')`),
     check("admin_reports_target_type_check", sql`${table.targetType} in ('user', 'blast', 'comment', 'target')`),
   ],
 );
