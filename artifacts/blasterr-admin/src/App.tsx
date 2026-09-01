@@ -54,6 +54,7 @@ import AdvertisingFraudPage from '@/pages/advertising/fraud';
 import AdvertisingReportsPage from '@/pages/advertising/ad-reports';
 import AdvertisingNotificationsPage from '@/pages/advertising/notifications';
 import CmsPage from '@/pages/cms';
+import TrendingPage from '@/pages/trending';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -99,7 +100,7 @@ function AdminRouter() {
           <Route path="/advertising/transactions" component={AdvertisingTransactionsPage} />
           <Route path="/advertising/revenue" component={AdvertisingRevenuePage} />
           
-          <Route path="/advertising/analytics" component={() => <IntegrationRequired moduleName="Advertising Analytics" />} />
+          <Route path="/advertising/analytics" component={AdvertisingReportsPage} />
           <Route path="/advertising/reports" component={AdvertisingReportsPage} />
           <Route path="/advertising/fraud" component={AdvertisingFraudPage} />
           <Route path="/advertising/notifications" component={AdvertisingNotificationsPage} />
@@ -113,13 +114,13 @@ function AdminRouter() {
           <Route path="/settings" component={SettingsPage} />
           <Route path="/system" component={SystemPage} />
           <Route path="/audit-log" component={AuditLogPage} />
-          <Route path="/admins" component={() => <IntegrationRequired moduleName="Admins" />} />
-          <Route path="/revenue" component={() => <IntegrationRequired moduleName="Revenue" />} />
+          <Route path="/admins" component={UsersPage} />
+          <Route path="/revenue" component={() => <Redirect to="/advertising/revenue" />} />
           <Route path="/announcements" component={AnnouncementsPage} />
           <Route path="/feature-controls" component={FeatureControlsPage} />
           <Route path="/blocked-words" component={() => <IntegrationRequired moduleName="Blocked Words" />} />
           <Route path="/appeals" component={() => <IntegrationRequired moduleName="Appeals" />} />
-          <Route path="/trending" component={() => <IntegrationRequired moduleName="Trending" />} />
+          <Route path="/trending" component={TrendingPage} />
           <Route path="/notifications" component={() => <IntegrationRequired moduleName="Notifications" />} />
           
           <Route component={NotFound} />
