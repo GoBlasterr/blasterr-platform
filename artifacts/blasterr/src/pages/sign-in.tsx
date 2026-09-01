@@ -88,7 +88,7 @@ export default function SignIn() {
       <header className="p-4 pt-10 md:p-6 md:pt-12 relative z-10 flex items-center justify-end max-w-7xl mx-auto w-full">
         <Link
           href="/"
-          className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 hover:opacity-80 transition-opacity"
+          className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-2 hover:opacity-80 transition-opacity"
           aria-label="Go to BLASTERR home"
         >
           <img src="/logo.png" alt="BLASTERR" className="h-14 md:h-18 w-auto object-contain" />
@@ -179,7 +179,7 @@ export default function SignIn() {
               <button
                 type="submit"
                 disabled={!isLoaded || isSubmitting || isGoogleSubmitting || !email.trim() || !password}
-                className="h-9 w-full rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-9 w-full rounded-lg bg-[#e5f403] px-3 text-sm font-semibold text-black transition-colors hover:bg-[#e5f403]/90 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
