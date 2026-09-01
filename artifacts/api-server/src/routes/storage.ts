@@ -4,6 +4,7 @@ import { getAuth } from "@clerk/express";
 import {
   buildMediaObjectKey,
   checkR2Connection,
+  confirmR2ObjectExists,
   deleteR2Object,
   getR2Config,
   headR2Object,
@@ -11,6 +12,7 @@ import {
   objectPathForKey,
   presignDownload,
   presignUpload,
+  uploadBytesToR2,
 } from "../lib/r2";
 import {
   createPendingMedia,
@@ -47,7 +49,7 @@ export async function getSignedObjectUrl({
   }
 
   const request = method === "GET"
-    ? presignDownload({ key: objectName })
+    ? confirmR2ObjectExists(objectName).then(() => presignDownload({ key: objectName }))
     : presignUpload({ key: objectName });
   if (method === "GET") signedGetUrlRequests.set(cacheKey, request);
 
@@ -131,6 +133,33 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
   }
 });
 
+router.put("/storage/uploads/:id/content", async (req: Request, res: Response) => {
+  const ownerId = authenticatedOwner(req);
+  if (!ownerId) {
+    res.status(401).json({ error: "Sign in is required to upload files." });
+    return;
+  }
+  const assetId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const asset = await mediaById(assetId);
+  if (!asset || asset.ownerId !== ownerId || asset.lifecycleStatus !== "pending") {
+    res.status(404).json({ error: "Pending upload not found." });
+    return;
+  }
+  const contentType = req.get("content-type")?.split(";", 1)[0].trim().toLowerCase() ?? "";
+  const body = Buffer.isBuffer(req.body) ? req.body : null;
+  if (!body || contentType !== asset.contentType || body.length !== asset.sizeBytes) {
+    res.status(400).json({ error: "The uploaded image did not match the requested file." });
+    return;
+  }
+  try {
+    await uploadBytesToR2({ key: asset.objectKey, contentType, body });
+    res.status(200).json({ assetId: asset.id, status: "uploaded" });
+  } catch (error) {
+    req.log.error({ err: error, assetId: asset.id }, "Unable to proxy profile image upload to R2");
+    res.status(503).json({ error: "The image could not be uploaded right now. Please try again." });
+  }
+});
+
 router.post("/storage/uploads/:id/complete", async (req: Request, res: Response) => {
   const ownerId = authenticatedOwner(req);
   if (!ownerId) {
@@ -196,7 +225,11 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
       res.status(404).json({ error: "Object not found" });
       return;
     }
-    const signedURL = await presignDownload({ key });
+    const signedURL = await getSignedObjectUrl({
+      bucketName: getR2Config().bucket,
+      objectName: key,
+      method: "GET",
+    });
     res.set("Cache-Control", "public, max-age=600, immutable");
     res.redirect(signedURL);
   } catch (error) {

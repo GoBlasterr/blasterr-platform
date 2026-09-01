@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
+import { ProfileMediaImage } from "@/components/shared/profile-media-image";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -67,7 +68,7 @@ export default function Profile() {
       {/* Cover */}
       <div className="h-32 sm:h-48 w-full bg-card relative">
         {profile.coverUrl && (
-          <img
+          <ProfileMediaImage
             src={profile.coverUrl}
             alt={`${profile.displayName} profile banner`}
             className="w-full h-full object-cover opacity-80"

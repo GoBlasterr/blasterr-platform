@@ -43,6 +43,13 @@ app.post(
   express.raw({ type: "application/json", limit: "1mb" }),
   handleAdvertisingBillingWebhook,
 );
+app.use(
+  "/api/storage/uploads/:id/content",
+  express.raw({
+    type: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+    limit: "10mb",
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(

@@ -61,6 +61,11 @@ export async function mediaById(id: string): Promise<MediaAssetRow | null> {
   return row ?? null;
 }
 
+export async function mediaByObjectKey(objectKey: string): Promise<MediaAssetRow | null> {
+  const [row] = await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.objectKey, objectKey)).limit(1);
+  return row ?? null;
+}
+
 export async function deleteMediaMetadata(id: string, ownerAuthId?: string): Promise<MediaAssetRow | null> {
   const [row] = await db.update(mediaAssetsTable)
     .set({ lifecycleStatus: "deleted", updatedAt: new Date() })

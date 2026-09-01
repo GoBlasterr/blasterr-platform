@@ -19,6 +19,7 @@ import { useClerk } from "@clerk/react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { FeedAdPlacement } from "@/components/shared/sponsored-blast-card";
 import { AnnouncementsSurface } from "@/components/shared/announcements";
+import { ProfileMediaImage } from "@/components/shared/profile-media-image";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -104,7 +105,16 @@ export function Shell({ children }: ShellProps) {
             <>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 mt-4">
                 {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.username} className="w-10 h-10 rounded-full border border-primary/50" />
+                  <ProfileMediaImage
+                    src={user.avatarUrl}
+                    alt={user.username}
+                    className="w-10 h-10 rounded-full border border-primary/50 object-cover"
+                    fallback={
+                      <div className="w-10 h-10 rounded-full border border-primary/50 bg-primary/10 text-primary flex items-center justify-center font-bold">
+                        {user.displayName.slice(0, 1)}
+                      </div>
+                    }
+                  />
                 ) : (
                   <div className="w-10 h-10 rounded-full border border-primary/50 bg-primary/10 text-primary flex items-center justify-center font-bold">
                     {user.displayName.slice(0, 1)}

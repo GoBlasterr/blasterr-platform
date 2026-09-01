@@ -6,6 +6,7 @@ import {
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { shouldBootstrapSocialFixtures } from "./social-bootstrap-policy";
 import { normalizeTargetText } from "./target-resolution";
+import { readableProfileMedia } from "./profile-media";
 
 export type Reaction = "blast" | "facts" | "cap" | "funny" | "watching";
 export type SocialUser = { id: string; username: string; displayName: string; avatarUrl: string; coverUrl: string; bio: string; location: string; city: string; state: string; followers: number; following: number; blastCount: number; joinedAt: string; isFollowing?: boolean; zipCode?: string };
@@ -80,9 +81,13 @@ async function counts(userId: string) {
   return { followers: followers?.value ?? 0, following: following?.value ?? 0, blastCount: blasts?.value ?? 0 };
 }
 export async function profile(row: typeof usersTable.$inferSelect, viewerId?: string): Promise<SocialUser> {
-  const c = await counts(row.id);
+  const [c, avatarUrl, coverUrl] = await Promise.all([
+    counts(row.id),
+    readableProfileMedia(row.avatarUrl, row.authId, "avatar"),
+    readableProfileMedia(row.coverUrl, row.authId, "banner"),
+  ]);
   const isFollowing = viewerId && viewerId !== row.id ? !!(await db.select().from(followsTable).where(and(eq(followsTable.followerId, viewerId), eq(followsTable.followingId, row.id)))).length : false;
-  return { id: row.id, username: row.username, displayName: row.displayName, avatarUrl: row.avatarUrl, coverUrl: row.coverUrl, bio: row.bio, location: row.location, city: row.city, state: row.state, zipCode: row.zipCode, joinedAt: row.createdAt.toISOString(), ...c, isFollowing };
+  return { id: row.id, username: row.username, displayName: row.displayName, avatarUrl, coverUrl, bio: row.bio, location: row.location, city: row.city, state: row.state, zipCode: row.zipCode, joinedAt: row.createdAt.toISOString(), ...c, isFollowing };
 }
 export async function targets() {
   await ensureSocialBootstrap();
@@ -197,13 +202,21 @@ export async function blasts(viewerId?: string) {
   const reactionByBlast = new Map(viewerReactions.map((row) => [row.blastId, row.reactionType as Reaction]));
   const bookmarked = new Set(viewerBookmarks.map((row) => row.blastId));
   const followed = new Set(viewerFollows.map((row) => row.followingId));
+  const authorMediaById = new Map(await Promise.all(authors.map(async (author) => {
+    const [avatarUrl, coverUrl] = await Promise.all([
+      readableProfileMedia(author.avatarUrl, author.authId, "avatar"),
+      readableProfileMedia(author.coverUrl, author.authId, "banner"),
+    ]);
+    return [author.id, { avatarUrl, coverUrl }] as const;
+  })));
   return rows.map((blast) => {
     const author = authorById.get(blast.userId);
     const target = targetById.get(blast.targetId);
     if (!author || !target) throw new Error("Invalid social relation");
+    const authorMedia = authorMediaById.get(author.id) ?? { avatarUrl: "", coverUrl: "" };
     return {
       id: blast.id, content: blast.content, createdAt: blast.createdAt.toISOString(),
-      author: { id: author.id, username: author.username, displayName: author.displayName, avatarUrl: author.avatarUrl, coverUrl: author.coverUrl, bio: author.bio, location: author.location, city: author.city, state: author.state, joinedAt: author.createdAt.toISOString(), followers: followersById.get(author.id) ?? 0, following: followingById.get(author.id) ?? 0, blastCount: blastCountById.get(author.id) ?? 0, isFollowing: followed.has(author.id) },
+      author: { id: author.id, username: author.username, displayName: author.displayName, ...authorMedia, bio: author.bio, location: author.location, city: author.city, state: author.state, joinedAt: author.createdAt.toISOString(), followers: followersById.get(author.id) ?? 0, following: followingById.get(author.id) ?? 0, blastCount: blastCountById.get(author.id) ?? 0, isFollowing: followed.has(author.id) },
       target: { ...target, type: target.type as SocialTarget["type"], blastCount: targetCountById.get(target.id) ?? 0 },
       location: blast.location, mediaUrl: blast.mediaUrl, mediaType: blast.mediaType as "image" | "video" | null,
       reactions: { ...(reactionsByBlast.get(blast.id) ?? { blast: 0, facts: 0, cap: 0, funny: 0, watching: 0 }), currentUserReaction: reactionByBlast.get(blast.id) ?? null },

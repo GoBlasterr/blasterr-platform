@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { ProfileMediaImage } from "@/components/shared/profile-media-image";
 
 type ProfileForm = {
   displayName: string;
@@ -108,25 +109,29 @@ export default function Settings() {
       throw new Error(details.error || `Could not prepare the ${purpose} upload.`);
     }
 
-    const upload = await fetch(details.uploadURL, {
+    if (!details.assetId) {
+      throw new Error(`Could not verify the ${purpose} image upload.`);
+    }
+    const upload = await fetch(`/api/storage/uploads/${details.assetId}/content`, {
       method: "PUT",
+      credentials: "include",
       headers: { "Content-Type": file.type },
       body: file,
     });
     if (!upload.ok) {
-      throw new Error(`Could not upload the ${purpose} image.`);
+      const uploadError = await upload.json().catch(() => null) as { error?: string } | null;
+      throw new Error(uploadError?.error || `Could not upload the ${purpose} image.`);
     }
-    if (details.assetId) {
-      const completed = await fetch(`/api/storage/uploads/${details.assetId}/complete`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!completed.ok) {
-        throw new Error(`Could not verify the ${purpose} image upload.`);
-      }
+    const completed = await fetch(`/api/storage/uploads/${details.assetId}/complete`, {
+      method: "POST",
+      credentials: "include",
+    });
+    const completedDetails = await completed.json() as { objectPath?: string; status?: string; error?: string };
+    if (!completed.ok || completedDetails.status !== "ready" || !completedDetails.objectPath) {
+      throw new Error(completedDetails.error || `Could not verify the ${purpose} image upload.`);
     }
 
-    return `/api/storage${details.objectPath}`;
+    return `/api/storage${completedDetails.objectPath}`;
   };
 
   const saveProfile = async () => {
@@ -223,7 +228,19 @@ export default function Settings() {
               <Label className="text-muted-foreground uppercase text-xs tracking-wider">Profile Banner</Label>
               <div className="relative h-36 overflow-hidden rounded-2xl border border-white/10 bg-card">
                 {bannerPreview ? (
-                  <img src={bannerPreview} alt="Profile banner preview" className="h-full w-full object-cover" />
+                  <ProfileMediaImage
+                    src={bannerPreview}
+                    alt="Profile banner preview"
+                    className="h-full w-full object-cover"
+                    fallback={
+                      <div className="flex h-full flex-col items-center justify-center gap-1 text-center">
+                        <span className="text-sm text-muted-foreground">Add a banner image</span>
+                        <span className="text-xs text-muted-foreground">
+                          Recommended banner size: <span className="text-white">1500 × 500 px</span>
+                        </span>
+                      </div>
+                    }
+                  />
                 ) : (
                   <div className="flex h-full flex-col items-center justify-center gap-1 text-center">
                     <span className="text-sm text-muted-foreground">Add a banner image</span>

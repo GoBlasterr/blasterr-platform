@@ -31,6 +31,8 @@ export type R2Health = {
 
 let client: S3Client | null = null;
 let clientConfigKey = "";
+const objectExistenceCache = new Map<string, number>();
+const objectExistenceRequests = new Map<string, Promise<void>>();
 
 function required(name: string, value: string | undefined): string {
   if (!value?.trim()) throw new Error(`${name} is required for Cloudflare R2.`);
@@ -150,6 +152,21 @@ export async function headR2Object(key: string): Promise<void> {
   await getR2Client().send(new HeadObjectCommand({ Bucket: config.bucket, Key: key }));
 }
 
+export async function confirmR2ObjectExists(key: string): Promise<void> {
+  const expiresAt = objectExistenceCache.get(key);
+  if (expiresAt && expiresAt > Date.now()) return;
+  const pending = objectExistenceRequests.get(key);
+  if (pending) return pending;
+  const request = headR2Object(key);
+  objectExistenceRequests.set(key, request);
+  try {
+    await request;
+    objectExistenceCache.set(key, Date.now() + 5 * 60 * 1000);
+  } finally {
+    objectExistenceRequests.delete(key);
+  }
+}
+
 export async function uploadFileToR2(input: {
   path: string;
   key: string;
@@ -161,6 +178,20 @@ export async function uploadFileToR2(input: {
     Key: input.key,
     ContentType: input.contentType,
     Body: await readFile(input.path),
+  }));
+}
+
+export async function uploadBytesToR2(input: {
+  body: Buffer;
+  key: string;
+  contentType: string;
+}): Promise<void> {
+  const config = getR2Config();
+  await getR2Client().send(new PutObjectCommand({
+    Bucket: config.bucket,
+    Key: input.key,
+    ContentType: input.contentType,
+    Body: input.body,
   }));
 }
 
