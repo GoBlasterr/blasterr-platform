@@ -16,7 +16,8 @@ type Mode = 'sign-up' | 'sign-in';
 
 function messageFrom(error: unknown, fallback: string): string {
   if (!error || typeof error !== 'object') return fallback;
-  const candidate = error as { message?: string; longMessage?: string; errors?: Array<{ longMessage?: string; message?: string }> };
+  const candidate = error as { message?: string; longMessage?: string; errors?: Array<{ code?: string; longMessage?: string; message?: string }> };
+  if (candidate.errors?.some((item) => item.code === 'form_identifier_exists')) return 'An account with this email already exists. Sign in instead.';
   return candidate.errors?.[0]?.longMessage ?? candidate.errors?.[0]?.message ?? candidate.longMessage ?? candidate.message ?? fallback;
 }
 

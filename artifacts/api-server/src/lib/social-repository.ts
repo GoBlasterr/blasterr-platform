@@ -10,6 +10,12 @@ import { normalizeTargetText } from "./target-resolution";
 export type Reaction = "blast" | "facts" | "cap" | "funny" | "watching";
 export type SocialUser = { id: string; username: string; displayName: string; avatarUrl: string; coverUrl: string; bio: string; location: string; city: string; state: string; followers: number; following: number; blastCount: number; joinedAt: string; isFollowing?: boolean; zipCode?: string };
 export type SocialTarget = { id: string; name: string; slug: string; type: "person" | "business" | "place" | "product" | "entertainment" | "sports" | "gaming" | "other"; location: string; blastCount: number; imageUrl: string; description: string };
+export class DuplicateAccountEmailError extends Error {
+  constructor() {
+    super("An account with this email already exists.");
+    this.name = "DuplicateAccountEmailError";
+  }
+}
 
 const developmentUsers = [
   { id: "user-kinamin", authId: "development-preview", username: "kinamin", displayName: "Kinamin", email: "kinamin@development.invalid", bio: "Building the next conversation layer of the internet.", location: "Atlanta, GA", city: "Atlanta", state: "GA", createdAt: new Date("2026-01-17T15:20:00.000Z") },
@@ -53,9 +59,8 @@ export async function syncClerkUser(input: { authId: string; username: string; d
   await ensureSocialBootstrap();
   const [existingAuthUser] = await db.select({ id: usersTable.id, email: usersTable.email }).from(usersTable).where(eq(usersTable.authId, input.authId));
   const [existingEmailUser] = await db.select({ authId: usersTable.authId }).from(usersTable).where(eq(usersTable.email, input.email));
-  const email = existingEmailUser && existingEmailUser.authId !== input.authId
-    ? `${input.email}#${input.authId}`
-    : existingAuthUser?.email ?? input.email;
+  if (existingEmailUser && existingEmailUser.authId !== input.authId) throw new DuplicateAccountEmailError();
+  const email = existingAuthUser?.email ?? input.email;
   const [row] = await db.insert(usersTable).values({ ...input, email, bio: input.bio ?? "", avatarUrl: input.avatarUrl ?? "", coverUrl: input.coverUrl ?? "", location: input.location ?? "", city: input.city ?? "", state: input.state ?? "", zipCode: input.zipCode ?? "" })
     .onConflictDoUpdate({ target: usersTable.authId, set: { username: input.username, displayName: input.displayName, email, bio: input.bio ?? "", avatarUrl: input.avatarUrl ?? "", coverUrl: input.coverUrl ?? "", location: input.location ?? "", city: input.city ?? "", state: input.state ?? "", zipCode: input.zipCode ?? "", updatedAt: new Date() } }).returning();
   if (!row) throw new Error("Unable to synchronize user");
