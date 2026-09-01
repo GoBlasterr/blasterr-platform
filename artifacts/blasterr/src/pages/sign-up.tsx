@@ -124,7 +124,7 @@ function SignUpForm() {
       <p className="text-muted-foreground mb-3 text-center">
         {isVerificationStep
           ? `Enter the code sent to ${email}.`
-          : "Join the network and start targeting."}
+          : "Join the network and start blasting."}
       </p>
 
       {isVerificationStep ? (
