@@ -1,0 +1,266 @@
+# BLASTERR SEO & GOOGLE INDEXING IMPLEMENTATION
+
+## CRITICAL INSTRUCTION
+
+This is an SEO and Google indexing task only.
+
+DO NOT:
+
+* Change existing functionality.
+* Change authentication.
+* Change Supabase integration.
+* Change Cloudflare R2 integration.
+* Change database schema.
+* Change user accounts.
+* Change conversations, Blasts, comments, likes, follows, or notifications.
+* Change routing.
+* Change APIs.
+* Change UI design.
+* Remove any existing code.
+
+Only add SEO, indexing, structured data, and metadata improvements.
+
+Create a backup branch before making any changes.
+
+---
+
+# BRAND INFORMATION
+
+## Website Name
+
+Blasterr
+
+## Tagline
+
+Put People, Places & Things on Blast
+
+## Meta Description
+
+Blasterr is a social conversation platform where you can put people, places and things on Blast. Join existing conversations, share your take, create new Blasts, and discover what's trending.
+
+## Homepage H1
+
+PUT IT ON BLAST.
+
+## Homepage Supporting Text
+
+The social platform where people, places and things become the conversation. Find a Blast, join the conversation, or start one of your own.
+
+---
+
+# PRIMARY SEO KEYWORDS
+
+* Blasterr
+* Blasterr social media
+* Blasterr app
+* social media platform
+* social conversation platform
+* social discussion platform
+* trending conversations
+* people places and things
+* put it on Blast
+* online discussions
+* social networking platform
+* viral conversations
+* trending topics
+* sports discussions
+* celebrity discussions
+* breaking conversations
+* community discussions
+* create a Blast
+
+---
+
+# PAGE SEO
+
+Implement unique SEO metadata for:
+
+* Homepage
+* Explore
+* Trending
+* Categories
+* Individual Blast pages
+* User profile pages
+* Search pages
+
+Add:
+
+* title
+* meta description
+* canonical URL
+* Open Graph tags
+* Twitter/X tags
+
+---
+
+# HOMEPAGE SEO
+
+Title:
+
+Blasterr | Put People, Places & Things on Blast
+
+Meta Description:
+
+Blasterr is a social conversation platform where you can put people, places and things on Blast. Join existing conversations, share your take, create new Blasts, and discover what's trending.
+
+Open Graph Title:
+
+Blasterr — Put People, Places & Things on Blast
+
+Open Graph Description:
+
+Find it. Talk about it. Put it on Blast. Join conversations already happening or start a new Blast about anything.
+
+---
+
+# STRUCTURED DATA
+
+Add JSON-LD structured data.
+
+Implement:
+
+* Organization Schema
+* Website Schema
+* WebApplication Schema
+* Breadcrumb Schema
+* ProfilePage Schema (for user profiles)
+* DiscussionForumPosting Schema (for Blast pages)
+
+Validate schema implementation.
+
+---
+
+# ROBOTS.TXT
+
+Create or update robots.txt.
+
+Allow search engine crawling.
+
+Reference sitemap.xml.
+
+Block only private/admin routes.
+
+Example:
+
+* /admin
+* /dashboard/admin
+* /api/private
+
+Do not block public content.
+
+---
+
+# XML SITEMAP
+
+Generate sitemap.xml automatically.
+
+Include:
+
+* Homepage
+* Public Blast pages
+* Public User Profiles
+* Categories
+* Trending pages
+
+Exclude:
+
+* Admin routes
+* Private user areas
+* Internal API routes
+
+Auto-update sitemap when new public content is created.
+
+---
+
+# CANONICAL URLS
+
+Add canonical URLs to all indexable pages.
+
+Prevent duplicate content issues.
+
+---
+
+# DYNAMIC BLAST SEO
+
+Every public Blast should generate:
+
+Dynamic title:
+
+[Blast Title] | Blasterr
+
+Dynamic meta description:
+
+Generated from Blast content.
+
+Dynamic Open Graph image.
+
+Dynamic structured data.
+
+---
+
+# USER PROFILE SEO
+
+Public profiles should generate:
+
+Title:
+
+[Username] | Blasterr
+
+Description:
+
+See discussions, Blasts, and activity from [Username] on Blasterr.
+
+---
+
+# SOCIAL SHARING
+
+Generate rich previews for:
+
+* Blast pages
+* User profiles
+* Trending topics
+
+Implement Open Graph images.
+
+---
+
+# PERFORMANCE SEO
+
+Improve:
+
+* Metadata loading
+* Crawlability
+* Indexability
+
+Without changing existing functionality.
+
+---
+
+# GOOGLE SEARCH CONSOLE READINESS
+
+Verify:
+
+* sitemap.xml accessible
+* robots.txt accessible
+* canonical URLs present
+* structured data valid
+* Open Graph tags present
+
+Generate a readiness report.
+
+---
+
+# FINAL REPORT
+
+After implementation provide:
+
+1. Files changed.
+2. SEO features added.
+3. URLs for sitemap.xml and robots.txt.
+4. Structured data validation results.
+5. Google indexing readiness score.
+6. Confirmation that no application functionality was modified.
+
+IMPORTANT:
+
+This is an SEO-only deployment. Do not alter any existing application logic, user data, Supabase configuration, Cloudflare R2 configuration, or frontend functionality.

@@ -3,6 +3,7 @@ import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Loader2, LocateFixed, MapPin } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Seo } from "@/components/seo";
 
 type LocationStatus = "requesting" | "ready" | "denied" | "unavailable";
 
@@ -120,7 +121,13 @@ export default function Nearby() {
   ) : null;
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
+      <Seo
+        title="Explore Nearby Blasts | Blasterr"
+        description="Discover Blasts and conversations happening near you on Blasterr."
+        canonicalPath="/nearby"
+      />
+      <div className="flex flex-col min-h-screen">
       <div className="sticky top-0 z-20 glass-panel border-b border-white/10 p-4">
         <div className="flex items-center">
           <h2 className="font-display font-bold text-2xl text-white flex items-center gap-2">
@@ -183,6 +190,7 @@ export default function Nearby() {
           </div>
         ))}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

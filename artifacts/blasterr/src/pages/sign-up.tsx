@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Seo } from "@/components/seo";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -270,7 +271,14 @@ export default function SignUp() {
   }
 
   return (
-    <div className="h-[100dvh] min-h-0 bg-background flex flex-col relative overflow-hidden">
+    <>
+      <Seo
+        title="Join Blasterr | Create Account"
+        description="Create a Blasterr account and join the social conversation platform for people, places, and things."
+        canonicalPath="/sign-up"
+        noIndex
+      />
+      <div className="h-[100dvh] min-h-0 bg-background flex flex-col relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[100px] mix-blend-screen pointer-events-none" />
       <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[80px] mix-blend-screen pointer-events-none" />
 
@@ -296,6 +304,7 @@ export default function SignUp() {
           </section>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

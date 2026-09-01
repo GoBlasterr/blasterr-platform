@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { ProfileMediaImage } from "@/components/shared/profile-media-image";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { Seo, absoluteUrl, canonicalUrl } from "@/components/seo";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -56,9 +57,46 @@ export default function Profile() {
   const isOwnProfile =
     currentUser?.id === profile.id ||
     currentUser?.username.toLowerCase() === profile.username.toLowerCase();
+  const pageTitle = `${profile.username} | Blasterr`;
+  const pageDescription = `See discussions, Blasts, and activity from ${profile.displayName} on Blasterr.`;
+  const pageUrl = canonicalUrl(`/profile/${profile.username}`);
+  const profileSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ProfilePage",
+        "name": `${profile.displayName} on Blasterr`,
+        "description": pageDescription,
+        "url": pageUrl,
+        "mainEntity": {
+          "@type": "Person",
+          "name": profile.displayName,
+          "alternateName": `@${profile.username}`,
+          ...(profile.bio ? { "description": profile.bio } : {}),
+          ...(profile.avatarUrl ? { "image": absoluteUrl(profile.avatarUrl) } : {}),
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Blasterr", "item": canonicalUrl("/") },
+          { "@type": "ListItem", "position": 2, "name": profile.displayName, "item": pageUrl },
+        ],
+      },
+    ],
+  };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
+      <Seo
+        title={pageTitle}
+        description={pageDescription}
+        canonicalPath={`/profile/${profile.username}`}
+        image={profile.avatarUrl}
+        type="profile"
+        jsonLd={profileSchema}
+      />
+      <div className="flex flex-col min-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-30 glass-panel border-b border-white/10 px-4 py-3 flex items-center gap-6">
         <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full hover:bg-white/10">
@@ -172,6 +210,7 @@ export default function Profile() {
           )
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search as SearchIcon, Users, Target, FileText } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Seo } from "@/components/seo";
 
 export default function Search() {
   const [, setLocation] = useLocation();
@@ -24,9 +25,20 @@ export default function Search() {
   const targets = searchResults?.targets ?? [];
   const people = searchResults?.people ?? [];
   const blasts = searchResults?.blasts ?? [];
+  const searchTitle = query.trim() ? `Search results for ${query.trim()} | Blasterr` : "Search Blasterr";
+  const searchDescription = query.trim()
+    ? `Explore people, targets, and Blasts matching “${query.trim()}” on Blasterr.`
+    : "Search Blasterr for people, places, products, ideas, and trending conversations.";
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
+      <Seo
+        title={searchTitle}
+        description={searchDescription}
+        canonicalPath="/search"
+        noIndex={Boolean(query.trim())}
+      />
+      <div className="flex flex-col min-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-20 glass-panel border-b border-white/10 p-4">
         <div className="relative">
@@ -140,6 +152,7 @@ export default function Search() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

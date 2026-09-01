@@ -1,2 +1,14 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /bookmarks
+Disallow: /clips
+Disallow: /create
+Disallow: /following
+Disallow: /home
+Disallow: /notifications
+Disallow: /settings
+Disallow: /sign-in
+Disallow: /sign-up
+Sitemap: https://goblasterr.com/sitemap.xml

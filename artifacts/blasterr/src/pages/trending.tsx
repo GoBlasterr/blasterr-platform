@@ -3,15 +3,45 @@ import { useGetTrending } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, TrendingUp, Flame } from "lucide-react";
+import { Seo, canonicalUrl } from "@/components/seo";
 
 export default function Trending() {
   const [location, setLocation] = useLocation();
   const activeTab: "blasts" | "targets" = location === "/trending/targets" ? "targets" : "blasts";
   
   const { data: trendingData, isLoading } = useGetTrending();
+  const title = activeTab === "targets" ? "Trending Targets | Blasterr" : "Trending Conversations | Blasterr";
+  const description = activeTab === "targets"
+    ? "Discover the people, places, products, and ideas getting the most attention on Blasterr."
+    : "See the conversations and Blasts trending across Blasterr right now.";
+  const pageUrl = canonicalUrl(location);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
+      <Seo
+        title={title}
+        description={description}
+        canonicalPath={location}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "CollectionPage",
+              "name": title,
+              "description": description,
+              "url": pageUrl,
+            },
+            {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                { "@type": "ListItem", "position": 1, "name": "Blasterr", "item": canonicalUrl("/") },
+                { "@type": "ListItem", "position": 2, "name": activeTab === "targets" ? "Trending Targets" : "Trending", "item": pageUrl },
+              ],
+            },
+          ],
+        }}
+      />
+      <div className="flex flex-col min-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-20 glass-panel border-b border-white/10 pt-4 px-4 pb-0">
         <h2 className="font-display font-bold text-2xl text-white mb-4 px-2 flex items-center gap-2">
@@ -91,6 +121,7 @@ export default function Trending() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

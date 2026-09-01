@@ -4,6 +4,7 @@ import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Target as TargetIcon, MapPin, Activity, ThumbsUp, ThumbsDown, PenSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Seo, absoluteUrl, canonicalUrl } from "@/components/seo";
 
 export default function TargetDetail() {
   const [, setLocation] = useLocation();
@@ -32,9 +33,51 @@ export default function TargetDetail() {
   }
 
   const { target, stats, blasts } = detailData;
+  const pageTitle = `${target.name} | Blasterr`;
+  const pageDescription = target.description ||
+    `Explore Blasts and join the conversation about ${target.name} on Blasterr.`;
+  const pageUrl = canonicalUrl(`/target/${target.slug}`);
+  const targetSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "DiscussionForumPosting",
+        "headline": `Blasts about ${target.name}`,
+        "description": pageDescription,
+        "url": pageUrl,
+        "mainEntityOfPage": pageUrl,
+        "about": {
+          "@type": target.type === "person" ? "Person" : "Thing",
+          "name": target.name,
+          ...(target.imageUrl ? { "image": absoluteUrl(target.imageUrl) } : {}),
+        },
+        "interactionStatistic": {
+          "@type": "InteractionCounter",
+          "interactionType": "https://schema.org/CommentAction",
+          "userInteractionCount": blasts.length,
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Blasterr", "item": canonicalUrl("/") },
+          { "@type": "ListItem", "position": 2, "name": target.name, "item": pageUrl },
+        ],
+      },
+    ],
+  };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
+      <Seo
+        title={pageTitle}
+        description={pageDescription}
+        canonicalPath={`/target/${target.slug}`}
+        image={target.imageUrl}
+        type="article"
+        jsonLd={targetSchema}
+      />
+      <div className="flex flex-col min-h-screen">
       {/* Header / Cover */}
       <div className="relative">
         {/* Back Button */}
@@ -122,6 +165,7 @@ export default function TargetDetail() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
