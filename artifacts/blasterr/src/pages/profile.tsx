@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { ProfileMediaImage } from "@/components/shared/profile-media-image";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -18,6 +19,7 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<"blasts" | "media">("blasts");
   
   const { data: profile, isLoading } = useGetUserProfile(username);
+  const { data: currentUser, isLoading: isCurrentUserLoading } = useCurrentUser();
   const followMutation = useToggleFollow();
 
   const handleFollow = () => {
@@ -51,6 +53,9 @@ export default function Profile() {
   }
 
   const joinDate = profile.joinedAt ? format(new Date(profile.joinedAt), 'MMMM yyyy') : '';
+  const isOwnProfile =
+    currentUser?.id === profile.id ||
+    currentUser?.username.toLowerCase() === profile.username.toLowerCase();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -87,17 +92,18 @@ export default function Profile() {
             <AvatarFallback className="text-3xl">{profile.displayName[0]}</AvatarFallback>
           </Avatar>
           
-          <div className="pt-16 sm:pt-20">
-            {/* Logic to hide button if it's current user goes here in a real app */}
-            <Button 
-              variant={profile.isFollowing ? "outline" : "default"}
-              className={`rounded-full px-6 font-bold ${!profile.isFollowing ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border-white/20 text-white hover:bg-white/5'}`}
-              onClick={handleFollow}
-              disabled={followMutation.isPending}
-            >
-              {profile.isFollowing ? <><UserMinus className="w-4 h-4 mr-2"/> Unfollow</> : <><UserPlus className="w-4 h-4 mr-2"/> Follow</>}
-            </Button>
-          </div>
+          {!isCurrentUserLoading && !isOwnProfile && (
+            <div className="pt-16 sm:pt-20">
+              <Button 
+                variant={profile.isFollowing ? "outline" : "default"}
+                className={`rounded-full px-6 font-bold ${!profile.isFollowing ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border-white/20 text-white hover:bg-white/5'}`}
+                onClick={handleFollow}
+                disabled={followMutation.isPending}
+              >
+                {profile.isFollowing ? <><UserMinus className="w-4 h-4 mr-2"/> Unfollow</> : <><UserPlus className="w-4 h-4 mr-2"/> Follow</>}
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="mb-4">
