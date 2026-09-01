@@ -60,7 +60,14 @@ import {
 } from "../lib/admin-state";
 import { isActiveAdmin, isSuspended } from "../lib/admin-auth";
 import * as social from "../lib/social-repository";
-import { validateDatabaseConnection } from "@workspace/db";
+import {
+  adminReportsTable,
+  blastsTable,
+  db,
+  usersTable,
+  validateDatabaseConnection,
+} from "@workspace/db";
+import { sql } from "drizzle-orm";
 import { checkR2Connection } from "../lib/r2";
 
 const router: IRouter = Router();
@@ -446,24 +453,55 @@ router.post("/moderation", async (req, res): Promise<void> => {
 });
 
 router.get("/analytics", async (_req, res): Promise<void> => {
-  const reports = await getAdminReports();
-  const openReports = reports.filter((report) => report.status === "open" || report.status === "in_review").length;
-  const resolvedReports = reports.filter((report) => report.status === "resolved" || report.status === "dismissed").length;
-  const totalReports = reports.length;
-  const { data: clerkUsers } = await clerkClient.users.getUserList({ limit: 100 });
+  const [summaryResult, chartResult] = await Promise.all([
+    db.execute(sql`
+      select
+        (select count(*) from ${usersTable} where ${usersTable.status} = 'active') as active_users,
+        (select count(*) from ${blastsTable} where ${blastsTable.status} <> 'deleted') as total_blasts,
+        (select count(*) from ${adminReportsTable} where ${adminReportsTable.status} in ('open', 'in_review')) as open_reports,
+        (select count(*) from ${adminReportsTable}) as total_reports,
+        (select count(*) from ${adminReportsTable} where ${adminReportsTable.status} in ('resolved', 'dismissed')) as resolved_reports
+    `),
+    db.execute(sql`
+      with days as (
+        select generate_series(
+          date_trunc('day', now()) - interval '6 days',
+          date_trunc('day', now()),
+          interval '1 day'
+        ) as day
+      )
+      select
+        to_char(day, 'Dy') as label,
+        (select count(*) from ${usersTable}
+          where ${usersTable.createdAt} < day + interval '1 day'
+            and ${usersTable.status} <> 'deleted') as users,
+        (select count(*) from ${blastsTable}
+          where ${blastsTable.createdAt} < day + interval '1 day'
+            and ${blastsTable.status} <> 'deleted') as blasts,
+        (select count(*) from ${adminReportsTable}
+          where ${adminReportsTable.createdAt} < day + interval '1 day') as reports
+      from days
+      order by day
+    `),
+  ]);
+  const summary = summaryResult.rows[0] as Record<string, unknown> | undefined;
+  const activeUsers = Number(summary?.active_users ?? 0);
+  const totalBlasts = Number(summary?.total_blasts ?? 0);
+  const openReports = Number(summary?.open_reports ?? 0);
+  const totalReports = Number(summary?.total_reports ?? 0);
+  const resolvedReports = Number(summary?.resolved_reports ?? 0);
+
   res.json(GetAdminAnalyticsResponse.parse({
-    activeUsers: clerkUsers.filter((user) => (user.publicMetadata as Record<string, unknown>).status !== "suspended").length,
-    totalBlasts: (await social.blasts()).length,
+    activeUsers,
+    totalBlasts,
     openReports,
     moderationRate: totalReports === 0 ? 100 : Math.round((resolvedReports / totalReports) * 100),
-    chart: [
-      { label: "Mon", users: 148, blasts: 620, reports: 9 },
-      { label: "Tue", users: 173, blasts: 714, reports: 11 },
-      { label: "Wed", users: 201, blasts: 802, reports: 8 },
-      { label: "Thu", users: 236, blasts: 944, reports: 14 },
-      { label: "Fri", users: 284, blasts: 1120, reports: 17 },
-      { label: "Sat", users: 319, blasts: 1284, reports: totalReports },
-    ],
+    chart: chartResult.rows.map((row) => ({
+      label: String(row.label),
+      users: Number(row.users),
+      blasts: Number(row.blasts),
+      reports: Number(row.reports),
+    })),
   }));
 });
 

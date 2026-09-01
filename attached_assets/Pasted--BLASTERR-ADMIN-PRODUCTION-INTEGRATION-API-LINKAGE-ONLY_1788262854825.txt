@@ -1,0 +1,437 @@
+## BLASTERR ADMIN — PRODUCTION INTEGRATION & API LINKAGE ONLY
+
+You are working on the existing **BLASTERR Admin** application.
+
+The BLASTERR website and mobile app are already complete. **Do NOT redesign, rebuild, replace, remove, rename, or modify any existing pages or UI unless absolutely required to fix an integration issue.**
+
+The only task now is to make the existing **BLASTERR Admin** fully connected to and capable of controlling the existing BLASTERR Website and Mobile App through the existing backend/API architecture.
+
+### CURRENT PRODUCTION
+
+Main BLASTERR website:
+`https://goblasterr.com`
+
+BLASTERR Admin:
+`https://goblasterr.com/blasterr-admin/`
+
+BLASTERR Mobile:
+`https://goblasterr.com/mobile/`
+
+The Admin must have its own proper production domain connection. Do not break the existing BLASTERR domain or application routes.
+
+---
+
+# PRIMARY OBJECTIVE
+
+Audit the entire existing BLASTERR Admin application and make sure it is properly connected to the same production backend/database/API services used by BLASTERR.
+
+The Admin should function as the central management/control panel for the existing BLASTERR website and mobile application.
+
+The goal is:
+
+**BLASTERR Website ↔ Backend/API ↔ BLASTERR Admin**
+
+and
+
+**BLASTERR Mobile ↔ Backend/API ↔ BLASTERR Admin**
+
+All applications must continue using the existing architecture and data.
+
+---
+
+# 1. FIRST — AUDIT THE EXISTING ADMIN
+
+Before changing anything:
+
+* Inspect the complete BLASTERR Admin project.
+* Inspect every existing Admin page.
+* Inspect all existing components.
+* Inspect existing API routes.
+* Inspect existing server functions.
+* Inspect existing database queries.
+* Inspect existing authentication.
+* Inspect existing environment variables.
+* Inspect existing Supabase/backend configuration if applicable.
+* Inspect existing API integrations.
+* Inspect how the website communicates with the backend.
+* Inspect how the mobile app communicates with the backend.
+* Identify anything currently mocked, hardcoded, disconnected, or pointing to development/preview services.
+
+DO NOT immediately rewrite anything.
+
+Determine how the current architecture is intended to work and connect the existing Admin to it.
+
+---
+
+# 2. DO NOT CHANGE EXISTING PAGES
+
+This is extremely important.
+
+Do NOT:
+
+* redesign the Admin
+* change the visual design
+* change colors
+* change layouts
+* remove pages
+* rename pages
+* remove existing functionality
+* replace existing components
+* change navigation
+* change database structure unnecessarily
+* change the BLASTERR website
+* change the BLASTERR mobile UI
+* modify unrelated code
+* create duplicate pages
+* create a second Admin system
+
+The existing Admin pages are considered finished.
+
+Only make the minimum technical changes required to connect them to the production backend and APIs.
+
+If a page already exists, **connect that page instead of creating a new version of it.**
+
+---
+
+# 3. ADMIN MUST USE REAL PRODUCTION DATA
+
+Go through every Admin page that displays or manages data.
+
+Replace only genuinely mocked/demo/hardcoded data with the existing production API/database connection.
+
+Examples include, where applicable:
+
+* users
+* accounts
+* profiles
+* posts/content
+* reports
+* moderation
+* advertisements
+* subscriptions
+* payments
+* analytics
+* notifications
+* messages
+* app data
+* website data
+* settings
+* system activity
+* user status
+* administrative controls
+
+Do not invent new database tables or APIs if the required data already exists.
+
+Reuse the existing production database schema and services.
+
+---
+
+# 4. ADMIN CONTROL OF WEBSITE AND APP
+
+The Admin must be able to manage the existing BLASTERR ecosystem using the functionality already present in the Admin UI.
+
+Verify that existing Admin controls actually affect the production website/app where intended.
+
+For example, if an existing Admin page allows an administrator to:
+
+* update content
+* manage users
+* suspend/restore users
+* moderate content
+* manage advertisements
+* manage settings
+* view reports
+* manage notifications
+* view analytics
+* manage other existing administrative functions
+
+then make sure the action is connected to the real backend and not simply changing local/mock data.
+
+Do NOT add new features unless the existing Admin already contains the corresponding UI/functionality.
+
+---
+
+# 5. API CONNECTION AUDIT
+
+Audit all existing API connections.
+
+For every Admin API request, verify:
+
+* Correct production endpoint
+* Correct HTTP method
+* Correct authentication
+* Correct authorization
+* Correct request body
+* Correct response handling
+* Correct error handling
+* Correct database interaction
+* No localhost URLs
+* No development URLs
+* No Replit preview-only endpoints
+* No hardcoded credentials
+* No exposed secrets in frontend code
+
+If the website or mobile app already has a working API/service for a function, reuse that existing API/service rather than creating a duplicate implementation.
+
+---
+
+# 6. AUTHENTICATION & ADMIN SECURITY
+
+The Admin must remain protected.
+
+Verify that:
+
+* Only authorized administrators can access Admin functionality.
+* Normal BLASTERR users cannot access administrative operations.
+* API endpoints verify authentication.
+* API endpoints verify authorization/role where required.
+* Admin credentials/secrets are never exposed to the browser.
+* Sensitive operations happen server-side.
+* Existing authentication is preserved.
+
+Do NOT weaken existing security just to make an API call work.
+
+---
+
+# 7. PRODUCTION ENVIRONMENT
+
+The Admin must operate correctly in the production environment.
+
+Check all existing environment variables and configuration.
+
+Identify any references to:
+
+* localhost
+* development URLs
+* preview URLs
+* temporary APIs
+* test databases
+* mock services
+
+Only change an environment variable if it is clearly required for the production Admin integration.
+
+Do NOT delete or rename existing environment variables unless there is a documented technical reason.
+
+Never expose secret values in source code.
+
+---
+
+# 8. ADMIN DOMAIN
+
+The Admin currently exists at:
+
+`https://goblasterr.com/blasterr-admin/`
+
+Verify that this production route works correctly and that all Admin assets, API requests, authentication redirects, and callbacks work from the production domain.
+
+If the project already has a configured custom Admin domain, preserve it.
+
+If a domain connection is required, configure the existing deployment/domain setup without changing the application's existing pages or routes.
+
+Do not break:
+
+`https://goblasterr.com`
+
+Do not break:
+
+`https://goblasterr.com/mobile/`
+
+---
+
+# 9. CORS / ORIGIN / CALLBACK CHECK
+
+Audit production API communication for:
+
+* CORS
+* allowed origins
+* authentication callbacks
+* cookies
+* session handling
+* HTTPS
+* API base URLs
+* production redirects
+
+The following production origins should be treated correctly where applicable:
+
+`https://goblasterr.com`
+
+`https://goblasterr.com/blasterr-admin/`
+
+`https://goblasterr.com/mobile/`
+
+Do not add unnecessary origins or weaken CORS security.
+
+---
+
+# 10. WEBSITE ↔ ADMIN DATA CONSISTENCY
+
+Verify that information created or changed through BLASTERR is visible to the Admin where the existing Admin functionality expects it.
+
+For example:
+
+BLASTERR user performs an action
+↓
+Backend/database
+↓
+Admin sees the real updated data
+
+And:
+
+Admin performs an existing management action
+↓
+Backend/database/API
+↓
+BLASTERR website/mobile reflects the change where applicable
+
+There must be one source of truth.
+
+Do not create separate copies of production data.
+
+---
+
+# 11. MOBILE ↔ ADMIN DATA CONSISTENCY
+
+Verify the same architecture for the mobile application.
+
+The Admin should read the same production data that the mobile app uses.
+
+If the Admin already contains controls intended to affect mobile functionality, ensure those controls communicate with the correct backend/API.
+
+Do not modify the mobile application's design or screens.
+
+Only fix backend/API integration if necessary.
+
+---
+
+# 12. ERROR HANDLING
+
+Check existing Admin pages for API failures.
+
+Make sure failed requests:
+
+* do not crash the Admin
+* show appropriate existing error states where available
+* do not silently pretend an action succeeded
+* do not create duplicate requests
+* do not expose sensitive backend errors
+
+Again, preserve the existing UI.
+
+---
+
+# 13. DO NOT CREATE MOCK DATA
+
+The production Admin must not depend on fake/demo data.
+
+Search the codebase for:
+
+* mock data
+* sample users
+* placeholder API responses
+* fake analytics
+* hardcoded records
+* temporary JSON
+* development-only services
+
+Only remove/replace them where they are actually being used instead of real production data.
+
+Do not delete legitimate fallback logic that is intentionally required.
+
+---
+
+# 14. TEST THE COMPLETE FLOW
+
+After making the minimum required integration changes, test:
+
+### Authentication
+
+* Admin login
+* Admin session
+* Admin logout
+* Unauthorized access protection
+
+### API
+
+* GET requests
+* POST requests
+* PUT/PATCH requests
+* DELETE requests where already supported
+
+### Database
+
+* Read production data
+* Update production data
+* Verify changes persist
+
+### Website
+
+* Verify Admin changes appear on BLASTERR where expected
+
+### Mobile
+
+* Verify Admin changes appear in the mobile app where expected
+
+### Security
+
+* Verify normal users cannot access Admin APIs
+
+### Production
+
+* Verify everything works on the published production environment, not only Replit preview.
+
+---
+
+# 15. IMPORTANT — PRESERVE EVERYTHING
+
+The BLASTERR website and mobile application are considered complete.
+
+The Admin pages are also considered complete from a UI/product perspective.
+
+Therefore:
+
+**DO NOT redesign anything.**
+
+**DO NOT replace pages.**
+
+**DO NOT remove pages.**
+
+**DO NOT change existing functionality unnecessarily.**
+
+**DO NOT modify CSS unnecessarily.**
+
+**DO NOT modify unrelated React components.**
+
+**DO NOT rebuild the application from scratch.**
+
+**DO NOT create a new Admin dashboard.**
+
+**DO NOT create duplicate APIs when an existing API can be reused.**
+
+**DO NOT change the database schema unless absolutely necessary and technically justified.**
+
+Make the smallest possible code changes required to establish reliable production integration.
+
+---
+
+# 16. FINAL VERIFICATION REPORT
+
+When finished, provide a concise report containing:
+
+1. Admin production URL
+2. Admin domain status
+3. Backend/API connection status
+4. Database connection status
+5. Website ↔ API ↔ Admin status
+6. Mobile ↔ API ↔ Admin status
+7. Authentication status
+8. Security/authorization status
+9. Any remaining API connections that need credentials or external configuration
+10. Any remaining issues preventing production testing
+
+If something cannot be connected because an API key, credential, domain DNS record, or third-party configuration is required, **do not fabricate it**.
+
+Clearly tell me exactly what external configuration is required.
+
+Most importantly:
+
+**Do not change any existing BLASTERR pages or redesign anything. This task is strictly production Admin integration, domain connection, API linkage, authentication, and verification.**
