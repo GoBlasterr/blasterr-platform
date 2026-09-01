@@ -5,3 +5,4 @@
 - [Development admin bypass](development-admin-bypass.md) — gate preview-only Admin access with an explicit dev-run flag and cover authorization outside the Admin router.
 - [Expo cosmic layering](expo-cosmic-layering.md) — render decorative backdrops inside tab screens; navigator scenes can hide root-level layers.
 - [Target creation integrity](target-creation-integrity.md) — use PostgreSQL-safe lock keys, classify only known duplicate errors as conflicts, and require real auth for user mutations.
+- [Development auth recreation](development-auth-recreation.md) — recreated preview auth can collide with stale email ownership; preserve linked rows without weakening production checks.

@@ -60,7 +60,31 @@ export async function syncClerkUser(input: { authId: string; username: string; d
   await ensureSocialBootstrap();
   const [existingAuthUser] = await db.select({ id: usersTable.id, email: usersTable.email }).from(usersTable).where(eq(usersTable.authId, input.authId));
   const [existingEmailUser] = await db.select({ authId: usersTable.authId }).from(usersTable).where(eq(usersTable.email, input.email));
-  if (existingEmailUser && existingEmailUser.authId !== input.authId) throw new DuplicateAccountEmailError();
+  if (existingEmailUser && existingEmailUser.authId !== input.authId) {
+    const canKeepExistingDevelopmentProfile =
+      process.env.NODE_ENV === "development" &&
+      Boolean(existingAuthUser);
+    if (canKeepExistingDevelopmentProfile) {
+      // Preview auth accounts can be recreated or have their email reassigned.
+      // Keep the profile already linked to this auth ID without merging rows.
+    } else {
+      const canAdoptDevelopmentFixture =
+        process.env.NODE_ENV === "development" &&
+        existingEmailUser.authId.startsWith("development-") &&
+        !existingAuthUser;
+      if (!canAdoptDevelopmentFixture) throw new DuplicateAccountEmailError();
+      const [adopted] = await db.update(usersTable)
+        .set({ ...input, email: input.email, bio: input.bio ?? "", avatarUrl: input.avatarUrl ?? "", coverUrl: input.coverUrl ?? "", location: input.location ?? "", city: input.city ?? "", state: input.state ?? "", zipCode: input.zipCode ?? "", updatedAt: new Date() })
+        .where(eq(usersTable.authId, existingEmailUser.authId))
+        .returning();
+      if (!adopted) {
+        const [racedAdoption] = await db.select().from(usersTable).where(eq(usersTable.authId, input.authId));
+        if (racedAdoption) return racedAdoption;
+        throw new Error("Unable to synchronize development user");
+      }
+      return adopted;
+    }
+  }
   const email = existingAuthUser?.email ?? input.email;
   const [row] = await db.insert(usersTable).values({ ...input, email, bio: input.bio ?? "", avatarUrl: input.avatarUrl ?? "", coverUrl: input.coverUrl ?? "", location: input.location ?? "", city: input.city ?? "", state: input.state ?? "", zipCode: input.zipCode ?? "" })
     .onConflictDoUpdate({ target: usersTable.authId, set: { username: input.username, displayName: input.displayName, email, bio: input.bio ?? "", avatarUrl: input.avatarUrl ?? "", coverUrl: input.coverUrl ?? "", location: input.location ?? "", city: input.city ?? "", state: input.state ?? "", zipCode: input.zipCode ?? "", updatedAt: new Date() } }).returning();
