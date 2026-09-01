@@ -48,6 +48,18 @@ export function normalizeTargetText(value: string): string {
     .replace(/\s+/g, " ");
 }
 
+export function targetIdentityLockKey(input: {
+  type: string;
+  name: string;
+  location: string;
+}): string {
+  return JSON.stringify([
+    input.type,
+    normalizeTargetText(input.name),
+    normalizeTargetText(input.location),
+  ]);
+}
+
 function canonicalTargetName(value: string): string {
   const normalized = normalizeTargetText(value);
   return directAliases[normalized] ?? normalized;

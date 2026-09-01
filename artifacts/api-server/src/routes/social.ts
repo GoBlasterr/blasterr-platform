@@ -83,7 +83,81 @@ router.get("/feed", async (req, res): Promise<void> => {
 router.get("/trending", async (req, res) => res.json(GetTrendingResponse.parse({ blasts: (await published((await viewer(req))?.id)).sort((a,b) => b.viewCount-a.viewCount), targets: await social.targets() })));
 router.get("/search", async (req, res) => { const q = SearchQueryParams.safeParse(req.query); if (!q.success) return void res.status(400).json({ error: q.error.message }); const all = await social.targets(), term = q.data.q.toLowerCase(); const people = await Promise.all((await db.select().from(usersTable)).filter(x => `${x.username} ${x.displayName} ${x.bio}`.toLowerCase().includes(term)).map(x => social.profile(x))); res.json(SearchResponse.parse({ people, blasts: (await published((await viewer(req))?.id)).filter(x => x.content.toLowerCase().includes(term)), targets: findTargetMatches(all, { name: q.data.q }).map(x => ({ ...x.target, matchKind: x.matchKind, matchScore: x.matchScore, matchReason: x.matchReason })) })); });
 router.get("/targets", async (req,res) => { const q=ListTargetsQueryParams.safeParse(req.query); if(!q.success)return void res.status(400).json({error:q.error.message}); const t=(await social.targets()).filter(x=>!q.data.type||x.type===q.data.type); res.json(ListTargetsResponse.parse(q.data.q?.trim()?findTargetMatches(t,{name:q.data.q,type:q.data.type}).map(x=>({...x.target,matchKind:x.matchKind,matchScore:x.matchScore,matchReason:x.matchReason})):t)); });
-router.post("/targets", async (req,res) => { if(!enabled("new_target_requests"))return void res.status(403).json({error:"New Target requests are currently disabled."}); const p=CreateTargetBody.safeParse(req.body); if(!p.success)return void res.status(400).json({error:"Invalid Target details"}); const name=p.data.name.trim(), location=p.data.location.trim(); if((p.data.type==="business"||p.data.type==="place")&&!location)return void res.status(400).json({error:"A city or location is required for businesses and places."}); const matches=findTargetMatches(await social.targets(),{name,type:p.data.type,location}).filter(x=>x.isHardDuplicate||x.matchKind==="same-name-different-location"||x.matchScore>=.76); if(matches.length&&(matches.some(x=>x.isHardDuplicate)||!p.data.confirmDistinct))return void res.status(409).json({error:"target_resolution_required",message:matches.some(x=>x.isHardDuplicate)?"This Target already appears to exist. Select the existing Target to continue.":"Possible existing Targets were found. Choose one or confirm this is a different entity.",canCreateNew:!matches.some(x=>x.isHardDuplicate),candidates:matches.map(x=>({...x.target,matchKind:x.matchKind,matchScore:x.matchScore,matchReason:x.matchReason}))}); const slug=`${name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"target"}-${randomUUID().slice(0,8)}`; try { res.status(201).json(CreateTargetResponse.parse(await social.createTarget({id:`target-${randomUUID()}`,name,slug,type:p.data.type,location,imageUrl:p.data.imageUrl?.trim()??"",description:p.data.description.trim()}))); } catch { res.status(409).json({error:"target_resolution_required",message:"This Target already appears to exist. Select the existing Target to continue.",canCreateNew:false,candidates:[]}); } });
+router.post("/targets", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) return void res.status(401).json({ error: "Sign in is required to create a Target." });
+  if (!enabled("new_target_requests")) return void res.status(403).json({ error: "New Target requests are currently disabled." });
+
+  const parsed = CreateTargetBody.safeParse(req.body);
+  if (!parsed.success) return void res.status(400).json({ error: "Invalid Target details" });
+
+  const name = parsed.data.name.trim();
+  const location = parsed.data.location.trim();
+  if ((parsed.data.type === "business" || parsed.data.type === "place") && !location) {
+    return void res.status(400).json({ error: "A city or location is required for businesses and places." });
+  }
+
+  const matches = findTargetMatches(await social.targets(), {
+    name,
+    type: parsed.data.type,
+    location,
+  }).filter(match =>
+    match.isHardDuplicate ||
+    match.matchKind === "same-name-different-location" ||
+    match.matchScore >= .76
+  );
+  const hardDuplicate = matches.some(match => match.isHardDuplicate);
+  if (matches.length && (hardDuplicate || !parsed.data.confirmDistinct)) {
+    return void res.status(409).json({
+      error: "target_resolution_required",
+      message: hardDuplicate
+        ? "This Target already appears to exist. Select the existing Target to continue."
+        : "Possible existing Targets were found. Choose one or confirm this is a different entity.",
+      canCreateNew: !hardDuplicate,
+      candidates: matches.map(match => ({
+        ...match.target,
+        matchKind: match.matchKind,
+        matchScore: match.matchScore,
+        matchReason: match.matchReason,
+      })),
+    });
+  }
+
+  const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "target"}-${randomUUID().slice(0, 8)}`;
+  try {
+    const target = await social.createTarget({
+      id: `target-${randomUUID()}`,
+      name,
+      slug,
+      type: parsed.data.type,
+      location,
+      imageUrl: parsed.data.imageUrl?.trim() ?? "",
+      description: parsed.data.description.trim(),
+    });
+    res.status(201).json(CreateTargetResponse.parse(target));
+  } catch (error) {
+    if (error instanceof Error && error.name === "DuplicateTargetError") {
+      const candidates = findTargetMatches(await social.targets(), {
+        name,
+        type: parsed.data.type,
+        location,
+      }).filter(match => match.isHardDuplicate);
+      return void res.status(409).json({
+        error: "target_resolution_required",
+        message: "This Target already appears to exist. Select the existing Target to continue.",
+        canCreateNew: false,
+        candidates: candidates.map(match => ({
+          ...match.target,
+          matchKind: match.matchKind,
+          matchScore: match.matchScore,
+          matchReason: match.matchReason,
+        })),
+      });
+    }
+    req.log.error({ err: error, targetType: parsed.data.type }, "Unable to create Target");
+    res.status(500).json({ error: "Target could not be created. Please try again." });
+  }
+});
 router.get("/targets/:slug", async(req,res)=>{const p=GetTargetParams.safeParse(req.params);if(!p.success)return void res.status(400).json({error:p.error.message});const t=await social.targetSlug(p.data.slug);if(!t)return void res.status(404).json({error:"Target not found"});const b=(await published((await viewer(req))?.id)).filter(x=>x.target.id===t.id);res.json(GetTargetResponse.parse({target:(await social.targets()).find(x=>x.id===t.id),blasts:b,stats:{positiveReactions:b.reduce((s,x)=>s+x.reactions.blast+x.reactions.facts,0),negativeReactions:b.reduce((s,x)=>s+x.reactions.cap,0),engagement:b.reduce((s,x)=>s+x.commentCount+x.shareCount,0),activity:24}}));});
 router.get("/users/:username", async(req,res)=>{const p=GetUserProfileParams.safeParse(req.params);if(!p.success)return void res.status(400).json({error:p.error.message});const u=await social.userByUsername(p.data.username);if(!u)return void res.status(404).json({error:"User not found"});const b=(await published((await viewer(req))?.id)).filter(x=>x.author.id===u.id);res.json(GetUserProfileResponse.parse({...await social.profile(u,(await viewer(req))?.id),blasts:b,media:b.filter(x=>x.mediaUrl)}));});
 router.post("/users/:username/follow", async(req,res)=>{const p=ToggleFollowParams.safeParse(req.params);if(!p.success)return void res.status(400).json({error:p.error.message});const v=await current(req),u=await social.userByUsername(p.data.username);if(!u)return void res.status(404).json({error:"User not found"});if(!v)return void res.status(401).json({error:"Sign in is required."});const yes=await social.toggleFollow(v.id,u.id);res.json(ToggleFollowResponse.parse({isFollowing:yes,followerCount:(await social.profile(u,v.id)).followers}));});

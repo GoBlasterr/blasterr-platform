@@ -25,9 +25,7 @@ test("owned-resource changes require the owner or an authorized admin", () => {
   assert.equal(canManageOwnedResource({ actorId: "admin", ownerId: "owner", isAdmin: true }), true);
 });
 
-test("anonymous content creation is limited to development fixtures", () => {
-  assert.equal(canCreateUserContent(null, "production"), false);
-  assert.equal(canCreateUserContent(null, "test"), false);
-  assert.equal(canCreateUserContent(null, "development"), true);
-  assert.equal(canCreateUserContent("user-1", "production"), true);
+test("user content creation always requires an authenticated actor", () => {
+  assert.equal(canCreateUserContent(null), false);
+  assert.equal(canCreateUserContent("user-1"), true);
 });

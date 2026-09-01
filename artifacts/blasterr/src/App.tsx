@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
-import { ClerkLoaded, ClerkLoading, ClerkProvider, useClerk } from '@clerk/react';
+import { Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { ClerkLoaded, ClerkLoading, ClerkProvider, Show, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { dark } from '@clerk/themes';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
@@ -64,7 +64,11 @@ function Router() {
           <Route path="/splash" component={Splash} />
           <Route path="/home" component={Home} />
           <Route path="/following" component={Home} />
-          <Route path="/create" component={CreateBlast} />
+          <Route path="/create">
+            <SignedInOnly>
+              <CreateBlast />
+            </SignedInOnly>
+          </Route>
           <Route path="/trending" component={Trending} />
           <Route path="/trending/targets" component={Trending} />
           <Route path="/nearby" component={Nearby} />
@@ -86,6 +90,15 @@ function Router() {
         </Switch>
       </RoutedErrorBoundary>
     </Shell>
+  );
+}
+
+function SignedInOnly({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <Show when="signed-in">{children}</Show>
+      <Show when="signed-out"><Redirect to="/sign-in" /></Show>
+    </>
   );
 }
 

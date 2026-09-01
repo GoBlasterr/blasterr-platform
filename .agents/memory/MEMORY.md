@@ -4,3 +4,4 @@
 - [Supabase database connectivity](supabase-database-connectivity.md) — use an IPv4-compatible pooler URI; the direct database host may resolve IPv6-only from Replit.
 - [Development admin bypass](development-admin-bypass.md) — gate preview-only Admin access with an explicit dev-run flag and cover authorization outside the Admin router.
 - [Expo cosmic layering](expo-cosmic-layering.md) — render decorative backdrops inside tab screens; navigator scenes can hide root-level layers.
+- [Target creation integrity](target-creation-integrity.md) — use PostgreSQL-safe lock keys, classify only known duplicate errors as conflicts, and require real auth for user mutations.

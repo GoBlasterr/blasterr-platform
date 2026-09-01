@@ -5,7 +5,7 @@ import {
 } from "@workspace/db";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { shouldBootstrapSocialFixtures } from "./social-bootstrap-policy";
-import { normalizeTargetText } from "./target-resolution";
+import { normalizeTargetText, targetIdentityLockKey } from "./target-resolution";
 import { readableProfileMedia } from "./profile-media";
 
 export type Reaction = "blast" | "facts" | "cap" | "funny" | "watching";
@@ -107,16 +107,15 @@ export async function targets() {
 export async function target(id: string) { await ensureSocialBootstrap(); const [row] = await db.select().from(targetsTable).where(eq(targetsTable.id, id)); return row; }
 export async function targetSlug(slug: string) { await ensureSocialBootstrap(); const [row] = await db.select().from(targetsTable).where(eq(targetsTable.slug, slug)); return row; }
 /**
- * The current shared schema only has a slug unique index.  An advisory
- * transaction lock gives normalized exact Target identities the same
- * serialization guarantee until that schema can gain a composite index.
+ * The advisory transaction lock serializes duplicate checks before the
+ * normalized composite unique index provides the final database guarantee.
  */
 export async function createTarget(input: Omit<SocialTarget, "blastCount">) {
   await ensureSocialBootstrap();
   return db.transaction(async tx => {
     const normalizedName = normalizeTargetText(input.name);
     const normalizedLocation = normalizeTargetText(input.location);
-    const identity = `${input.type}\u0000${normalizedName}\u0000${normalizedLocation}`;
+    const identity = targetIdentityLockKey(input);
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${identity}))`);
     const duplicate = await tx.select({ id: targetsTable.id }).from(targetsTable)
       .where(and(

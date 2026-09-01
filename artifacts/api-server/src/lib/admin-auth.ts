@@ -21,6 +21,6 @@ export function canManageOwnedResource(input: {
   );
 }
 
-export function canCreateUserContent(actorId: string | null, nodeEnv = process.env.NODE_ENV): boolean {
-  return !!actorId || nodeEnv === "development";
+export function canCreateUserContent(actorId: string | null): boolean {
+  return !!actorId;
 }

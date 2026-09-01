@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { findTargetMatches, normalizeTargetText } from "./target-resolution.ts";
+import {
+  findTargetMatches,
+  normalizeTargetText,
+  targetIdentityLockKey,
+} from "./target-resolution.ts";
 
 const targets = [
   { id: "la", name: "Los Angeles", type: "place", location: "Los Angeles, CA" },
@@ -11,6 +15,16 @@ const targets = [
 
 test("normalizes punctuation, case, and accents", () => {
   assert.equal(normalizeTargetText("  L.Á.  "), "l a");
+});
+
+test("builds PostgreSQL-safe normalized Target lock keys", () => {
+  const key = targetIdentityLockKey({
+    type: "person",
+    name: "Tupac Shakur",
+    location: "",
+  });
+  assert.equal(key, '["person","tupac shakur",""]');
+  assert.equal(key.includes("\u0000"), false);
 });
 
 test("resolves L.A. as an alias for Los Angeles", () => {
