@@ -103,7 +103,7 @@ export default function SignIn() {
       <main className="flex-1 min-h-0 flex items-center justify-center overflow-y-auto p-3 md:p-6 relative z-10">
         <div className="w-full max-w-md">
           <section className="glass-panel p-4 md:p-5 rounded-3xl border border-white/10 shadow-2xl">
-            <h1 className="font-display font-bold text-2xl text-white mb-1 text-center">Access Comm Link</h1>
+            <h1 className="font-display font-bold text-2xl text-white mb-1 text-center">Start Blasting</h1>
             <p className="text-muted-foreground mb-3 text-center">Enter credentials to resume your session.</p>
 
             <button
@@ -186,7 +186,7 @@ export default function SignIn() {
                     <Loader2 className="h-4 w-4 animate-spin" /> Signing in…
                   </span>
                 ) : (
-                  "Sign in"
+                  "Blast in"
                 )}
               </button>
             </form>

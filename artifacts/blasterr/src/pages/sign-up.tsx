@@ -257,7 +257,7 @@ function SignUpForm() {
       {!isVerificationStep && (
         <p className="mt-3 text-center text-xs text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/sign-in" className="font-medium text-primary hover:underline">Sign in</Link>
+          <Link href="/sign-in" className="font-medium text-primary hover:underline">Blast in</Link>
         </p>
       )}
     </>
