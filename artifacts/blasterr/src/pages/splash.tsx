@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@clerk/react";
 
-const INTRO_VIDEO_URL = "/blasterr-intro-1788235644459.mp4";
-const INTRO_VIDEO_WEB_URL = "/blasterr-intro-1788235644459.webm";
+const assetUrl = (fileName: string) => `${import.meta.env.BASE_URL}${fileName}`;
+const INTRO_VIDEO_URL = assetUrl("blasterr-intro-1788235644459.mp4");
+const INTRO_VIDEO_WEB_URL = assetUrl("blasterr-intro-1788235644459.webm");
 const HAS_VISITED_KEY = "blasterr:has-visited:v1";
 
 export default function Splash() {
   const [, setLocation] = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const finishTimerRef = useRef<number | null>(null);
   const { isLoaded, isSignedIn } = useAuth();
   const [hasFinished, setHasFinished] = useState(false);
 
@@ -17,7 +19,15 @@ export default function Splash() {
     if (!video) return;
 
     video.muted = true;
+    video.defaultMuted = true;
+    video.setAttribute("muted", "");
     void video.play().catch(() => undefined);
+
+    return () => {
+      if (finishTimerRef.current !== null) {
+        window.clearTimeout(finishTimerRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -29,7 +39,10 @@ export default function Splash() {
   }, [hasFinished, isLoaded, isSignedIn, setLocation]);
 
   const finish = () => {
-    setHasFinished(true);
+    if (finishTimerRef.current !== null) return;
+    finishTimerRef.current = window.setTimeout(() => {
+      setHasFinished(true);
+    }, 2000);
   };
 
   return (
@@ -44,7 +57,7 @@ export default function Splash() {
         controls={false}
         disablePictureInPicture
         controlsList="nodownload nofullscreen noplaybackrate"
-        onLoadedData={() => {
+        onCanPlay={() => {
           videoRef.current?.play().catch(() => undefined);
         }}
         onEnded={finish}
