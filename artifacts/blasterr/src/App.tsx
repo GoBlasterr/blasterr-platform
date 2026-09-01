@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 import { ClerkLoaded, ClerkLoading, ClerkProvider, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { dark } from '@clerk/themes';
@@ -60,7 +60,7 @@ function Router() {
     <Shell>
       <RoutedErrorBoundary>
         <Switch>
-          <Route path="/" component={() => <Redirect to="/home" />} />
+          <Route path="/" component={Splash} />
           <Route path="/splash" component={Splash} />
           <Route path="/home" component={Home} />
           <Route path="/following" component={Home} />
@@ -112,6 +112,8 @@ function ClerkQueryClientCacheInvalidator() {
 
 function AppContent() {
   const [, setLocation] = useLocation();
+  const currentPath = stripBase(window.location.pathname);
+  const isSplashRoute = currentPath === "/" || currentPath === "/splash";
 
   return (
     <ClerkProvider
@@ -147,21 +149,29 @@ function AppContent() {
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
-        <ClerkLoading>
-          <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-            <span className="text-sm font-medium">Loading BLASTERR…</span>
-          </div>
-        </ClerkLoading>
-        <ClerkLoaded>
+        {isSplashRoute ? (
           <ThemeProvider>
-            <ClerkQueryClientCacheInvalidator />
-            <TooltipProvider>
-              <div className="site-stars pointer-events-none fixed inset-0 z-[2]" aria-hidden="true" />
-              <Router />
-              <Toaster />
-            </TooltipProvider>
+            <Splash />
           </ThemeProvider>
-        </ClerkLoaded>
+        ) : (
+          <>
+            <ClerkLoading>
+              <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+                <span className="text-sm font-medium">Loading BLASTERR…</span>
+              </div>
+            </ClerkLoading>
+            <ClerkLoaded>
+              <ThemeProvider>
+                <ClerkQueryClientCacheInvalidator />
+                <TooltipProvider>
+                  <div className="site-stars pointer-events-none fixed inset-0 z-[2]" aria-hidden="true" />
+                  <Router />
+                  <Toaster />
+                </TooltipProvider>
+              </ThemeProvider>
+            </ClerkLoaded>
+          </>
+        )}
       </QueryClientProvider>
     </ClerkProvider>
   );
