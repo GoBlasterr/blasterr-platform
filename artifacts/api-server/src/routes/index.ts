@@ -7,12 +7,14 @@ import advertisingRouter from "./advertising";
 import adminRouter from "./admin";
 import announcementsRouter from "./announcements";
 import cmsRouter from "./cms";
+import appealsRouter from "./appeals";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(announcementsRouter);
 router.use("/admin", adminRouter);
+router.use(appealsRouter);
 router.use(socialRouter);
 router.use(storageRouter);
 router.use(clipsRouter);

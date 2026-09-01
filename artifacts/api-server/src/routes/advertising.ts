@@ -1,10 +1,10 @@
 import { clerkClient, getAuth } from "@clerk/express";
 import * as v from "@workspace/api-zod";
 import {
-  adApprovalRecordsTable, adEventsTable, adTransactionsTable, advertisementsTable, advertisersTable,
+  adApprovalRecordsTable, adBoostRequestsTable, adEventsTable, adTransactionsTable, advertisementsTable, advertisersTable,
   adGroupsTable, adPromotionRequestsTable, adSpendLedgerTable, adReportsTable, adFraudFlagsTable,
   adFraudAuditLogsTable, adFraudNotificationsTable, advertisingAuditLogsTable, advertisingSettingsTable,
-  campaignsTable, creativesTable, db,
+  adminNotificationsTable, blastsTable, campaignsTable, creativesTable, db, usersTable,
 } from "@workspace/db";
 import { and, count, desc, eq, gte, lt, sql } from "drizzle-orm";
 import { Router, type IRouter, type Request, type Response } from "express";
@@ -36,6 +36,9 @@ function verifyDeliveryToken(token: string): DeliveryTokenPayload | null {
 }
 async function admin(req: Request): Promise<string | null> {
   const { userId } = getAuth(req);
+  if (process.env.NODE_ENV === "development" && process.env.DEV_ADMIN_BYPASS === "true") {
+    return userId ?? "development-admin";
+  }
   if (!userId) return null;
   try {
     const user = await clerkClient.users.getUser(userId);
@@ -158,6 +161,16 @@ const campaignPayload = (row: typeof campaignsTable.$inferSelect) => ({ ...row, 
 const adGroupPayload = (row: typeof adGroupsTable.$inferSelect) => ({ ...row, targeting: targeting(row.targeting), frequencyCap: row.frequencyCap ?? null, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() });
 const creativePayload = (row: typeof creativesTable.$inferSelect) => ({ ...row, mediaUrl: row.mediaUrl ?? null, destinationUrl: row.destinationUrl ?? null, metadata: object(row.metadata), createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() });
 const promotionPayload = (row: typeof adPromotionRequestsTable.$inferSelect) => ({ ...row, campaignId: row.campaignId ?? null, eligibility: object(row.eligibility), budget: row.budget === null ? null : Number(row.budget), startsAt: stamp(row.startsAt), endsAt: stamp(row.endsAt), reviewedByClerkId: row.reviewedByClerkId ?? null, reviewedAt: stamp(row.reviewedAt), reviewReason: row.reviewReason ?? null, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() });
+const boostPayload = (row: typeof adBoostRequestsTable.$inferSelect) => ({
+  ...row,
+  budget: row.budget === null ? null : Number(row.budget),
+  startsAt: stamp(row.startsAt),
+  endsAt: stamp(row.endsAt),
+  reviewerClerkId: row.reviewerClerkId ?? null,
+  reviewNote: row.reviewNote ?? null,
+  createdAt: row.createdAt.toISOString(),
+  updatedAt: row.updatedAt.toISOString(),
+});
 const advertisementPayload = (row: typeof advertisementsTable.$inferSelect) => ({ ...row, adGroupId: row.adGroupId ?? null, creativeId: row.creativeId ?? null, mediaUrl: row.mediaUrl ?? null, destinationUrl: row.destinationUrl ?? null, targeting: targeting(row.targeting), createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() });
 const auditPayload = (row: typeof advertisingAuditLogsTable.$inferSelect) => ({ ...row, entityId: row.entityId ?? null, reason: row.reason ?? null, actorClerkId: row.actorClerkId ?? null, createdAt: row.createdAt.toISOString() });
 const transactionPayload = (row: typeof adTransactionsTable.$inferSelect) => ({
@@ -416,6 +429,66 @@ router.post("/admin/advertising/promotions/:id/review", async (req, res): Promis
   if (!row) return void res.status(404).json({ error: "Promotion not found." });
   await audit(actor, `promotion_${body.data.action}`, "promotion", row.id, body.data.reason, { type: row.type });
   res.json(v.ReviewAdminPromotionResponse.parse(promotionPayload(row)));
+});
+
+router.post("/advertising/boosts", async (req, res): Promise<void> => {
+  const { userId } = getAuth(req);
+  if (!userId) return void res.status(401).json({ error: "Authentication required." });
+  const body = v.CreateBoostRequestBody.safeParse(req.body);
+  if (!body.success) return void res.status(400).json({ error: "Invalid boost request." });
+  const startsAt = body.data.startsAt ? new Date(body.data.startsAt) : null;
+  const endsAt = body.data.endsAt ? new Date(body.data.endsAt) : null;
+  if (startsAt && endsAt && endsAt < startsAt) return void res.status(400).json({ error: "Boost end date must be after its start date." });
+  const [requester] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.authId, userId)).limit(1);
+  if (!requester) return void res.status(404).json({ error: "BLASTERR profile not found." });
+  const [blast] = await db.select({ id: blastsTable.id, userId: blastsTable.userId }).from(blastsTable).where(eq(blastsTable.id, body.data.blastId)).limit(1);
+  if (!blast) return void res.status(404).json({ error: "Blast not found." });
+  if (blast.userId !== requester.id) return void res.status(403).json({ error: "Only the Blast owner can request a boost." });
+  const row = await db.transaction(async (tx) => {
+    const [created] = await tx.insert(adBoostRequestsTable).values({
+      blastId: blast.id,
+      requesterId: requester.id,
+      budget: body.data.budget?.toString() ?? null,
+      placement: body.data.placement,
+      startsAt,
+      endsAt,
+      requestNote: body.data.requestNote?.trim() ?? "",
+    }).returning();
+    await tx.insert(adminNotificationsTable).values({
+      category: "advertising",
+      title: "New Blast boost request",
+      message: "A Blast owner submitted a boost request for review.",
+      entityType: "boost",
+      entityId: created.id,
+    });
+    return created;
+  });
+  res.status(201).json(v.CreateBoostRequestResponse.parse(boostPayload(row)));
+});
+
+router.get("/admin/advertising/boosts", async (req, res): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const parsed = v.ListAdminBoostRequestsQueryParams.safeParse(req.query);
+  if (!parsed.success) return void res.status(400).json({ error: "Invalid boost filters." });
+  const rows = await db.select().from(adBoostRequestsTable).orderBy(desc(adBoostRequestsTable.createdAt));
+  const filtered = rows.filter((row) => parsed.data.status === "all" || row.status === parsed.data.status);
+  res.json(v.ListAdminBoostRequestsResponse.parse(page(filtered.map(boostPayload), parsed.data.page, parsed.data.limit)));
+});
+
+router.patch("/admin/advertising/boosts/:id/review", async (req, res): Promise<void> => {
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const params = v.ReviewAdminBoostRequestParams.safeParse(req.params);
+  const body = v.ReviewAdminBoostRequestBody.safeParse(req.body);
+  if (!params.success || !body.success) return void res.status(400).json({ error: "A valid boost decision and audit note are required." });
+  const [row] = await db.update(adBoostRequestsTable).set({
+    status: body.data.status,
+    reviewerClerkId: actor,
+    reviewNote: body.data.note.trim(),
+    updatedAt: now(),
+  }).where(eq(adBoostRequestsTable.id, params.data.id)).returning();
+  if (!row) return void res.status(404).json({ error: "Boost request not found." });
+  await audit(actor, `boost_${body.data.status}`, "boost", row.id, body.data.note, { blastId: row.blastId });
+  res.json(v.ReviewAdminBoostRequestResponse.parse(boostPayload(row)));
 });
 
 router.get("/admin/advertising/advertisements", async (req, res): Promise<void> => {

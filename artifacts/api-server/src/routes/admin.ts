@@ -3,8 +3,11 @@ import { Router, type IRouter, type NextFunction, type Request, type Response } 
 import {
   CreateAdminAnnouncementBody,
   CreateAdminAnnouncementResponse,
+  CreateAdminBlockedWordBody,
+  CreateAdminBlockedWordResponse,
   CreateAdminModerationActionBody,
   CreateAdminModerationActionResponse,
+  DeleteAdminBlockedWordParams,
   DeleteAdminAnnouncementParams,
   DeleteAdminContentParams,
   DeleteAdminUserParams,
@@ -21,6 +24,17 @@ import {
   GetAdminSystemResponse,
   GetAdminUsersQueryParams,
   GetAdminUsersResponse,
+  ListAdminAppealsQueryParams,
+  ListAdminAppealsResponse,
+  ListAdminBlockedWordsResponse,
+  ListAdminNotificationsQueryParams,
+  ListAdminNotificationsResponse,
+  MarkAdminNotificationReadParams,
+  MarkAdminNotificationReadResponse,
+  MarkAllAdminNotificationsReadResponse,
+  ReviewAdminAppealBody,
+  ReviewAdminAppealParams,
+  ReviewAdminAppealResponse,
   UpdateAdminAnnouncementBody,
   UpdateAdminAnnouncementParams,
   UpdateAdminAnnouncementResponse,
@@ -38,6 +52,9 @@ import {
   UpdateAdminUserBody,
   UpdateAdminUserParams,
   UpdateAdminUserResponse,
+  UpdateAdminBlockedWordBody,
+  UpdateAdminBlockedWordParams,
+  UpdateAdminBlockedWordResponse,
 } from "@workspace/api-zod";
 import {
   adminAnnouncements,
@@ -62,12 +79,15 @@ import { isActiveAdmin, isSuspended } from "../lib/admin-auth";
 import * as social from "../lib/social-repository";
 import {
   adminReportsTable,
+  adminAppealsTable,
+  adminBlockedWordsTable,
+  adminNotificationsTable,
   blastsTable,
   db,
   usersTable,
   validateDatabaseConnection,
 } from "@workspace/db";
-import { sql } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { checkR2Connection } from "../lib/r2";
 
 const router: IRouter = Router();
@@ -79,6 +99,12 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction): Pr
   } catch (error) {
     req.log.error({ err: error }, "Unable to load admin state");
     res.status(503).json({ error: "Admin state is temporarily unavailable." });
+    return;
+  }
+  const developmentBypass = process.env.NODE_ENV === "development" && process.env.DEV_ADMIN_BYPASS === "true";
+  if (developmentBypass) {
+    res.locals.adminActorId = getAuth(req).userId ?? "development-admin";
+    next();
     return;
   }
   const { userId } = getAuth(req);
@@ -109,6 +135,51 @@ router.use(requireAdmin);
 
 function actorId(res: Response): string {
   return typeof res.locals.adminActorId === "string" ? res.locals.adminActorId : "unknown-admin";
+}
+
+const appealPayload = (row: typeof adminAppealsTable.$inferSelect) => ({
+  ...row,
+  reviewerClerkId: row.reviewerClerkId ?? null,
+  createdAt: row.createdAt.toISOString(),
+  updatedAt: row.updatedAt.toISOString(),
+});
+
+const blockedWordPayload = (row: typeof adminBlockedWordsTable.$inferSelect) => ({
+  id: row.id,
+  term: row.term,
+  action: row.action,
+  status: row.status,
+  createdAt: row.createdAt.toISOString(),
+  updatedAt: row.updatedAt.toISOString(),
+});
+
+const adminNotificationPayload = (row: typeof adminNotificationsTable.$inferSelect) => ({
+  id: row.id,
+  category: row.category,
+  title: row.title,
+  message: row.message,
+  entityType: row.entityType ?? null,
+  entityId: row.entityId ?? null,
+  read: row.read,
+  createdAt: row.createdAt.toISOString(),
+});
+
+function page<T>(items: T[], pageNumber: number, limit: number) {
+  return {
+    items: items.slice((pageNumber - 1) * limit, pageNumber * limit),
+    page: pageNumber,
+    limit,
+    total: items.length,
+    hasMore: pageNumber * limit < items.length,
+  };
+}
+
+function normalizedBlockedTerm(term: string): string {
+  return term.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "23505");
 }
 
 async function adminUser(user: Awaited<ReturnType<typeof clerkClient.users.getUser>>) {
@@ -636,6 +707,177 @@ router.patch("/features/:key", async (req, res): Promise<void> => {
     return;
   }
   res.json(UpdateAdminFeatureResponse.parse(feature));
+});
+
+router.get("/appeals", async (req, res): Promise<void> => {
+  const parsed = ListAdminAppealsQueryParams.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid appeal filters." });
+    return;
+  }
+  const rows = await db.select().from(adminAppealsTable).orderBy(desc(adminAppealsTable.createdAt));
+  const filtered = rows.filter((row) => parsed.data.status === "all" || row.status === parsed.data.status);
+  res.json(ListAdminAppealsResponse.parse(page(filtered.map(appealPayload), parsed.data.page, parsed.data.limit)));
+});
+
+router.patch("/appeals/:id", async (req, res): Promise<void> => {
+  const params = ReviewAdminAppealParams.safeParse(req.params);
+  const body = ReviewAdminAppealBody.safeParse(req.body);
+  if (!params.success || !body.success || (["approved", "rejected"].includes(body.data.status) && !body.data.note?.trim())) {
+    res.status(400).json({ error: "A valid appeal decision and note are required." });
+    return;
+  }
+  const [row] = await db.update(adminAppealsTable).set({
+    status: body.data.status,
+    reviewerClerkId: actorId(res),
+    reviewerNote: body.data.note?.trim() ?? "",
+    updatedAt: new Date(),
+  }).where(eq(adminAppealsTable.id, params.data.id)).returning();
+  if (!row) {
+    res.status(404).json({ error: "Appeal not found." });
+    return;
+  }
+  await recordAudit({
+    action: `appeal_${body.data.status}`,
+    entityType: "appeal",
+    entityId: row.id,
+    actorId: actorId(res),
+    details: body.data.note?.trim() || `Appeal moved to ${body.data.status}.`,
+  });
+  res.json(ReviewAdminAppealResponse.parse(appealPayload(row)));
+});
+
+router.get("/blocked-words", async (_req, res): Promise<void> => {
+  const rows = await db.select().from(adminBlockedWordsTable).orderBy(desc(adminBlockedWordsTable.createdAt));
+  res.json(ListAdminBlockedWordsResponse.parse(rows.map(blockedWordPayload)));
+});
+
+router.post("/blocked-words", async (req, res): Promise<void> => {
+  const body = CreateAdminBlockedWordBody.safeParse(req.body);
+  if (!body.success || !normalizedBlockedTerm(body.data.term)) {
+    res.status(400).json({ error: "A valid moderation term is required." });
+    return;
+  }
+  try {
+    const [row] = await db.insert(adminBlockedWordsTable).values({
+      term: body.data.term.trim(),
+      normalizedTerm: normalizedBlockedTerm(body.data.term),
+      action: body.data.action,
+      createdBy: actorId(res),
+    }).returning();
+    await recordAudit({
+      action: "blocked_word_created",
+      entityType: "blocked_word",
+      entityId: row.id,
+      actorId: actorId(res),
+      details: `Added a ${row.action} moderation term.`,
+    });
+    res.status(201).json(CreateAdminBlockedWordResponse.parse(blockedWordPayload(row)));
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      res.status(409).json({ error: "That moderation term already exists." });
+      return;
+    }
+    throw error;
+  }
+});
+
+router.patch("/blocked-words/:id", async (req, res): Promise<void> => {
+  const params = UpdateAdminBlockedWordParams.safeParse(req.params);
+  const body = UpdateAdminBlockedWordBody.safeParse(req.body);
+  if (!params.success || !body.success || !Object.keys(body.data).length || (body.data.term !== undefined && !normalizedBlockedTerm(body.data.term))) {
+    res.status(400).json({ error: "A valid moderation term update is required." });
+    return;
+  }
+  try {
+    const [row] = await db.update(adminBlockedWordsTable).set({
+      ...body.data,
+      term: body.data.term?.trim(),
+      normalizedTerm: body.data.term === undefined ? undefined : normalizedBlockedTerm(body.data.term),
+      updatedAt: new Date(),
+    }).where(eq(adminBlockedWordsTable.id, params.data.id)).returning();
+    if (!row) {
+      res.status(404).json({ error: "Moderation term not found." });
+      return;
+    }
+    await recordAudit({
+      action: "blocked_word_updated",
+      entityType: "blocked_word",
+      entityId: row.id,
+      actorId: actorId(res),
+      details: `Updated moderation term controls (${row.action}, ${row.status}).`,
+    });
+    res.json(UpdateAdminBlockedWordResponse.parse(blockedWordPayload(row)));
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      res.status(409).json({ error: "That moderation term already exists." });
+      return;
+    }
+    throw error;
+  }
+});
+
+router.delete("/blocked-words/:id", async (req, res): Promise<void> => {
+  const params = DeleteAdminBlockedWordParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid moderation term." });
+    return;
+  }
+  const [row] = await db.delete(adminBlockedWordsTable).where(eq(adminBlockedWordsTable.id, params.data.id)).returning();
+  if (!row) {
+    res.status(404).json({ error: "Moderation term not found." });
+    return;
+  }
+  await recordAudit({
+    action: "blocked_word_deleted",
+    entityType: "blocked_word",
+    entityId: row.id,
+    actorId: actorId(res),
+    details: `Deleted a ${row.action} moderation term.`,
+  });
+  res.sendStatus(204);
+});
+
+router.get("/notifications", async (req, res): Promise<void> => {
+  const parsed = ListAdminNotificationsQueryParams.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid notification filters." });
+    return;
+  }
+  const visible = or(isNull(adminNotificationsTable.adminClerkId), eq(adminNotificationsTable.adminClerkId, actorId(res)));
+  const rows = await db.select().from(adminNotificationsTable)
+    .where(parsed.data.unreadOnly ? and(visible, eq(adminNotificationsTable.read, false)) : visible)
+    .orderBy(desc(adminNotificationsTable.createdAt))
+    .limit(parsed.data.limit);
+  const unread = await db.select({ total: sql<number>`count(*)::int` }).from(adminNotificationsTable)
+    .where(and(visible, eq(adminNotificationsTable.read, false)));
+  res.json(ListAdminNotificationsResponse.parse({
+    items: rows.map(adminNotificationPayload),
+    unreadCount: unread[0]?.total ?? 0,
+  }));
+});
+
+router.patch("/notifications/read-all", async (_req, res): Promise<void> => {
+  const visible = or(isNull(adminNotificationsTable.adminClerkId), eq(adminNotificationsTable.adminClerkId, actorId(res)));
+  await db.update(adminNotificationsTable).set({ read: true }).where(visible);
+  res.json(MarkAllAdminNotificationsReadResponse.parse({ unreadCount: 0 }));
+});
+
+router.patch("/notifications/:id/read", async (req, res): Promise<void> => {
+  const params = MarkAdminNotificationReadParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid notification." });
+    return;
+  }
+  const visible = or(isNull(adminNotificationsTable.adminClerkId), eq(adminNotificationsTable.adminClerkId, actorId(res)));
+  const [row] = await db.update(adminNotificationsTable).set({ read: true })
+    .where(and(eq(adminNotificationsTable.id, params.data.id), visible))
+    .returning();
+  if (!row) {
+    res.status(404).json({ error: "Notification not found." });
+    return;
+  }
+  res.json(MarkAdminNotificationReadResponse.parse(adminNotificationPayload(row)));
 });
 
 export default router;

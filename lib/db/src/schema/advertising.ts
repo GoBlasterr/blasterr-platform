@@ -1,6 +1,7 @@
 import { boolean, check, index, integer, jsonb, numeric, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
+import { blastsTable } from "./social.ts";
 
 const id = () => text("id").primaryKey().$defaultFn(randomUUID);
 const audited = {
@@ -52,6 +53,31 @@ export const adPromotionRequestsTable = pgTable("ad_promotion_requests", {
   index("ad_promotion_requests_advertiser_idx").on(t.advertiserId),
   index("ad_promotion_requests_type_status_idx").on(t.type, t.status), check("ad_promotion_requests_budget_nonnegative", sql`${t.budget} is null or ${t.budget} >= 0`), check("ad_promotion_requests_schedule_check", sql`${t.endsAt} is null or ${t.startsAt} is null or ${t.endsAt} >= ${t.startsAt}`),
 ]);
+
+export const adBoostRequestsTable = pgTable(
+  "ad_boost_requests",
+  {
+    id: id(),
+    blastId: text("blast_id").notNull().references(() => blastsTable.id, { onDelete: "restrict" }),
+    requesterId: text("requester_id").notNull(),
+    status: text("status").notNull().default("pending_review"),
+    budget: numeric("budget", { precision: 14, scale: 2 }),
+    placement: text("placement").notNull().default("home_feed"),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    requestNote: text("request_note").notNull().default(""),
+    reviewerClerkId: text("reviewer_clerk_id"),
+    reviewNote: text("review_note"),
+    ...audited,
+  },
+  (t) => [
+    index("ad_boost_requests_status_created_idx").on(t.status, t.createdAt),
+    index("ad_boost_requests_blast_idx").on(t.blastId),
+    check("ad_boost_requests_status_check", sql`${t.status} in ('pending_review', 'approved', 'paused', 'rejected')`),
+    check("ad_boost_requests_budget_nonnegative", sql`${t.budget} is null or ${t.budget} >= 0`),
+    check("ad_boost_requests_schedule_check", sql`${t.endsAt} is null or ${t.startsAt} is null or ${t.endsAt} >= ${t.startsAt}`),
+  ],
+);
 
 export const advertisementsTable = pgTable("advertisements", {
   id: id(), campaignId: text("campaign_id").notNull().references(() => campaignsTable.id, { onDelete: "cascade" }),

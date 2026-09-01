@@ -41,6 +41,8 @@ import type {
   AdminFeaturesResponse,
   AdminModerationAction,
   AdminModerationResponse,
+  AdminNotification,
+  AdminNotificationPage,
   AdminOverview,
   AdminReport,
   AdminReportUpdate,
@@ -73,12 +75,24 @@ import type {
   AdvertisingSettingsUpdate,
   AdvertisingTransactionPage,
   AnnouncementsResponse,
+  Appeal,
+  AppealInput,
+  AppealPage,
+  AppealReview,
   Blast,
   BlastInput,
   BlastUpdate,
   BlockInput,
   BlockState,
+  BlockedWord,
+  BlockedWordInput,
+  BlockedWordList,
+  BlockedWordUpdate,
   BookmarkState,
+  BoostRequest,
+  BoostRequestInput,
+  BoostRequestPage,
+  BoostReview,
   Campaign,
   CampaignInput,
   CampaignPage,
@@ -111,10 +125,14 @@ import type {
   ListAdminAdvertisingNotificationsParams,
   ListAdminAdvertisingReportsParams,
   ListAdminAdvertisingTransactionsParams,
+  ListAdminAppealsParams,
+  ListAdminBoostRequestsParams,
   ListAdminCampaignsParams,
   ListAdminCreativesParams,
+  ListAdminNotificationsParams,
   ListAdminPromotionsParams,
   ListTargetsParams,
+  MarkAllAdminNotificationsRead200,
   Notification,
   Profile,
   Promotion,
@@ -4137,6 +4155,750 @@ export const useUpdateAdminFeature = <TError = ErrorType<void>,
       return useMutation(getUpdateAdminFeatureMutationOptions(options));
     }
 
+export const getCreateAppealUrl = () => {
+
+
+
+
+  return `/api/appeals`
+}
+
+/**
+ * @summary Submit an appeal for a moderation decision
+ */
+export const createAppeal = async (appealInput: AppealInput, options?: Parameters<typeof customFetch>[1]): Promise<Appeal> => {
+
+  return customFetch<Appeal>(getCreateAppealUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(appealInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAppealMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAppeal>>, TError,{data: BodyType<AppealInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAppeal>>, TError,{data: BodyType<AppealInput>}, TContext> => {
+
+const mutationKey = ['createAppeal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAppeal>>, {data: BodyType<AppealInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAppeal(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAppealMutationResult = NonNullable<Awaited<ReturnType<typeof createAppeal>>>
+    export type CreateAppealMutationBody = BodyType<AppealInput>
+    export type CreateAppealMutationError = ErrorType<void>
+
+    /**
+ * @summary Submit an appeal for a moderation decision
+ */
+export const useCreateAppeal = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAppeal>>, TError,{data: BodyType<AppealInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAppeal>>,
+        TError,
+        {data: BodyType<AppealInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAppealMutationOptions(options));
+    }
+
+export const getListAdminAppealsUrl = (params?: ListAdminAppealsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/appeals?${stringifiedParams}` : `/api/admin/appeals`
+}
+
+/**
+ * @summary List moderation appeals
+ */
+export const listAdminAppeals = async (params?: ListAdminAppealsParams, options?: Parameters<typeof customFetch>[1]): Promise<AppealPage> => {
+
+  return customFetch<AppealPage>(getListAdminAppealsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminAppealsQueryKey = (params?: ListAdminAppealsParams,) => {
+    return [
+    `/api/admin/appeals`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminAppealsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminAppeals>>, TError = ErrorType<void>>(params?: ListAdminAppealsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAppeals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminAppealsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminAppeals>>> = ({ signal }) => listAdminAppeals(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminAppeals>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminAppealsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminAppeals>>>
+export type ListAdminAppealsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List moderation appeals
+ */
+
+export function useListAdminAppeals<TData = Awaited<ReturnType<typeof listAdminAppeals>>, TError = ErrorType<void>>(
+ params?: ListAdminAppealsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminAppeals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminAppealsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReviewAdminAppealUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/appeals/${id}`
+}
+
+/**
+ * @summary Review a moderation appeal
+ */
+export const reviewAdminAppeal = async (id: string,
+    appealReview: AppealReview, options?: Parameters<typeof customFetch>[1]): Promise<Appeal> => {
+
+  return customFetch<Appeal>(getReviewAdminAppealUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(appealReview)
+  }
+);}
+
+
+
+
+
+export const getReviewAdminAppealMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdminAppeal>>, TError,{id: string;data: BodyType<AppealReview>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewAdminAppeal>>, TError,{id: string;data: BodyType<AppealReview>}, TContext> => {
+
+const mutationKey = ['reviewAdminAppeal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewAdminAppeal>>, {id: string;data: BodyType<AppealReview>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reviewAdminAppeal(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewAdminAppealMutationResult = NonNullable<Awaited<ReturnType<typeof reviewAdminAppeal>>>
+    export type ReviewAdminAppealMutationBody = BodyType<AppealReview>
+    export type ReviewAdminAppealMutationError = ErrorType<void>
+
+    /**
+ * @summary Review a moderation appeal
+ */
+export const useReviewAdminAppeal = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdminAppeal>>, TError,{id: string;data: BodyType<AppealReview>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reviewAdminAppeal>>,
+        TError,
+        {id: string;data: BodyType<AppealReview>},
+        TContext
+      > => {
+      return useMutation(getReviewAdminAppealMutationOptions(options));
+    }
+
+export const getListAdminBlockedWordsUrl = () => {
+
+
+
+
+  return `/api/admin/blocked-words`
+}
+
+/**
+ * @summary List blocked and flagged terms
+ */
+export const listAdminBlockedWords = async ( options?: Parameters<typeof customFetch>[1]): Promise<BlockedWordList> => {
+
+  return customFetch<BlockedWordList>(getListAdminBlockedWordsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminBlockedWordsQueryKey = () => {
+    return [
+    `/api/admin/blocked-words`
+    ] as const;
+    }
+
+
+export const getListAdminBlockedWordsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminBlockedWords>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminBlockedWords>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminBlockedWordsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminBlockedWords>>> = ({ signal }) => listAdminBlockedWords({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminBlockedWords>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminBlockedWordsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminBlockedWords>>>
+export type ListAdminBlockedWordsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List blocked and flagged terms
+ */
+
+export function useListAdminBlockedWords<TData = Awaited<ReturnType<typeof listAdminBlockedWords>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminBlockedWords>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminBlockedWordsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAdminBlockedWordUrl = () => {
+
+
+
+
+  return `/api/admin/blocked-words`
+}
+
+/**
+ * @summary Add a blocked or flagged term
+ */
+export const createAdminBlockedWord = async (blockedWordInput: BlockedWordInput, options?: Parameters<typeof customFetch>[1]): Promise<BlockedWord> => {
+
+  return customFetch<BlockedWord>(getCreateAdminBlockedWordUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(blockedWordInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAdminBlockedWordMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminBlockedWord>>, TError,{data: BodyType<BlockedWordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminBlockedWord>>, TError,{data: BodyType<BlockedWordInput>}, TContext> => {
+
+const mutationKey = ['createAdminBlockedWord'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminBlockedWord>>, {data: BodyType<BlockedWordInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAdminBlockedWord(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminBlockedWordMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminBlockedWord>>>
+    export type CreateAdminBlockedWordMutationBody = BodyType<BlockedWordInput>
+    export type CreateAdminBlockedWordMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a blocked or flagged term
+ */
+export const useCreateAdminBlockedWord = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminBlockedWord>>, TError,{data: BodyType<BlockedWordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminBlockedWord>>,
+        TError,
+        {data: BodyType<BlockedWordInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAdminBlockedWordMutationOptions(options));
+    }
+
+export const getUpdateAdminBlockedWordUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/blocked-words/${id}`
+}
+
+/**
+ * @summary Update a blocked or flagged term
+ */
+export const updateAdminBlockedWord = async (id: string,
+    blockedWordUpdate: BlockedWordUpdate, options?: Parameters<typeof customFetch>[1]): Promise<BlockedWord> => {
+
+  return customFetch<BlockedWord>(getUpdateAdminBlockedWordUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(blockedWordUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminBlockedWordMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminBlockedWord>>, TError,{id: string;data: BodyType<BlockedWordUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminBlockedWord>>, TError,{id: string;data: BodyType<BlockedWordUpdate>}, TContext> => {
+
+const mutationKey = ['updateAdminBlockedWord'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminBlockedWord>>, {id: string;data: BodyType<BlockedWordUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminBlockedWord(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminBlockedWordMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminBlockedWord>>>
+    export type UpdateAdminBlockedWordMutationBody = BodyType<BlockedWordUpdate>
+    export type UpdateAdminBlockedWordMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a blocked or flagged term
+ */
+export const useUpdateAdminBlockedWord = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminBlockedWord>>, TError,{id: string;data: BodyType<BlockedWordUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminBlockedWord>>,
+        TError,
+        {id: string;data: BodyType<BlockedWordUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminBlockedWordMutationOptions(options));
+    }
+
+export const getDeleteAdminBlockedWordUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/blocked-words/${id}`
+}
+
+/**
+ * @summary Delete a moderation term
+ */
+export const deleteAdminBlockedWord = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteAdminBlockedWordUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteAdminBlockedWordMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminBlockedWord>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAdminBlockedWord>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteAdminBlockedWord'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAdminBlockedWord>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAdminBlockedWord(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAdminBlockedWordMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAdminBlockedWord>>>
+
+    export type DeleteAdminBlockedWordMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a moderation term
+ */
+export const useDeleteAdminBlockedWord = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminBlockedWord>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAdminBlockedWord>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteAdminBlockedWordMutationOptions(options));
+    }
+
+export const getListAdminNotificationsUrl = (params?: ListAdminNotificationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/notifications?${stringifiedParams}` : `/api/admin/notifications`
+}
+
+/**
+ * @summary List platform operations notifications
+ */
+export const listAdminNotifications = async (params?: ListAdminNotificationsParams, options?: Parameters<typeof customFetch>[1]): Promise<AdminNotificationPage> => {
+
+  return customFetch<AdminNotificationPage>(getListAdminNotificationsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminNotificationsQueryKey = (params?: ListAdminNotificationsParams,) => {
+    return [
+    `/api/admin/notifications`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminNotificationsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminNotifications>>, TError = ErrorType<void>>(params?: ListAdminNotificationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminNotifications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminNotificationsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminNotifications>>> = ({ signal }) => listAdminNotifications(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminNotifications>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminNotificationsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminNotifications>>>
+export type ListAdminNotificationsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List platform operations notifications
+ */
+
+export function useListAdminNotifications<TData = Awaited<ReturnType<typeof listAdminNotifications>>, TError = ErrorType<void>>(
+ params?: ListAdminNotificationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminNotifications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminNotificationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMarkAllAdminNotificationsReadUrl = () => {
+
+
+
+
+  return `/api/admin/notifications/read-all`
+}
+
+/**
+ * @summary Mark all visible operations notifications as read
+ */
+export const markAllAdminNotificationsRead = async ( options?: Parameters<typeof customFetch>[1]): Promise<MarkAllAdminNotificationsRead200> => {
+
+  return customFetch<MarkAllAdminNotificationsRead200>(getMarkAllAdminNotificationsReadUrl(),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+
+export const getMarkAllAdminNotificationsReadMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markAllAdminNotificationsRead>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markAllAdminNotificationsRead>>, TError,void, TContext> => {
+
+const mutationKey = ['markAllAdminNotificationsRead'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markAllAdminNotificationsRead>>, void> = () => {
+
+
+          return  markAllAdminNotificationsRead(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkAllAdminNotificationsReadMutationResult = NonNullable<Awaited<ReturnType<typeof markAllAdminNotificationsRead>>>
+
+    export type MarkAllAdminNotificationsReadMutationError = ErrorType<void>
+
+    /**
+ * @summary Mark all visible operations notifications as read
+ */
+export const useMarkAllAdminNotificationsRead = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markAllAdminNotificationsRead>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof markAllAdminNotificationsRead>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getMarkAllAdminNotificationsReadMutationOptions(options));
+    }
+
+export const getMarkAdminNotificationReadUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/notifications/${id}/read`
+}
+
+/**
+ * @summary Mark an operations notification as read
+ */
+export const markAdminNotificationRead = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<AdminNotification> => {
+
+  return customFetch<AdminNotification>(getMarkAdminNotificationReadUrl(id),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+
+export const getMarkAdminNotificationReadMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markAdminNotificationRead>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markAdminNotificationRead>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['markAdminNotificationRead'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markAdminNotificationRead>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  markAdminNotificationRead(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkAdminNotificationReadMutationResult = NonNullable<Awaited<ReturnType<typeof markAdminNotificationRead>>>
+
+    export type MarkAdminNotificationReadMutationError = ErrorType<void>
+
+    /**
+ * @summary Mark an operations notification as read
+ */
+export const useMarkAdminNotificationRead = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markAdminNotificationRead>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof markAdminNotificationRead>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getMarkAdminNotificationReadMutationOptions(options));
+    }
+
 export const getGetAdminAdvertisingOverviewUrl = () => {
 
 
@@ -5447,6 +6209,233 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getReviewAdminPromotionMutationOptions(options));
+    }
+
+export const getCreateBoostRequestUrl = () => {
+
+
+
+
+  return `/api/advertising/boosts`
+}
+
+/**
+ * @summary Submit a Blast boost request
+ */
+export const createBoostRequest = async (boostRequestInput: BoostRequestInput, options?: Parameters<typeof customFetch>[1]): Promise<BoostRequest> => {
+
+  return customFetch<BoostRequest>(getCreateBoostRequestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(boostRequestInput)
+  }
+);}
+
+
+
+
+
+export const getCreateBoostRequestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBoostRequest>>, TError,{data: BodyType<BoostRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createBoostRequest>>, TError,{data: BodyType<BoostRequestInput>}, TContext> => {
+
+const mutationKey = ['createBoostRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBoostRequest>>, {data: BodyType<BoostRequestInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createBoostRequest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateBoostRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createBoostRequest>>>
+    export type CreateBoostRequestMutationBody = BodyType<BoostRequestInput>
+    export type CreateBoostRequestMutationError = ErrorType<void>
+
+    /**
+ * @summary Submit a Blast boost request
+ */
+export const useCreateBoostRequest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBoostRequest>>, TError,{data: BodyType<BoostRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createBoostRequest>>,
+        TError,
+        {data: BodyType<BoostRequestInput>},
+        TContext
+      > => {
+      return useMutation(getCreateBoostRequestMutationOptions(options));
+    }
+
+export const getListAdminBoostRequestsUrl = (params?: ListAdminBoostRequestsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/advertising/boosts?${stringifiedParams}` : `/api/admin/advertising/boosts`
+}
+
+/**
+ * @summary List Blast boost requests
+ */
+export const listAdminBoostRequests = async (params?: ListAdminBoostRequestsParams, options?: Parameters<typeof customFetch>[1]): Promise<BoostRequestPage> => {
+
+  return customFetch<BoostRequestPage>(getListAdminBoostRequestsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminBoostRequestsQueryKey = (params?: ListAdminBoostRequestsParams,) => {
+    return [
+    `/api/admin/advertising/boosts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminBoostRequestsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminBoostRequests>>, TError = ErrorType<void>>(params?: ListAdminBoostRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminBoostRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminBoostRequestsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminBoostRequests>>> = ({ signal }) => listAdminBoostRequests(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminBoostRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminBoostRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminBoostRequests>>>
+export type ListAdminBoostRequestsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List Blast boost requests
+ */
+
+export function useListAdminBoostRequests<TData = Awaited<ReturnType<typeof listAdminBoostRequests>>, TError = ErrorType<void>>(
+ params?: ListAdminBoostRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminBoostRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminBoostRequestsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReviewAdminBoostRequestUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/advertising/boosts/${id}/review`
+}
+
+/**
+ * @summary Review a Blast boost request
+ */
+export const reviewAdminBoostRequest = async (id: string,
+    boostReview: BoostReview, options?: Parameters<typeof customFetch>[1]): Promise<BoostRequest> => {
+
+  return customFetch<BoostRequest>(getReviewAdminBoostRequestUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(boostReview)
+  }
+);}
+
+
+
+
+
+export const getReviewAdminBoostRequestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdminBoostRequest>>, TError,{id: string;data: BodyType<BoostReview>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewAdminBoostRequest>>, TError,{id: string;data: BodyType<BoostReview>}, TContext> => {
+
+const mutationKey = ['reviewAdminBoostRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewAdminBoostRequest>>, {id: string;data: BodyType<BoostReview>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reviewAdminBoostRequest(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewAdminBoostRequestMutationResult = NonNullable<Awaited<ReturnType<typeof reviewAdminBoostRequest>>>
+    export type ReviewAdminBoostRequestMutationBody = BodyType<BoostReview>
+    export type ReviewAdminBoostRequestMutationError = ErrorType<void>
+
+    /**
+ * @summary Review a Blast boost request
+ */
+export const useReviewAdminBoostRequest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdminBoostRequest>>, TError,{id: string;data: BodyType<BoostReview>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reviewAdminBoostRequest>>,
+        TError,
+        {id: string;data: BodyType<BoostReview>},
+        TContext
+      > => {
+      return useMutation(getReviewAdminBoostRequestMutationOptions(options));
     }
 
 export const getListAdminAdvertisementsUrl = (params?: ListAdminAdvertisementsParams,) => {

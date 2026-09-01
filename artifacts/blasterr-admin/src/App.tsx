@@ -12,7 +12,6 @@ import NotFound from '@/pages/not-found';
 import OverviewPage from '@/pages/overview';
 import MediaPage from '@/pages/media';
 import { AdminShell } from '@/components/layout/admin-shell';
-import { IntegrationRequired } from '@/components/layout/integration-required';
 import {
   Route,
   Switch,
@@ -55,6 +54,10 @@ import AdvertisingReportsPage from '@/pages/advertising/ad-reports';
 import AdvertisingNotificationsPage from '@/pages/advertising/notifications';
 import CmsPage from '@/pages/cms';
 import TrendingPage from '@/pages/trending';
+import BoostedContentPage from '@/pages/advertising/boosted';
+import BlockedWordsPage from '@/pages/blocked-words';
+import AppealsPage from '@/pages/appeals';
+import NotificationsPage from '@/pages/notifications';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -87,8 +90,8 @@ function AdminRouter() {
           <Route path="/advertising/settings" component={AdvertisingSettingsPage} />
           <Route path="/advertising/audit" component={AdvertisingAuditPage} />
 
-          {/* Integration Required Advertising Routes */}
-          <Route path="/advertising/boosted" component={() => <IntegrationRequired moduleName="Boosted Content" />} />
+          {/* Additional Advertising Routes */}
+          <Route path="/advertising/boosted" component={BoostedContentPage} />
           <Route path="/advertising/sponsored" component={() => <PromotionsPage defaultType="sponsored_content" />} />
           <Route path="/advertising/trends" component={() => <PromotionsPage defaultType="sponsored_trend" />} />
           <Route path="/advertising/hashtags" component={() => <PromotionsPage defaultType="sponsored_hashtag" />} />
@@ -118,10 +121,10 @@ function AdminRouter() {
           <Route path="/revenue" component={() => <Redirect to="/advertising/revenue" />} />
           <Route path="/announcements" component={AnnouncementsPage} />
           <Route path="/feature-controls" component={FeatureControlsPage} />
-          <Route path="/blocked-words" component={() => <IntegrationRequired moduleName="Blocked Words" />} />
-          <Route path="/appeals" component={() => <IntegrationRequired moduleName="Appeals" />} />
+          <Route path="/blocked-words" component={BlockedWordsPage} />
+          <Route path="/appeals" component={AppealsPage} />
           <Route path="/trending" component={TrendingPage} />
-          <Route path="/notifications" component={() => <IntegrationRequired moduleName="Notifications" />} />
+          <Route path="/notifications" component={NotificationsPage} />
           
           <Route component={NotFound} />
         </Switch>

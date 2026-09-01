@@ -919,6 +919,144 @@ paths:
         "401": { description: Authentication required }
         "403": { description: Admin access required }
         "404": { description: Feature not found }
+  /appeals:
+    post:
+      operationId: createAppeal
+      tags: [admin]
+      summary: Submit an appeal for a moderation decision
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppealInput" }
+      responses:
+        "201": { description: Appeal submitted, content: { application/json: { schema: { $ref: "#/components/schemas/Appeal" } } } }
+        "400": { description: Invalid appeal }
+        "401": { description: Authentication required }
+  /admin/appeals:
+    get:
+      operationId: listAdminAppeals
+      tags: [admin]
+      summary: List moderation appeals
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+        - { name: status, in: query, schema: { type: string, enum: [all, open, in_review, approved, rejected] } }
+      responses:
+        "200": { description: Appeal queue, content: { application/json: { schema: { $ref: "#/components/schemas/AppealPage" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/appeals/{id}:
+    patch:
+      operationId: reviewAdminAppeal
+      tags: [admin]
+      summary: Review a moderation appeal
+      security: [{ clerkSession: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppealReview" }
+      responses:
+        "200": { description: Reviewed appeal, content: { application/json: { schema: { $ref: "#/components/schemas/Appeal" } } } }
+        "400": { description: Invalid appeal review }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Appeal not found }
+  /admin/blocked-words:
+    get:
+      operationId: listAdminBlockedWords
+      tags: [admin]
+      summary: List blocked and flagged terms
+      security: [{ clerkSession: [] }]
+      responses:
+        "200": { description: Moderation terms, content: { application/json: { schema: { $ref: "#/components/schemas/BlockedWordList" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+    post:
+      operationId: createAdminBlockedWord
+      tags: [admin]
+      summary: Add a blocked or flagged term
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BlockedWordInput" }
+      responses:
+        "201": { description: Created moderation term, content: { application/json: { schema: { $ref: "#/components/schemas/BlockedWord" } } } }
+        "400": { description: Invalid moderation term }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "409": { description: Term already exists }
+  /admin/blocked-words/{id}:
+    patch:
+      operationId: updateAdminBlockedWord
+      tags: [admin]
+      summary: Update a blocked or flagged term
+      security: [{ clerkSession: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BlockedWordUpdate" }
+      responses:
+        "200": { description: Updated moderation term, content: { application/json: { schema: { $ref: "#/components/schemas/BlockedWord" } } } }
+        "400": { description: Invalid moderation term update }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Moderation term not found }
+        "409": { description: Term already exists }
+    delete:
+      operationId: deleteAdminBlockedWord
+      tags: [admin]
+      summary: Delete a moderation term
+      security: [{ clerkSession: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "204": { description: Moderation term deleted }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Moderation term not found }
+  /admin/notifications:
+    get:
+      operationId: listAdminNotifications
+      tags: [admin]
+      summary: List platform operations notifications
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { name: unreadOnly, in: query, schema: { type: boolean, default: false } }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200": { description: Operations notifications, content: { application/json: { schema: { $ref: "#/components/schemas/AdminNotificationPage" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/notifications/read-all:
+    patch:
+      operationId: markAllAdminNotificationsRead
+      tags: [admin]
+      summary: Mark all visible operations notifications as read
+      security: [{ clerkSession: [] }]
+      responses:
+        "200": { description: Updated unread count, content: { application/json: { schema: { type: object, required: [unreadCount], properties: { unreadCount: { type: number } } } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/notifications/{id}/read:
+    patch:
+      operationId: markAdminNotificationRead
+      tags: [admin]
+      summary: Mark an operations notification as read
+      security: [{ clerkSession: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Updated notification, content: { application/json: { schema: { $ref: "#/components/schemas/AdminNotification" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Notification not found }
   /admin/advertising/overview:
     get:
       operationId: getAdminAdvertisingOverview
@@ -1031,6 +1169,50 @@ paths:
       parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PromotionReview" } } } }
       responses: { "200": { description: Reviewed promotion, content: { application/json: { schema: { $ref: "#/components/schemas/Promotion" } } } } }
+  /advertising/boosts:
+    post:
+      operationId: createBoostRequest
+      tags: [advertising]
+      summary: Submit a Blast boost request
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/BoostRequestInput" } } }
+      responses:
+        "201": { description: Boost request submitted, content: { application/json: { schema: { $ref: "#/components/schemas/BoostRequest" } } } }
+        "400": { description: Invalid boost request }
+        "401": { description: Authentication required }
+        "404": { description: Blast not found }
+  /admin/advertising/boosts:
+    get:
+      operationId: listAdminBoostRequests
+      tags: [admin, advertising]
+      summary: List Blast boost requests
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+        - { name: status, in: query, schema: { type: string, enum: [all, pending_review, approved, paused, rejected] } }
+      responses:
+        "200": { description: Boost request queue, content: { application/json: { schema: { $ref: "#/components/schemas/BoostRequestPage" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+  /admin/advertising/boosts/{id}/review:
+    patch:
+      operationId: reviewAdminBoostRequest
+      tags: [admin, advertising]
+      summary: Review a Blast boost request
+      security: [{ clerkSession: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/BoostReview" } } }
+      responses:
+        "200": { description: Reviewed boost request, content: { application/json: { schema: { $ref: "#/components/schemas/BoostRequest" } } } }
+        "400": { description: Invalid boost review }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "404": { description: Boost request not found }
   /admin/advertising/advertisements:
     get:
       operationId: listAdminAdvertisements
@@ -2318,3 +2500,126 @@ components:
       required: [enabled]
       properties:
         enabled: { type: boolean }
+    Appeal:
+      type: object
+      required: [id, appellantId, targetType, targetId, reason, details, status, reviewerClerkId, reviewerNote, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        appellantId: { type: string }
+        targetType: { type: string, enum: [user, blast, comment, target] }
+        targetId: { type: string }
+        reason: { type: string }
+        details: { type: string }
+        status: { type: string, enum: [open, in_review, approved, rejected] }
+        reviewerClerkId: { type: [string, "null"] }
+        reviewerNote: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    AppealInput:
+      type: object
+      required: [targetType, targetId, reason]
+      properties:
+        targetType: { type: string, enum: [user, blast, comment, target] }
+        targetId: { type: string, minLength: 1, maxLength: 200 }
+        reason: { type: string, minLength: 1, maxLength: 160 }
+        details: { type: string, maxLength: 2000 }
+    AppealReview:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [in_review, approved, rejected] }
+        note: { type: string, maxLength: 1000 }
+    AppealPage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Appeal" } }
+        page: { type: number }
+        limit: { type: number }
+        total: { type: number }
+        hasMore: { type: boolean }
+    BlockedWord:
+      type: object
+      required: [id, term, action, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        term: { type: string }
+        action: { type: string, enum: [block, flag] }
+        status: { type: string, enum: [active, disabled] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    BlockedWordInput:
+      type: object
+      required: [term, action]
+      properties:
+        term: { type: string, minLength: 1, maxLength: 120 }
+        action: { type: string, enum: [block, flag] }
+    BlockedWordUpdate:
+      type: object
+      properties:
+        term: { type: string, minLength: 1, maxLength: 120 }
+        action: { type: string, enum: [block, flag] }
+        status: { type: string, enum: [active, disabled] }
+    BlockedWordList:
+      type: array
+      items: { $ref: "#/components/schemas/BlockedWord" }
+    AdminNotification:
+      type: object
+      required: [id, category, title, message, entityType, entityId, read, createdAt]
+      properties:
+        id: { type: string }
+        category: { type: string }
+        title: { type: string }
+        message: { type: string }
+        entityType: { type: [string, "null"] }
+        entityId: { type: [string, "null"] }
+        read: { type: boolean }
+        createdAt: { type: string }
+    AdminNotificationPage:
+      type: object
+      required: [items, unreadCount]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AdminNotification" } }
+        unreadCount: { type: number }
+    BoostRequest:
+      type: object
+      required: [id, blastId, requesterId, status, budget, placement, startsAt, endsAt, requestNote, reviewerClerkId, reviewNote, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        blastId: { type: string }
+        requesterId: { type: string }
+        status: { type: string, enum: [pending_review, approved, paused, rejected] }
+        budget: { type: [number, "null"] }
+        placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] }
+        startsAt: { type: [string, "null"] }
+        endsAt: { type: [string, "null"] }
+        requestNote: { type: string }
+        reviewerClerkId: { type: [string, "null"] }
+        reviewNote: { type: [string, "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    BoostRequestInput:
+      type: object
+      required: [blastId, placement]
+      properties:
+        blastId: { type: string }
+        budget: { type: number, minimum: 0 }
+        placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] }
+        startsAt: { type: string }
+        endsAt: { type: string }
+        requestNote: { type: string, maxLength: 1000 }
+    BoostReview:
+      type: object
+      required: [status, note]
+      properties:
+        status: { type: string, enum: [approved, paused, rejected] }
+        note: { type: string, minLength: 1, maxLength: 1000 }
+    BoostRequestPage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/BoostRequest" } }
+        page: { type: number }
+        limit: { type: number }
+        total: { type: number }
+        hasMore: { type: boolean }

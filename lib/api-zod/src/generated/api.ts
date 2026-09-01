@@ -2393,6 +2393,236 @@ export const UpdateAdminFeatureResponse = zod.object({
 })
 
 
+/**
+ * @summary Submit an appeal for a moderation decision
+ */
+export const createAppealBodyTargetIdMax = 200;
+
+export const createAppealBodyReasonMax = 160;
+
+export const createAppealBodyDetailsMax = 2000;
+
+
+
+export const CreateAppealBody = zod.object({
+  "targetType": zod.enum(['user', 'blast', 'comment', 'target']),
+  "targetId": zod.string().min(1).max(createAppealBodyTargetIdMax),
+  "reason": zod.string().min(1).max(createAppealBodyReasonMax),
+  "details": zod.string().max(createAppealBodyDetailsMax).optional()
+})
+
+export const CreateAppealResponse = zod.object({
+  "id": zod.string(),
+  "appellantId": zod.string(),
+  "targetType": zod.enum(['user', 'blast', 'comment', 'target']),
+  "targetId": zod.string(),
+  "reason": zod.string(),
+  "details": zod.string(),
+  "status": zod.enum(['open', 'in_review', 'approved', 'rejected']),
+  "reviewerClerkId": zod.string().nullable(),
+  "reviewerNote": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary List moderation appeals
+ */
+export const listAdminAppealsQueryPageDefault = 1;
+
+export const listAdminAppealsQueryLimitDefault = 25;
+export const listAdminAppealsQueryLimitMax = 100;
+
+
+
+export const ListAdminAppealsQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminAppealsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminAppealsQueryLimitMax).default(listAdminAppealsQueryLimitDefault),
+  "status": zod.enum(['all', 'open', 'in_review', 'approved', 'rejected']).optional()
+})
+
+export const ListAdminAppealsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "appellantId": zod.string(),
+  "targetType": zod.enum(['user', 'blast', 'comment', 'target']),
+  "targetId": zod.string(),
+  "reason": zod.string(),
+  "details": zod.string(),
+  "status": zod.enum(['open', 'in_review', 'approved', 'rejected']),
+  "reviewerClerkId": zod.string().nullable(),
+  "reviewerNote": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+/**
+ * @summary Review a moderation appeal
+ */
+export const ReviewAdminAppealParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reviewAdminAppealBodyNoteMax = 1000;
+
+
+
+export const ReviewAdminAppealBody = zod.object({
+  "status": zod.enum(['in_review', 'approved', 'rejected']),
+  "note": zod.string().max(reviewAdminAppealBodyNoteMax).optional()
+})
+
+export const ReviewAdminAppealResponse = zod.object({
+  "id": zod.string(),
+  "appellantId": zod.string(),
+  "targetType": zod.enum(['user', 'blast', 'comment', 'target']),
+  "targetId": zod.string(),
+  "reason": zod.string(),
+  "details": zod.string(),
+  "status": zod.enum(['open', 'in_review', 'approved', 'rejected']),
+  "reviewerClerkId": zod.string().nullable(),
+  "reviewerNote": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary List blocked and flagged terms
+ */
+export const ListAdminBlockedWordsResponseItem = zod.object({
+  "id": zod.string(),
+  "term": zod.string(),
+  "action": zod.enum(['block', 'flag']),
+  "status": zod.enum(['active', 'disabled']),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListAdminBlockedWordsResponse = zod.array(ListAdminBlockedWordsResponseItem)
+
+
+/**
+ * @summary Add a blocked or flagged term
+ */
+export const createAdminBlockedWordBodyTermMax = 120;
+
+
+
+export const CreateAdminBlockedWordBody = zod.object({
+  "term": zod.string().min(1).max(createAdminBlockedWordBodyTermMax),
+  "action": zod.enum(['block', 'flag'])
+})
+
+export const CreateAdminBlockedWordResponse = zod.object({
+  "id": zod.string(),
+  "term": zod.string(),
+  "action": zod.enum(['block', 'flag']),
+  "status": zod.enum(['active', 'disabled']),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a blocked or flagged term
+ */
+export const UpdateAdminBlockedWordParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminBlockedWordBodyTermMax = 120;
+
+
+
+export const UpdateAdminBlockedWordBody = zod.object({
+  "term": zod.string().min(1).max(updateAdminBlockedWordBodyTermMax).optional(),
+  "action": zod.enum(['block', 'flag']).optional(),
+  "status": zod.enum(['active', 'disabled']).optional()
+})
+
+export const UpdateAdminBlockedWordResponse = zod.object({
+  "id": zod.string(),
+  "term": zod.string(),
+  "action": zod.enum(['block', 'flag']),
+  "status": zod.enum(['active', 'disabled']),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a moderation term
+ */
+export const DeleteAdminBlockedWordParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteAdminBlockedWordResponse = zod.void()
+
+
+/**
+ * @summary List platform operations notifications
+ */
+export const listAdminNotificationsQueryUnreadOnlyDefault = false;
+export const listAdminNotificationsQueryLimitDefault = 25;
+export const listAdminNotificationsQueryLimitMax = 100;
+
+
+
+export const ListAdminNotificationsQueryParams = zod.object({
+  "unreadOnly": zod.coerce.boolean().default(listAdminNotificationsQueryUnreadOnlyDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminNotificationsQueryLimitMax).default(listAdminNotificationsQueryLimitDefault)
+})
+
+export const ListAdminNotificationsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "category": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "entityType": zod.string().nullable(),
+  "entityId": zod.string().nullable(),
+  "read": zod.boolean(),
+  "createdAt": zod.string()
+})),
+  "unreadCount": zod.number()
+})
+
+
+/**
+ * @summary Mark all visible operations notifications as read
+ */
+export const MarkAllAdminNotificationsReadResponse = zod.object({
+  "unreadCount": zod.number()
+})
+
+
+/**
+ * @summary Mark an operations notification as read
+ */
+export const MarkAdminNotificationReadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const MarkAdminNotificationReadResponse = zod.object({
+  "id": zod.string(),
+  "category": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "entityType": zod.string().nullable(),
+  "entityId": zod.string().nullable(),
+  "read": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
 export const GetAdminAdvertisingOverviewResponse = zod.object({
   "advertiserCount": zod.number(),
   "campaignCount": zod.number(),
@@ -3361,6 +3591,113 @@ export const ReviewAdminPromotionResponse = zod.object({
   "reviewedByClerkId": zod.string().nullable(),
   "reviewedAt": zod.string().nullable(),
   "reviewReason": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Submit a Blast boost request
+ */
+export const createBoostRequestBodyBudgetMin = 0;
+
+export const createBoostRequestBodyRequestNoteMax = 1000;
+
+
+
+export const CreateBoostRequestBody = zod.object({
+  "blastId": zod.string(),
+  "budget": zod.number().min(createBoostRequestBodyBudgetMin).optional(),
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
+  "startsAt": zod.string().optional(),
+  "endsAt": zod.string().optional(),
+  "requestNote": zod.string().max(createBoostRequestBodyRequestNoteMax).optional()
+})
+
+export const CreateBoostRequestResponse = zod.object({
+  "id": zod.string(),
+  "blastId": zod.string(),
+  "requesterId": zod.string(),
+  "status": zod.enum(['pending_review', 'approved', 'paused', 'rejected']),
+  "budget": zod.number().nullable(),
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "requestNote": zod.string(),
+  "reviewerClerkId": zod.string().nullable(),
+  "reviewNote": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary List Blast boost requests
+ */
+export const listAdminBoostRequestsQueryPageDefault = 1;
+
+export const listAdminBoostRequestsQueryLimitDefault = 25;
+export const listAdminBoostRequestsQueryLimitMax = 100;
+
+
+
+export const ListAdminBoostRequestsQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminBoostRequestsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminBoostRequestsQueryLimitMax).default(listAdminBoostRequestsQueryLimitDefault),
+  "status": zod.enum(['all', 'pending_review', 'approved', 'paused', 'rejected']).optional()
+})
+
+export const ListAdminBoostRequestsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "blastId": zod.string(),
+  "requesterId": zod.string(),
+  "status": zod.enum(['pending_review', 'approved', 'paused', 'rejected']),
+  "budget": zod.number().nullable(),
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "requestNote": zod.string(),
+  "reviewerClerkId": zod.string().nullable(),
+  "reviewNote": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+/**
+ * @summary Review a Blast boost request
+ */
+export const ReviewAdminBoostRequestParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reviewAdminBoostRequestBodyNoteMax = 1000;
+
+
+
+export const ReviewAdminBoostRequestBody = zod.object({
+  "status": zod.enum(['approved', 'paused', 'rejected']),
+  "note": zod.string().min(1).max(reviewAdminBoostRequestBodyNoteMax)
+})
+
+export const ReviewAdminBoostRequestResponse = zod.object({
+  "id": zod.string(),
+  "blastId": zod.string(),
+  "requesterId": zod.string(),
+  "status": zod.enum(['pending_review', 'approved', 'paused', 'rejected']),
+  "budget": zod.number().nullable(),
+  "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
+  "startsAt": zod.string().nullable(),
+  "endsAt": zod.string().nullable(),
+  "requestNote": zod.string(),
+  "reviewerClerkId": zod.string().nullable(),
+  "reviewNote": zod.string().nullable(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })

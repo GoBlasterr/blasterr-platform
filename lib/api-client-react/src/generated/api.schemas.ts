@@ -1918,6 +1918,272 @@ export interface AdminFeatureUpdate {
   enabled: boolean;
 }
 
+export type AppealTargetType = typeof AppealTargetType[keyof typeof AppealTargetType];
+
+
+export const AppealTargetType = {
+  user: 'user',
+  blast: 'blast',
+  comment: 'comment',
+  target: 'target',
+} as const;
+
+export type AppealStatus = typeof AppealStatus[keyof typeof AppealStatus];
+
+
+export const AppealStatus = {
+  open: 'open',
+  in_review: 'in_review',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface Appeal {
+  id: string;
+  appellantId: string;
+  targetType: AppealTargetType;
+  targetId: string;
+  reason: string;
+  details: string;
+  status: AppealStatus;
+  /** @nullable */
+  reviewerClerkId: string | null;
+  reviewerNote: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AppealInputTargetType = typeof AppealInputTargetType[keyof typeof AppealInputTargetType];
+
+
+export const AppealInputTargetType = {
+  user: 'user',
+  blast: 'blast',
+  comment: 'comment',
+  target: 'target',
+} as const;
+
+export interface AppealInput {
+  targetType: AppealInputTargetType;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  targetId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  reason: string;
+  /** @maxLength 2000 */
+  details?: string;
+}
+
+export type AppealReviewStatus = typeof AppealReviewStatus[keyof typeof AppealReviewStatus];
+
+
+export const AppealReviewStatus = {
+  in_review: 'in_review',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface AppealReview {
+  status: AppealReviewStatus;
+  /** @maxLength 1000 */
+  note?: string;
+}
+
+export interface AppealPage {
+  items: Appeal[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export type BlockedWordAction = typeof BlockedWordAction[keyof typeof BlockedWordAction];
+
+
+export const BlockedWordAction = {
+  block: 'block',
+  flag: 'flag',
+} as const;
+
+export type BlockedWordStatus = typeof BlockedWordStatus[keyof typeof BlockedWordStatus];
+
+
+export const BlockedWordStatus = {
+  active: 'active',
+  disabled: 'disabled',
+} as const;
+
+export interface BlockedWord {
+  id: string;
+  term: string;
+  action: BlockedWordAction;
+  status: BlockedWordStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type BlockedWordInputAction = typeof BlockedWordInputAction[keyof typeof BlockedWordInputAction];
+
+
+export const BlockedWordInputAction = {
+  block: 'block',
+  flag: 'flag',
+} as const;
+
+export interface BlockedWordInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  term: string;
+  action: BlockedWordInputAction;
+}
+
+export type BlockedWordUpdateAction = typeof BlockedWordUpdateAction[keyof typeof BlockedWordUpdateAction];
+
+
+export const BlockedWordUpdateAction = {
+  block: 'block',
+  flag: 'flag',
+} as const;
+
+export type BlockedWordUpdateStatus = typeof BlockedWordUpdateStatus[keyof typeof BlockedWordUpdateStatus];
+
+
+export const BlockedWordUpdateStatus = {
+  active: 'active',
+  disabled: 'disabled',
+} as const;
+
+export interface BlockedWordUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  term?: string;
+  action?: BlockedWordUpdateAction;
+  status?: BlockedWordUpdateStatus;
+}
+
+export type BlockedWordList = BlockedWord[];
+
+export interface AdminNotification {
+  id: string;
+  category: string;
+  title: string;
+  message: string;
+  /** @nullable */
+  entityType: string | null;
+  /** @nullable */
+  entityId: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface AdminNotificationPage {
+  items: AdminNotification[];
+  unreadCount: number;
+}
+
+export type BoostRequestStatus = typeof BoostRequestStatus[keyof typeof BoostRequestStatus];
+
+
+export const BoostRequestStatus = {
+  pending_review: 'pending_review',
+  approved: 'approved',
+  paused: 'paused',
+  rejected: 'rejected',
+} as const;
+
+export type BoostRequestPlacement = typeof BoostRequestPlacement[keyof typeof BoostRequestPlacement];
+
+
+export const BoostRequestPlacement = {
+  home_feed: 'home_feed',
+  following_feed: 'following_feed',
+  search: 'search',
+  trending: 'trending',
+  profile: 'profile',
+  clips: 'clips',
+  right_rail: 'right_rail',
+} as const;
+
+export interface BoostRequest {
+  id: string;
+  blastId: string;
+  requesterId: string;
+  status: BoostRequestStatus;
+  /** @nullable */
+  budget: number | null;
+  placement: BoostRequestPlacement;
+  /** @nullable */
+  startsAt: string | null;
+  /** @nullable */
+  endsAt: string | null;
+  requestNote: string;
+  /** @nullable */
+  reviewerClerkId: string | null;
+  /** @nullable */
+  reviewNote: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type BoostRequestInputPlacement = typeof BoostRequestInputPlacement[keyof typeof BoostRequestInputPlacement];
+
+
+export const BoostRequestInputPlacement = {
+  home_feed: 'home_feed',
+  following_feed: 'following_feed',
+  search: 'search',
+  trending: 'trending',
+  profile: 'profile',
+  clips: 'clips',
+  right_rail: 'right_rail',
+} as const;
+
+export interface BoostRequestInput {
+  blastId: string;
+  /** @minimum 0 */
+  budget?: number;
+  placement: BoostRequestInputPlacement;
+  startsAt?: string;
+  endsAt?: string;
+  /** @maxLength 1000 */
+  requestNote?: string;
+}
+
+export type BoostReviewStatus = typeof BoostReviewStatus[keyof typeof BoostReviewStatus];
+
+
+export const BoostReviewStatus = {
+  approved: 'approved',
+  paused: 'paused',
+  rejected: 'rejected',
+} as const;
+
+export interface BoostReview {
+  status: BoostReviewStatus;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  note: string;
+}
+
+export interface BoostRequestPage {
+  items: BoostRequest[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
 export type PageParameter = number;
 
 export type FeedTabParameter = typeof FeedTabParameter[keyof typeof FeedTabParameter];
@@ -2063,6 +2329,43 @@ export const GetAdminReportsStatus = {
   dismissed: 'dismissed',
 } as const;
 
+export type ListAdminAppealsParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: ListAdminAppealsStatus;
+};
+
+export type ListAdminAppealsStatus = typeof ListAdminAppealsStatus[keyof typeof ListAdminAppealsStatus];
+
+
+export const ListAdminAppealsStatus = {
+  all: 'all',
+  open: 'open',
+  in_review: 'in_review',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export type ListAdminNotificationsParams = {
+unreadOnly?: boolean;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+};
+
+export type MarkAllAdminNotificationsRead200 = {
+  unreadCount: number;
+};
+
 export type ListAdminAdvertisersParams = {
 /**
  * @minimum 1
@@ -2143,6 +2446,30 @@ export const ListAdminPromotionsType = {
   sponsored_trend: 'sponsored_trend',
   sponsored_hashtag: 'sponsored_hashtag',
   featured_promotion: 'featured_promotion',
+} as const;
+
+export type ListAdminBoostRequestsParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+status?: ListAdminBoostRequestsStatus;
+};
+
+export type ListAdminBoostRequestsStatus = typeof ListAdminBoostRequestsStatus[keyof typeof ListAdminBoostRequestsStatus];
+
+
+export const ListAdminBoostRequestsStatus = {
+  all: 'all',
+  pending_review: 'pending_review',
+  approved: 'approved',
+  paused: 'paused',
+  rejected: 'rejected',
 } as const;
 
 export type ListAdminAdvertisementsParams = {

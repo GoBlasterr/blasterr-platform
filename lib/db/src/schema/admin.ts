@@ -1,4 +1,4 @@
-import { boolean, check, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, check, index, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
@@ -81,12 +81,76 @@ export const adminAnnouncementsTable = pgTable(
   (table) => [index("admin_announcements_status_idx").on(table.status, table.updatedAt), check("admin_announcements_status_check", sql`${table.status} in ('draft', 'scheduled', 'published', 'archived')`), check("admin_announcements_audience_check", sql`${table.audience} in ('all', 'users', 'advertisers', 'admins')`)],
 );
 
+export const adminBlockedWordsTable = pgTable(
+  "admin_blocked_words",
+  {
+    id: text("id").primaryKey().$defaultFn(randomUUID),
+    term: text("term").notNull(),
+    normalizedTerm: text("normalized_term").notNull(),
+    action: text("action").notNull().default("block"),
+    status: text("status").notNull().default("active"),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("admin_blocked_words_normalized_unique").on(table.normalizedTerm),
+    index("admin_blocked_words_status_idx").on(table.status),
+    check("admin_blocked_words_action_check", sql`${table.action} in ('block', 'flag')`),
+    check("admin_blocked_words_status_check", sql`${table.status} in ('active', 'disabled')`),
+  ],
+);
+
+export const adminAppealsTable = pgTable(
+  "admin_appeals",
+  {
+    id: text("id").primaryKey().$defaultFn(randomUUID),
+    appellantId: text("appellant_id").notNull(),
+    targetType: text("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    reason: text("reason").notNull(),
+    details: text("details").notNull().default(""),
+    status: text("status").notNull().default("open"),
+    reviewerClerkId: text("reviewer_clerk_id"),
+    reviewerNote: text("reviewer_note").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("admin_appeals_status_created_idx").on(table.status, table.createdAt),
+    index("admin_appeals_appellant_idx").on(table.appellantId, table.createdAt),
+    check("admin_appeals_status_check", sql`${table.status} in ('open', 'in_review', 'approved', 'rejected')`),
+    check("admin_appeals_target_type_check", sql`${table.targetType} in ('user', 'blast', 'comment', 'target')`),
+  ],
+);
+
+export const adminNotificationsTable = pgTable(
+  "admin_notifications",
+  {
+    id: text("id").primaryKey().$defaultFn(randomUUID),
+    adminClerkId: text("admin_clerk_id"),
+    category: text("category").notNull(),
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+    entityType: text("entity_type"),
+    entityId: text("entity_id"),
+    read: boolean("read").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("admin_notifications_recipient_read_created_idx").on(table.adminClerkId, table.read, table.createdAt),
+  ],
+);
+
 export const insertAdminReportSchema = createInsertSchema(adminReportsTable);
 export const insertAdminAuditEventSchema = createInsertSchema(adminAuditEventsTable);
 export const insertAdminContentStatusSchema = createInsertSchema(adminContentStatusesTable);
 export const insertAdminSettingsSchema = createInsertSchema(adminSettingsTable);
 export const insertAdminFeatureFlagSchema = createInsertSchema(adminFeatureFlagsTable);
 export const insertAdminAnnouncementSchema = createInsertSchema(adminAnnouncementsTable);
+export const insertAdminBlockedWordSchema = createInsertSchema(adminBlockedWordsTable);
+export const insertAdminAppealSchema = createInsertSchema(adminAppealsTable);
+export const insertAdminNotificationSchema = createInsertSchema(adminNotificationsTable);
 
 export type AdminReportRow = typeof adminReportsTable.$inferSelect;
 export type AdminAuditEventRow = typeof adminAuditEventsTable.$inferSelect;
@@ -94,3 +158,6 @@ export type AdminContentStatusRow = typeof adminContentStatusesTable.$inferSelec
 export type AdminSettingsRow = typeof adminSettingsTable.$inferSelect;
 export type AdminFeatureFlagRow = typeof adminFeatureFlagsTable.$inferSelect;
 export type AdminAnnouncementRow = typeof adminAnnouncementsTable.$inferSelect;
+export type AdminBlockedWordRow = typeof adminBlockedWordsTable.$inferSelect;
+export type AdminAppealRow = typeof adminAppealsTable.$inferSelect;
+export type AdminNotificationRow = typeof adminNotificationsTable.$inferSelect;
