@@ -51,8 +51,13 @@ export async function ensureSocialBootstrap(): Promise<void> {
 
 export async function syncClerkUser(input: { authId: string; username: string; displayName: string; email: string; bio?: string; avatarUrl?: string; coverUrl?: string; location?: string; city?: string; state?: string; zipCode?: string }) {
   await ensureSocialBootstrap();
-  const [row] = await db.insert(usersTable).values({ ...input, bio: input.bio ?? "", avatarUrl: input.avatarUrl ?? "", coverUrl: input.coverUrl ?? "", location: input.location ?? "", city: input.city ?? "", state: input.state ?? "", zipCode: input.zipCode ?? "" })
-    .onConflictDoUpdate({ target: usersTable.authId, set: { username: input.username, displayName: input.displayName, email: input.email, bio: input.bio ?? "", avatarUrl: input.avatarUrl ?? "", coverUrl: input.coverUrl ?? "", location: input.location ?? "", city: input.city ?? "", state: input.state ?? "", zipCode: input.zipCode ?? "", updatedAt: new Date() } }).returning();
+  const [existingAuthUser] = await db.select({ id: usersTable.id, email: usersTable.email }).from(usersTable).where(eq(usersTable.authId, input.authId));
+  const [existingEmailUser] = await db.select({ authId: usersTable.authId }).from(usersTable).where(eq(usersTable.email, input.email));
+  const email = existingEmailUser && existingEmailUser.authId !== input.authId
+    ? `${input.email}#${input.authId}`
+    : existingAuthUser?.email ?? input.email;
+  const [row] = await db.insert(usersTable).values({ ...input, email, bio: input.bio ?? "", avatarUrl: input.avatarUrl ?? "", coverUrl: input.coverUrl ?? "", location: input.location ?? "", city: input.city ?? "", state: input.state ?? "", zipCode: input.zipCode ?? "" })
+    .onConflictDoUpdate({ target: usersTable.authId, set: { username: input.username, displayName: input.displayName, email, bio: input.bio ?? "", avatarUrl: input.avatarUrl ?? "", coverUrl: input.coverUrl ?? "", location: input.location ?? "", city: input.city ?? "", state: input.state ?? "", zipCode: input.zipCode ?? "", updatedAt: new Date() } }).returning();
   if (!row) throw new Error("Unable to synchronize user");
   return row;
 }
