@@ -1,0 +1,90 @@
+IMPORTANT: Make ONLY the changes described below. Do not redesign, refactor, rewrite, or modify any other page, component, feature, API, database logic, routing, styling, or functionality.
+
+I need a very small branding fix to the existing Google authentication flow for my application called "Blasterr".
+
+CURRENT BEHAVIOR:
+- On the login page, clicking "Continue with Google" correctly opens Google authentication.
+- Google currently displays "Choose an account to continue to Replit".
+- The Google authentication flow currently works and MUST continue working exactly as it does now.
+
+REQUIRED CHANGES:
+
+1. CHANGE THE GOOGLE OAUTH APPLICATION NAME
+- Wherever the Google OAuth branding/configuration currently identifies the application as "Replit", change the displayed application name to:
+  "Blasterr"
+- The Google account selection/consent screen should say:
+  "Choose an account to continue to Blasterr"
+  instead of:
+  "Choose an account to continue to Replit".
+
+2. CHANGE THE GOOGLE OAUTH LOGO
+- Replace the Replit logo/icon shown on the Google authentication/consent screen with the official Blasterr logo already used by this application.
+- Use the existing Blasterr logo asset from the project if one already exists.
+- Do NOT create a new logo or modify the existing Blasterr logo.
+- If Google OAuth branding requires the logo to be configured in Google Cloud Console rather than in the application code, identify the exact existing OAuth configuration that controls this and update only what is necessary.
+- Do not create a second OAuth client unless absolutely required.
+
+3. PRESERVE GOOGLE AUTHENTICATION
+- Do NOT change the existing Google OAuth flow unnecessarily.
+- Keep all existing OAuth client IDs, client secrets, redirect/callback URLs, scopes, session handling, cookies, authentication state, and error handling exactly as they are unless a Google branding configuration specifically requires a change.
+- Do not replace the authentication library.
+- Do not switch authentication providers.
+- Do not change login/signup functionality.
+- Test that clicking "Continue with Google" still opens Google authentication and successfully returns the user to Blasterr after authentication.
+
+4. DO NOT AFFECT ANY OTHER PAGE
+Do NOT modify:
+- Homepage
+- Dashboard
+- Signup page
+- Login page layout except where absolutely necessary for this branding fix
+- Navigation
+- Sidebar
+- Header
+- User profile
+- Database
+- API routes
+- Backend logic
+- Existing UI components
+- Existing CSS
+- Existing responsive design
+- Existing animations
+- Existing business logic
+- Existing environment variables
+- Existing deployment configuration
+
+5. IMPORTANT GOOGLE OAUTH BRANDING NOTE
+The text "Choose an account to continue to Replit" and the logo displayed on Google's own account-selection/consent screen are controlled by the Google OAuth application's branding configuration, not simply by text inside our login page.
+
+Therefore:
+- First inspect the existing Google OAuth configuration and determine where "Replit" is coming from.
+- If it is controlled through Google Cloud OAuth consent-screen/branding settings, update the application name to "Blasterr" and the application logo to the existing Blasterr logo.
+- If the current authentication is using a Replit-managed OAuth configuration that cannot be renamed from application code, DO NOT break or replace the working authentication flow.
+- Instead, clearly identify what Google Cloud/Replit setting needs to be changed manually while keeping the existing OAuth client and callback configuration intact.
+
+6. VERIFY BEFORE FINISHING
+After making the changes:
+- Confirm there are no broken imports.
+- Confirm there are no authentication errors.
+- Confirm the existing Google OAuth callback still works.
+- Confirm the existing login flow remains functional.
+- Confirm no unrelated files/pages were changed.
+- Do not make any additional improvements or redesigns.
+
+FINAL REQUIREMENT:
+This is a BRANDING-ONLY fix.
+
+The final result should be:
+
+Login page:
+"Continue with Google"
+
+Google authentication:
+"Choose an account to continue to Blasterr"
+
+Google authentication branding:
+Blasterr logo instead of Replit logo.
+
+Everything else must remain exactly as it was before.
+
+Before changing anything, inspect the existing implementation and make the smallest possible change necessary.
