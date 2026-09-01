@@ -49,6 +49,14 @@ const colors = {
     // Borders and input outlines
     border: '#343a2b',
     input: '#2b3025',
+
+    // Website auth surface tokens
+    authBackground: '#09090b',
+    authForeground: '#fafafa',
+    authMuted: '#a1a1aa',
+    authCard: 'rgba(14, 14, 17, 0.6)',
+    authBorder: 'rgba(255, 255, 255, 0.1)',
+    authInput: 'rgba(0, 0, 0, 0.6)',
   },
   dark: {
     text: '#f7f8f2',
@@ -69,6 +77,12 @@ const colors = {
     destructiveForeground: '#ffffff',
     border: '#343a2b',
     input: '#2b3025',
+    authBackground: '#09090b',
+    authForeground: '#fafafa',
+    authMuted: '#a1a1aa',
+    authCard: 'rgba(14, 14, 17, 0.6)',
+    authBorder: 'rgba(255, 255, 255, 0.1)',
+    authInput: 'rgba(0, 0, 0, 0.6)',
   },
 
   // Border radius (in px). Sync from the sibling web artifact's --radius
