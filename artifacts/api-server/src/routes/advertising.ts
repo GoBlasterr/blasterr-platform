@@ -439,14 +439,60 @@ router.post("/advertising/boosts", async (req, res): Promise<void> => {
   const startsAt = body.data.startsAt ? new Date(body.data.startsAt) : null;
   const endsAt = body.data.endsAt ? new Date(body.data.endsAt) : null;
   if (startsAt && endsAt && endsAt < startsAt) return void res.status(400).json({ error: "Boost end date must be after its start date." });
-  const [requester] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.authId, userId)).limit(1);
+  const [requester] = await db.select({
+    id: usersTable.id,
+    authId: usersTable.authId,
+    displayName: usersTable.displayName,
+    username: usersTable.username,
+  }).from(usersTable).where(eq(usersTable.authId, userId)).limit(1);
   if (!requester) return void res.status(404).json({ error: "BLASTERR profile not found." });
-  const [blast] = await db.select({ id: blastsTable.id, userId: blastsTable.userId }).from(blastsTable).where(eq(blastsTable.id, body.data.blastId)).limit(1);
+  const [blast] = await db.select({
+    id: blastsTable.id,
+    userId: blastsTable.userId,
+    content: blastsTable.content,
+    mediaUrl: blastsTable.mediaUrl,
+  }).from(blastsTable).where(eq(blastsTable.id, body.data.blastId)).limit(1);
   if (!blast) return void res.status(404).json({ error: "Blast not found." });
   if (blast.userId !== requester.id) return void res.status(403).json({ error: "Only the Blast owner can request a boost." });
   const row = await db.transaction(async (tx) => {
+    const [existingAdvertiser] = await tx.select().from(advertisersTable)
+      .where(eq(advertisersTable.ownerClerkId, requester.authId)).limit(1);
+    const advertiser = existingAdvertiser ?? (await tx.insert(advertisersTable).values({
+      name: requester.displayName || requester.username,
+      ownerClerkId: requester.authId,
+      metadata: { source: "blast_boost" },
+    }).returning())[0];
+    if (!advertiser) throw new Error("Unable to create boost advertiser.");
+    const [campaign] = await tx.insert(campaignsTable).values({
+      advertiserId: advertiser.id,
+      name: `Boosted Blast ${blast.id}`,
+      status: "pending_approval",
+      placements: [body.data.placement],
+      targeting: {},
+      totalBudget: body.data.budget?.toString() ?? null,
+      startsAt,
+      endsAt,
+    }).returning();
+    if (!campaign) throw new Error("Unable to create boost campaign.");
+    const [advertisement] = await tx.insert(advertisementsTable).values({
+      campaignId: campaign.id,
+      name: `Boosted Blast ${blast.id}`,
+      status: "pending_approval",
+      placement: body.data.placement,
+      headline: blast.content.slice(0, 120),
+      body: blast.content,
+      mediaUrl: blast.mediaUrl || null,
+      destinationUrl: null,
+      targeting: {},
+    }).returning();
+    if (!advertisement) throw new Error("Unable to create boost advertisement.");
+    await tx.insert(adApprovalRecordsTable).values({
+      advertisementId: advertisement.id,
+      action: "submitted",
+    });
     const [created] = await tx.insert(adBoostRequestsTable).values({
       blastId: blast.id,
+      advertisementId: advertisement.id,
       requesterId: requester.id,
       budget: body.data.budget?.toString() ?? null,
       placement: body.data.placement,
@@ -460,6 +506,13 @@ router.post("/advertising/boosts", async (req, res): Promise<void> => {
       message: "A Blast owner submitted a boost request for review.",
       entityType: "boost",
       entityId: created.id,
+    });
+    await tx.insert(advertisingAuditLogsTable).values({
+      actorClerkId: requester.authId,
+      action: "boost_submitted",
+      entityType: "boost",
+      entityId: created.id,
+      details: { blastId: blast.id, advertisementId: advertisement.id, campaignId: campaign.id },
     });
     return created;
   });
@@ -480,14 +533,94 @@ router.patch("/admin/advertising/boosts/:id/review", async (req, res): Promise<v
   const params = v.ReviewAdminBoostRequestParams.safeParse(req.params);
   const body = v.ReviewAdminBoostRequestBody.safeParse(req.body);
   if (!params.success || !body.success) return void res.status(400).json({ error: "A valid boost decision and audit note are required." });
-  const [row] = await db.update(adBoostRequestsTable).set({
-    status: body.data.status,
-    reviewerClerkId: actor,
-    reviewNote: body.data.note.trim(),
-    updatedAt: now(),
-  }).where(eq(adBoostRequestsTable.id, params.data.id)).returning();
+  const row = await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${params.data.id}))`);
+    const [current] = await tx.select().from(adBoostRequestsTable)
+      .where(eq(adBoostRequestsTable.id, params.data.id)).limit(1);
+    if (!current) return null;
+    let advertisementId = current.advertisementId;
+    if (!advertisementId) {
+      const [legacyRequester] = await tx.select().from(usersTable)
+        .where(eq(usersTable.id, current.requesterId)).limit(1);
+      const [legacyBlast] = await tx.select().from(blastsTable)
+        .where(eq(blastsTable.id, current.blastId)).limit(1);
+      if (!legacyRequester || !legacyBlast) throw new Error("Legacy boost source content was not found.");
+      const [existingAdvertiser] = await tx.select().from(advertisersTable)
+        .where(eq(advertisersTable.ownerClerkId, legacyRequester.authId)).limit(1);
+      const advertiser = existingAdvertiser ?? (await tx.insert(advertisersTable).values({
+        name: legacyRequester.displayName || legacyRequester.username,
+        ownerClerkId: legacyRequester.authId,
+        metadata: { source: "blast_boost" },
+      }).returning())[0];
+      if (!advertiser) throw new Error("Unable to create legacy boost advertiser.");
+      const [campaign] = await tx.insert(campaignsTable).values({
+        advertiserId: advertiser.id,
+        name: `Boosted Blast ${legacyBlast.id}`,
+        status: "pending_approval",
+        placements: [current.placement],
+        targeting: {},
+        totalBudget: current.budget,
+        startsAt: current.startsAt,
+        endsAt: current.endsAt,
+      }).returning();
+      if (!campaign) throw new Error("Unable to create legacy boost campaign.");
+      const [createdAdvertisement] = await tx.insert(advertisementsTable).values({
+        campaignId: campaign.id,
+        name: `Boosted Blast ${legacyBlast.id}`,
+        status: "pending_approval",
+        placement: current.placement,
+        headline: legacyBlast.content.slice(0, 120),
+        body: legacyBlast.content,
+        mediaUrl: legacyBlast.mediaUrl || null,
+        destinationUrl: null,
+        targeting: {},
+      }).returning();
+      if (!createdAdvertisement) throw new Error("Unable to create legacy boost advertisement.");
+      advertisementId = createdAdvertisement.id;
+      await tx.insert(adApprovalRecordsTable).values({
+        advertisementId,
+        action: "submitted",
+      });
+      await tx.update(adBoostRequestsTable).set({
+        advertisementId,
+        updatedAt: now(),
+      }).where(eq(adBoostRequestsTable.id, current.id));
+    }
+    const [advertisement] = await tx.select().from(advertisementsTable)
+      .where(eq(advertisementsTable.id, advertisementId)).limit(1);
+    if (!advertisement) throw new Error("Boost advertisement not found.");
+    const deliveryStatus = body.data.status === "approved" ? "active" : body.data.status;
+    const [updated] = await tx.update(adBoostRequestsTable).set({
+      status: body.data.status,
+      reviewerClerkId: actor,
+      reviewNote: body.data.note.trim(),
+      updatedAt: now(),
+    }).where(eq(adBoostRequestsTable.id, current.id)).returning();
+    await tx.update(advertisementsTable).set({
+      status: deliveryStatus,
+      updatedAt: now(),
+    }).where(eq(advertisementsTable.id, advertisement.id));
+    await tx.update(campaignsTable).set({
+      status: deliveryStatus,
+      updatedAt: now(),
+    }).where(eq(campaignsTable.id, advertisement.campaignId));
+    await tx.insert(adApprovalRecordsTable).values({
+      advertisementId: advertisement.id,
+      action: body.data.status === "approved" ? "approve" : body.data.status === "paused" ? "pause" : "reject",
+      reason: body.data.note.trim(),
+      reviewerClerkId: actor,
+    });
+    await tx.insert(advertisingAuditLogsTable).values({
+      actorClerkId: actor,
+      action: `boost_${body.data.status}`,
+      entityType: "boost",
+      entityId: current.id,
+      reason: body.data.note.trim(),
+      details: { blastId: current.blastId, advertisementId: advertisement.id, campaignId: advertisement.campaignId },
+    });
+    return updated;
+  });
   if (!row) return void res.status(404).json({ error: "Boost request not found." });
-  await audit(actor, `boost_${body.data.status}`, "boost", row.id, body.data.note, { blastId: row.blastId });
   res.json(v.ReviewAdminBoostRequestResponse.parse(boostPayload(row)));
 });
 

@@ -43,6 +43,13 @@
       "when": 1788271226890,
       "tag": "0005_right_ben_urich",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788272899591,
+      "tag": "0006_spotty_skreet",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,426 @@
+# BLASTERR PRODUCTION ADVERTISING PIPELINE — FINAL INTEGRATION & VERIFICATION (NO UI CHANGES)
+
+You are working on the existing production BLASTERR application.
+
+The BLASTERR Website, Mobile App, and Admin Dashboard are already complete.
+
+**Do NOT redesign, rebuild, rename, remove, relocate, or visually modify any existing page, component, layout, CSS, route, navigation, or user experience.**
+
+Your job is to finish and verify the **production advertising pipeline** so the existing Admin fully controls Boosted Content across the Website and Mobile App.
+
+---
+
+## PRIMARY OBJECTIVE
+
+Establish the complete production advertising lifecycle so that a Boosted Blast moves through the existing pipeline automatically.
+
+The production flow must be:
+
+Business/User creates Boosted Blast
+↓
+Production Database
+↓
+Admin Review Queue
+↓
+Admin Approves / Pauses / Rejects
+↓
+Advertisement Created
+↓
+Website Sponsored Feed
+↓
+Mobile Sponsored Feed
+↓
+Impressions • Clicks • Reporting • Billing • Audit Events
+
+Do not create a second advertising system.
+
+Reuse the existing APIs, database schema, analytics pipeline, event pipeline, billing pipeline, moderation pipeline, and Admin pages wherever possible.
+
+---
+
+# DO NOT CHANGE ANY EXISTING UI
+
+Preserve every existing BLASTERR page.
+
+Do NOT modify:
+
+* Website pages.
+* Mobile pages.
+* Admin pages.
+* React components.
+* CSS.
+* Tailwind styling.
+* Navigation.
+* Existing routes.
+* Existing authentication screens.
+* Existing Clerk integration.
+* Existing layouts.
+
+Only connect existing functionality to production services.
+
+---
+
+# PHASE 1 — COMPLETE ADVERTISEMENT ACTIVATION PIPELINE
+
+Audit the current Boosted Content lifecycle.
+
+If an Admin approves a Boosted Blast, it must atomically:
+
+1. Create or activate the production advertisement record.
+2. Mark advertisement status as ACTIVE.
+3. Preserve ownership information.
+4. Preserve scheduling information.
+5. Preserve targeting information if already supported.
+6. Preserve payment/boost metadata.
+7. Preserve moderation history.
+8. Preserve audit history.
+9. Preserve timestamps.
+
+Approval must happen in one transaction.
+
+Do not allow partially approved advertisements.
+
+---
+
+# PHASE 2 — WEBSITE SPONSORED FEED
+
+Connect approved advertisements into the existing BLASTERR website feed.
+
+Requirements:
+
+* Approved advertisements appear naturally inside the existing feed.
+* Existing feed layout stays unchanged.
+* Existing cards stay unchanged.
+* Existing styling stays unchanged.
+* Existing sponsored badge/indicator is reused if already present.
+* Scheduled advertisements only appear during their scheduled window.
+* Expired advertisements disappear automatically.
+* Paused advertisements disappear immediately.
+* Rejected advertisements never appear publicly.
+
+Do not duplicate advertisements.
+
+Do not change feed ordering except existing sponsored insertion behavior.
+
+---
+
+# PHASE 3 — MOBILE SPONSORED FEED
+
+Connect the exact same advertisement pipeline to BLASTERR Mobile.
+
+Requirements:
+
+* Mobile uses the same production advertisement records.
+* No separate mobile advertisement database.
+* Same approval status.
+* Same scheduling.
+* Same expiration.
+* Same pause/reject behavior.
+* Same analytics IDs.
+* Same ownership.
+* Same audit references.
+
+Keep the existing mobile UI exactly the same.
+
+---
+
+# PHASE 4 — ADVERTISEMENT DELIVERY ENGINE
+
+Verify advertisement eligibility before serving.
+
+Eligibility checks must include existing production rules such as:
+
+* ACTIVE status.
+* Approved status.
+* Start date reached.
+* End date not expired.
+* Owner exists.
+* Advertisement not paused.
+* Advertisement not rejected.
+* Advertisement not deleted.
+* Advertisement not hidden by moderation.
+
+Do not bypass moderation.
+
+---
+
+# PHASE 5 — EVENT TRACKING
+
+Connect advertisements to the existing event pipeline.
+
+Track:
+
+### Impression Events
+
+Generate an impression only when advertisement becomes visible in feed.
+
+Store:
+
+* advertisement ID
+* blast ID
+* viewer ID if authenticated
+* anonymous session ID if supported
+* timestamp
+* platform (website/mobile)
+
+### Click Events
+
+Generate click events.
+
+Store:
+
+* advertisement ID
+* blast ID
+* user/session
+* timestamp
+* destination/action
+
+Prevent duplicate rapid clicks using existing protection.
+
+---
+
+# PHASE 6 — ANALYTICS PIPELINE
+
+Use the existing analytics infrastructure.
+
+Verify metrics update correctly:
+
+* Total impressions.
+* Unique impressions.
+* Clicks.
+* CTR.
+* Active advertisements.
+* Scheduled advertisements.
+* Expired advertisements.
+* Paused advertisements.
+* Rejected advertisements.
+
+Do not build a new analytics dashboard.
+
+Populate existing Admin analytics.
+
+---
+
+# PHASE 7 — BILLING / BOOST PIPELINE
+
+Audit the existing billing system.
+
+Requirements:
+
+* Approved advertisement links to existing payment record.
+* Advertisement retains purchase amount.
+* Advertisement retains campaign information.
+* Advertisement retains boost duration.
+* Advertisement retains billing status.
+* Advertisement retains audit history.
+
+Do not create a second billing system.
+
+Reuse existing production payment infrastructure.
+
+---
+
+# PHASE 8 — ADMIN CONTROL SYNCHRONIZATION
+
+Verify existing Admin controls affect production instantly.
+
+### APPROVE
+
+* Advertisement becomes ACTIVE.
+* Appears in website feed.
+* Appears in mobile feed.
+* Event tracking enabled.
+
+### PAUSE
+
+* Removed immediately from website feed.
+* Removed immediately from mobile feed.
+* Analytics stop collecting new impressions.
+* Audit record created.
+
+### REJECT
+
+* Never published.
+* Existing moderation reason preserved.
+* Existing appeal flow preserved.
+* Audit record created.
+
+### DELETE (if existing)
+
+* Soft-delete using existing behavior.
+* Preserve audit history.
+
+---
+
+# PHASE 9 — NOTIFICATIONS
+
+Use existing Platform Notifications.
+
+Generate notifications for:
+
+* Boost submitted.
+* Advertisement approved.
+* Advertisement paused.
+* Advertisement rejected.
+* Advertisement expired.
+* Advertisement scheduled.
+* Advertisement payment confirmed if already supported.
+
+Do not redesign notification UI.
+
+---
+
+# PHASE 10 — MODERATION COMPATIBILITY
+
+Verify compatibility with existing moderation systems.
+
+Blocked Words.
+
+Appeals.
+
+Advertising review queue.
+
+Flagged content.
+
+Requirements:
+
+* Blocked advertisements cannot publish.
+* Flagged advertisements stay in moderation.
+* Appeals preserve advertisement history.
+* Approval after successful appeal publishes advertisement correctly.
+
+---
+
+# PHASE 11 — SECURITY
+
+Keep production security intact.
+
+Verify:
+
+* Clerk authentication.
+* Admin authorization.
+* Protected API routes.
+* No frontend secrets.
+* No public admin endpoints.
+* No localhost URLs.
+* No preview URLs.
+* Production HTTPS only.
+
+Development bypass must remain development-only.
+
+---
+
+# PHASE 12 — DATABASE
+
+Use additive migration only.
+
+Do NOT:
+
+* delete tables
+* rename tables
+* remove columns
+* destroy records
+
+Only add missing relationships/indexes/constraints if required.
+
+Preserve all production data.
+
+---
+
+# PHASE 13 — PRODUCTION VERIFICATION (MANDATORY)
+
+Run an end-to-end production verification.
+
+## TEST 1 — Boost Submission
+
+* Create Boosted Blast.
+* Confirm database record exists.
+
+PASS/FAIL
+
+## TEST 2 — Admin Review
+
+* Advertisement appears in Admin queue.
+* Approve works.
+
+PASS/FAIL
+
+## TEST 3 — Website Feed
+
+* Advertisement appears on goblasterr.com.
+* Sponsored label behaves correctly.
+
+PASS/FAIL
+
+## TEST 4 — Mobile Feed
+
+* Advertisement appears in mobile feed.
+* Existing UI unchanged.
+
+PASS/FAIL
+
+## TEST 5 — Pause
+
+* Pause removes advertisement from Website.
+* Pause removes advertisement from Mobile.
+
+PASS/FAIL
+
+## TEST 6 — Reject
+
+* Reject prevents publication.
+* Reject logs audit event.
+
+PASS/FAIL
+
+## TEST 7 — Impression Tracking
+
+* Feed view records impression.
+
+PASS/FAIL
+
+## TEST 8 — Click Tracking
+
+* Click records analytics event.
+
+PASS/FAIL
+
+## TEST 9 — Billing Link
+
+* Advertisement linked to payment/boost record.
+
+PASS/FAIL
+
+## TEST 10 — Notifications
+
+* Correct Admin notifications generated.
+
+PASS/FAIL
+
+Clean up all test advertisements after verification.
+
+---
+
+# FINAL DELIVERABLE
+
+Do not stop until every production connection is verified.
+
+Return a report showing:
+
+## Production Status Report
+
+* Website Feed Connection: CONNECTED / NOT CONNECTED
+* Mobile Feed Connection: CONNECTED / NOT CONNECTED
+* Admin Advertisement Pipeline: CONNECTED / NOT CONNECTED
+* Event Tracking: CONNECTED / NOT CONNECTED
+* Impression Tracking: CONNECTED / NOT CONNECTED
+* Click Tracking: CONNECTED / NOT CONNECTED
+* Billing Link: CONNECTED / NOT CONNECTED
+* Moderation Link: CONNECTED / NOT CONNECTED
+* Notifications: CONNECTED / NOT CONNECTED
+* Clerk Security: CONNECTED / NOT CONNECTED
+* Database Migration: APPLIED / NOT APPLIED
+
+Then provide a final statement confirming:
+
+**The BLASTERR production advertising pipeline is fully connected end-to-end across Admin, Website, Mobile, API, Database, Analytics, Billing, Moderation, and Notifications without changing any existing BLASTERR page or design.**

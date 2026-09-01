@@ -1,0 +1,2 @@
+ALTER TABLE "ad_boost_requests" ADD COLUMN "advertisement_id" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "ad_boost_requests_advertisement_idx" ON "ad_boost_requests" USING btree ("advertisement_id");

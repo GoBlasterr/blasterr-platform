@@ -59,6 +59,7 @@ export const adBoostRequestsTable = pgTable(
   {
     id: id(),
     blastId: text("blast_id").notNull().references(() => blastsTable.id, { onDelete: "restrict" }),
+    advertisementId: text("advertisement_id"),
     requesterId: text("requester_id").notNull(),
     status: text("status").notNull().default("pending_review"),
     budget: numeric("budget", { precision: 14, scale: 2 }),
@@ -73,6 +74,7 @@ export const adBoostRequestsTable = pgTable(
   (t) => [
     index("ad_boost_requests_status_created_idx").on(t.status, t.createdAt),
     index("ad_boost_requests_blast_idx").on(t.blastId),
+    uniqueIndex("ad_boost_requests_advertisement_idx").on(t.advertisementId),
     check("ad_boost_requests_status_check", sql`${t.status} in ('pending_review', 'approved', 'paused', 'rejected')`),
     check("ad_boost_requests_budget_nonnegative", sql`${t.budget} is null or ${t.budget} >= 0`),
     check("ad_boost_requests_schedule_check", sql`${t.endsAt} is null or ${t.startsAt} is null or ${t.endsAt} >= ${t.startsAt}`),
