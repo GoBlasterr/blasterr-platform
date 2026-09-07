@@ -50,12 +50,12 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle: str
       </View>
       <Image
         source={require('@/assets/images/blasterr-mobile-logo.png')}
-        style={[styles.logo, { top: insets.top + 48 }]}
+        style={[styles.logo, { top: insets.top + 120 }]}
         contentFit="contain"
         accessibilityLabel="BLASTERR"
       />
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 148, paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 190, paddingBottom: insets.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={[styles.card, { backgroundColor: colors.authCard, borderColor: colors.authBorder }]}>
@@ -167,7 +167,7 @@ function SignUpScreen({ allowSignedInPreview }: { allowSignedInPreview: boolean 
       <PasswordInput label="Password" value={password} onChangeText={setPassword} placeholder="Use 7 or more characters" autoComplete="new-password" showPassword={showPassword} onToggle={() => setShowPassword((visible) => !visible)} colors={colors} />
       <ErrorMessage message={error} colors={colors} />
       <PrimaryButton label="Continue" busyLabel="Creating account…" busy={busy} disabled={!email.trim() || password.length < 7} onPress={() => { void createAccount(); }} colors={colors} />
-      <View style={styles.switchRow}><Text style={[styles.switchCopy, { color: colors.authMuted }]}>Already have an account?</Text><Pressable onPress={() => router.replace('/sign-in' as Href)}><Text style={[styles.textLink, { color: colors.primary }]}>Blast in</Text></Pressable></View>
+      <View style={styles.switchRow}><Text style={[styles.switchCopy, { color: colors.authMuted }]}>Already have an account?</Text><Pressable onPress={() => router.replace('/sign-in' as Href)}><Text style={[styles.textLink, { color: colors.primary }]}>Sign in</Text></Pressable></View>
       <View nativeID="clerk-captcha" />
     </AuthShell>
   );
@@ -264,7 +264,7 @@ function SignInScreen() {
       <LabeledInput label="Email address" value={email} onChangeText={setEmail} placeholder="Enter your email address" autoCapitalize="none" keyboardType="email-address" autoComplete="email" colors={colors} />
       <PasswordInput label="Password" value={password} onChangeText={setPassword} placeholder="Enter your password" autoComplete="current-password" showPassword={showPassword} onToggle={() => setShowPassword((visible) => !visible)} colors={colors} />
       <ErrorMessage message={error} colors={colors} />
-      <PrimaryButton label="Blast in" busyLabel="Signing in…" busy={busy} disabled={!email.trim() || !password} onPress={() => { void submit(); }} colors={colors} />
+      <PrimaryButton label="Sign in" busyLabel="Signing in…" busy={busy} disabled={!email.trim() || !password} onPress={() => { void submit(); }} colors={colors} />
       <View style={styles.switchRow}><Text style={[styles.switchCopy, { color: colors.authMuted }]}>Don&apos;t have an account?</Text><Pressable onPress={() => router.replace('/sign-up' as Href)}><Text style={[styles.textLink, { color: colors.primary }]}>Sign up</Text></Pressable></View>
     </AuthShell>
   );

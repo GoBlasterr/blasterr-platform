@@ -16,6 +16,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { ClerkLoaded, ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import { usePathname } from 'expo-router';
 import { setAuthTokenGetter, setBaseUrl } from '@workspace/api-client-react';
 import { CosmicBackground } from '@/components/cosmic-background';
 import { AuthScreen } from '@/components/auth-screen';
@@ -40,9 +41,15 @@ function ApiAuthBridge() {
 
 function RootLayoutNav() {
   const colors = useColors();
+  const pathname = usePathname();
 
   if (__DEV__ && Platform.OS === 'web') {
-    return <AuthScreen mode="sign-up" allowSignedInPreview />;
+    return (
+      <AuthScreen
+        mode={pathname === '/sign-in' ? 'sign-in' : 'sign-up'}
+        allowSignedInPreview
+      />
+    );
   }
 
   return (
