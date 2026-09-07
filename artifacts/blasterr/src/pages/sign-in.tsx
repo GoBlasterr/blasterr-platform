@@ -96,7 +96,7 @@ export default function SignIn() {
       <header className="p-4 pt-10 md:p-6 md:pt-12 relative z-10 flex items-center justify-end max-w-7xl mx-auto w-full">
         <Link
           href="/"
-          className="absolute top-24 left-1/2 -translate-x-1/2 flex items-center gap-2 hover:opacity-80 transition-opacity"
+          className="absolute top-12 md:top-14 left-1/2 -translate-x-1/2 flex items-center gap-2 hover:opacity-80 transition-opacity"
           aria-label="Go to BLASTERR home"
         >
           <img src="/logo.png" alt="BLASTERR" className="h-20 md:h-24 w-auto object-contain" />
