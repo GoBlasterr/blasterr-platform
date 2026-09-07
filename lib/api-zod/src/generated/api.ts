@@ -167,6 +167,13 @@ export const GetFeedResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getFeedResponseItemsItemTargetMatchScoreMin).max(getFeedResponseItemsItemTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -237,6 +244,13 @@ export const GetTrendingResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getTrendingResponseBlastsItemTargetMatchScoreMin).max(getTrendingResponseBlastsItemTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -268,6 +282,13 @@ export const GetTrendingResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getTrendingResponseTargetsItemMatchScoreMin).max(getTrendingResponseTargetsItemMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -340,6 +361,13 @@ export const SearchResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(searchResponseBlastsItemTargetMatchScoreMin).max(searchResponseBlastsItemTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -371,6 +399,13 @@ export const SearchResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(searchResponseTargetsItemMatchScoreMin).max(searchResponseTargetsItemMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -400,6 +435,13 @@ export const ListTargetsResponseItem = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(listTargetsResponseMatchScoreMin).max(listTargetsResponseMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -443,6 +485,13 @@ export const CreateTargetResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(createTargetResponseMatchScoreMin).max(createTargetResponseMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -474,6 +523,13 @@ export const GetTargetResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getTargetResponseTargetMatchScoreMin).max(getTargetResponseTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -507,6 +563,13 @@ export const GetTargetResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getTargetResponseBlastsItemTargetMatchScoreMin).max(getTargetResponseBlastsItemTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -599,6 +662,13 @@ export const GetUserProfileResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getUserProfileResponseTwoBlastsItemTargetMatchScoreMin).max(getUserProfileResponseTwoBlastsItemTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -650,6 +720,13 @@ export const GetUserProfileResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getUserProfileResponseTwoMediaItemTargetMatchScoreMin).max(getUserProfileResponseTwoMediaItemTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -737,6 +814,13 @@ export const CreateBlastResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(createBlastResponseTargetMatchScoreMin).max(createBlastResponseTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -811,6 +895,13 @@ export const UpdateBlastResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(updateBlastResponseTargetMatchScoreMin).max(updateBlastResponseTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -903,6 +994,13 @@ export const GetMyClipsResponseItem = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getMyClipsResponseBlastTargetMatchScoreMin).max(getMyClipsResponseBlastTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -1029,6 +1127,13 @@ export const CreateClipResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(createClipResponseBlastTargetMatchScoreMin).max(createClipResponseBlastTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -1134,6 +1239,13 @@ export const GetClipResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getClipResponseBlastTargetMatchScoreMin).max(getClipResponseBlastTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -1259,6 +1371,13 @@ export const UpdateClipResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(updateClipResponseBlastTargetMatchScoreMin).max(updateClipResponseBlastTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -1374,6 +1493,13 @@ export const RetryClipResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(retryClipResponseBlastTargetMatchScoreMin).max(retryClipResponseBlastTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -1550,6 +1676,13 @@ export const CreateBlastBackResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(createBlastBackResponseTargetMatchScoreMin).max(createBlastBackResponseTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -1652,6 +1785,13 @@ export const GetBookmarksResponseItem = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getBookmarksResponseTargetMatchScoreMin).max(getBookmarksResponseTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -1728,6 +1868,306 @@ export const GetAdminOverviewResponse = zod.object({
 
 
 /**
+ * @summary List curated canonical Targets
+ */
+export const listAdminPreloadedTargetsQueryPageDefault = 1;
+
+export const listAdminPreloadedTargetsQueryLimitDefault = 25;
+export const listAdminPreloadedTargetsQueryLimitMax = 100;
+
+export const listAdminPreloadedTargetsQueryStatusDefault = `all`;
+
+export const ListAdminPreloadedTargetsQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(listAdminPreloadedTargetsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listAdminPreloadedTargetsQueryLimitMax).default(listAdminPreloadedTargetsQueryLimitDefault),
+  "q": zod.coerce.string().optional(),
+  "status": zod.enum(['all', 'active', 'disabled', 'archived']).default(listAdminPreloadedTargetsQueryStatusDefault)
+})
+
+export const listAdminPreloadedTargetsResponseItemsItemMatchScoreMin = 0;
+export const listAdminPreloadedTargetsResponseItemsItemMatchScoreMax = 1;
+
+
+
+export const ListAdminPreloadedTargetsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(listAdminPreloadedTargetsResponseItemsItemMatchScoreMin).max(listAdminPreloadedTargetsResponseItemsItemMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
+})),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "total": zod.number(),
+  "hasMore": zod.boolean()
+})
+
+
+/**
+ * @summary Create a canonical curated Target
+ */
+export const createAdminPreloadedTargetBodyNameMax = 120;
+
+export const createAdminPreloadedTargetBodySlugRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const createAdminPreloadedTargetBodyCategoryMax = 60;
+
+export const createAdminPreloadedTargetBodyAliasesItemMax = 120;
+
+export const createAdminPreloadedTargetBodyAliasesMax = 50;
+
+export const createAdminPreloadedTargetBodyDescriptionMax = 500;
+
+export const createAdminPreloadedTargetBodyImageUrlMax = 500;
+
+
+
+export const CreateAdminPreloadedTargetBody = zod.object({
+  "name": zod.string().min(1).max(createAdminPreloadedTargetBodyNameMax),
+  "slug": zod.string().regex(createAdminPreloadedTargetBodySlugRegExp),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "category": zod.string().min(1).max(createAdminPreloadedTargetBodyCategoryMax),
+  "aliases": zod.array(zod.string().min(1).max(createAdminPreloadedTargetBodyAliasesItemMax)).max(createAdminPreloadedTargetBodyAliasesMax).optional(),
+  "description": zod.string().max(createAdminPreloadedTargetBodyDescriptionMax).optional(),
+  "imageUrl": zod.string().max(createAdminPreloadedTargetBodyImageUrlMax).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "status": zod.enum(['active', 'disabled']).optional()
+})
+
+export const createAdminPreloadedTargetResponseMatchScoreMin = 0;
+export const createAdminPreloadedTargetResponseMatchScoreMax = 1;
+
+
+
+export const CreateAdminPreloadedTargetResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(createAdminPreloadedTargetResponseMatchScoreMin).max(createAdminPreloadedTargetResponseMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
+})
+
+
+/**
+ * @summary Edit, disable, archive, feature, or verify a curated Target
+ */
+export const UpdateAdminPreloadedTargetParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminPreloadedTargetBodyNameMax = 120;
+
+export const updateAdminPreloadedTargetBodySlugRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const updateAdminPreloadedTargetBodyCategoryMax = 60;
+
+export const updateAdminPreloadedTargetBodyAliasesItemMax = 120;
+
+export const updateAdminPreloadedTargetBodyAliasesMax = 50;
+
+export const updateAdminPreloadedTargetBodyDescriptionMax = 500;
+
+export const updateAdminPreloadedTargetBodyImageUrlMax = 500;
+
+
+
+export const UpdateAdminPreloadedTargetBody = zod.object({
+  "name": zod.string().min(1).max(updateAdminPreloadedTargetBodyNameMax).optional(),
+  "slug": zod.string().regex(updateAdminPreloadedTargetBodySlugRegExp).optional(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']).optional(),
+  "category": zod.string().min(1).max(updateAdminPreloadedTargetBodyCategoryMax).optional(),
+  "aliases": zod.array(zod.string().min(1).max(updateAdminPreloadedTargetBodyAliasesItemMax)).max(updateAdminPreloadedTargetBodyAliasesMax).optional(),
+  "description": zod.string().max(updateAdminPreloadedTargetBodyDescriptionMax).optional(),
+  "imageUrl": zod.string().max(updateAdminPreloadedTargetBodyImageUrlMax).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "status": zod.enum(['active', 'disabled']).optional(),
+  "archive": zod.boolean().optional()
+})
+
+export const updateAdminPreloadedTargetResponseMatchScoreMin = 0;
+export const updateAdminPreloadedTargetResponseMatchScoreMax = 1;
+
+
+
+export const UpdateAdminPreloadedTargetResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(updateAdminPreloadedTargetResponseMatchScoreMin).max(updateAdminPreloadedTargetResponseMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
+})
+
+
+/**
+ * @summary Get real linked Target activity metrics
+ */
+export const GetAdminPreloadedTargetMetricsParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetAdminPreloadedTargetMetricsResponse = zod.object({
+  "targetId": zod.string(),
+  "blastCount": zod.number(),
+  "commentCount": zod.number(),
+  "reactionCount": zod.number(),
+  "viewCount": zod.number(),
+  "shareCount": zod.number()
+})
+
+
+/**
+ * @summary Designate an existing Target as a canonical curated subject
+ */
+export const AdoptAdminPreloadedTargetParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const adoptAdminPreloadedTargetBodyNameMax = 120;
+
+export const adoptAdminPreloadedTargetBodySlugRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const adoptAdminPreloadedTargetBodyCategoryMax = 60;
+
+export const adoptAdminPreloadedTargetBodyAliasesItemMax = 120;
+
+export const adoptAdminPreloadedTargetBodyAliasesMax = 50;
+
+export const adoptAdminPreloadedTargetBodyDescriptionMax = 500;
+
+export const adoptAdminPreloadedTargetBodyImageUrlMax = 500;
+
+
+
+export const AdoptAdminPreloadedTargetBody = zod.object({
+  "name": zod.string().min(1).max(adoptAdminPreloadedTargetBodyNameMax),
+  "slug": zod.string().regex(adoptAdminPreloadedTargetBodySlugRegExp),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "category": zod.string().min(1).max(adoptAdminPreloadedTargetBodyCategoryMax),
+  "aliases": zod.array(zod.string().min(1).max(adoptAdminPreloadedTargetBodyAliasesItemMax)).max(adoptAdminPreloadedTargetBodyAliasesMax).optional(),
+  "description": zod.string().max(adoptAdminPreloadedTargetBodyDescriptionMax).optional(),
+  "imageUrl": zod.string().max(adoptAdminPreloadedTargetBodyImageUrlMax).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "status": zod.enum(['active', 'disabled']).optional()
+})
+
+export const adoptAdminPreloadedTargetResponseMatchScoreMin = 0;
+export const adoptAdminPreloadedTargetResponseMatchScoreMax = 1;
+
+
+
+export const AdoptAdminPreloadedTargetResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "location": zod.string(),
+  "blastCount": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
+  "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
+  "matchScore": zod.number().min(adoptAdminPreloadedTargetResponseMatchScoreMin).max(adoptAdminPreloadedTargetResponseMatchScoreMax).optional(),
+  "matchReason": zod.string().optional()
+})
+
+
+/**
+ * @summary Validate CSV text without writing records
+ */
+export const previewAdminPreloadedImportBodyCsvMax = 1000000;
+
+
+
+export const PreviewAdminPreloadedImportBody = zod.object({
+  "csv": zod.string().min(1).max(previewAdminPreloadedImportBodyCsvMax)
+})
+
+export const PreviewAdminPreloadedImportResponse = zod.object({
+  "total": zod.number(),
+  "createCount": zod.number(),
+  "existingCount": zod.number(),
+  "duplicateCount": zod.number(),
+  "invalidCount": zod.number(),
+  "rows": zod.array(zod.object({
+  "line": zod.number(),
+  "status": zod.enum(['create', 'existing', 'duplicate', 'invalid']),
+  "message": zod.string().optional()
+}))
+})
+
+
+/**
+ * @summary Create validated missing curated Targets from CSV
+ */
+export const confirmAdminPreloadedImportBodyCsvMax = 1000000;
+
+
+
+export const ConfirmAdminPreloadedImportBody = zod.object({
+  "csv": zod.string().min(1).max(confirmAdminPreloadedImportBodyCsvMax)
+})
+
+export const ConfirmAdminPreloadedImportResponse = zod.object({
+  "total": zod.number(),
+  "createCount": zod.number(),
+  "existingCount": zod.number(),
+  "duplicateCount": zod.number(),
+  "invalidCount": zod.number(),
+  "rows": zod.array(zod.object({
+  "line": zod.number(),
+  "status": zod.enum(['create', 'existing', 'duplicate', 'invalid']),
+  "message": zod.string().optional()
+}))
+})
+
+
+/**
  * @summary Get the protected BLASTR Media Center overview
  */
 export const getAdminClipsResponseClipsItemBlastTargetMatchScoreMin = 0;
@@ -1784,6 +2224,13 @@ export const GetAdminClipsResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getAdminClipsResponseClipsItemBlastTargetMatchScoreMin).max(getAdminClipsResponseClipsItemBlastTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -1952,6 +2399,13 @@ export const GetAdminContentResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(getAdminContentResponseItemsItemOneTargetMatchScoreMin).max(getAdminContentResponseItemsItemOneTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()
@@ -2026,6 +2480,13 @@ export const UpdateAdminContentResponse = zod.object({
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
   "description": zod.string(),
+  "isCanonical": zod.boolean().optional(),
+  "isPreloaded": zod.boolean().optional(),
+  "preloadCategory": zod.string().nullish(),
+  "preloadStatus": zod.enum(['active', 'disabled', 'archived']).optional(),
+  "featured": zod.boolean().optional(),
+  "verified": zod.boolean().optional(),
+  "aliases": zod.array(zod.string()).optional(),
   "matchKind": zod.enum(['exact', 'alias', 'likely', 'same-name-different-location']).optional(),
   "matchScore": zod.number().min(updateAdminContentResponseOneTargetMatchScoreMin).max(updateAdminContentResponseOneTargetMatchScoreMax).optional(),
   "matchReason": zod.string().optional()

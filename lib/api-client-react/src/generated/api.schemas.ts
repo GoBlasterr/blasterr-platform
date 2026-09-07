@@ -76,6 +76,15 @@ export const TargetType = {
   other: 'other',
 } as const;
 
+export type TargetPreloadStatus = typeof TargetPreloadStatus[keyof typeof TargetPreloadStatus];
+
+
+export const TargetPreloadStatus = {
+  active: 'active',
+  disabled: 'disabled',
+  archived: 'archived',
+} as const;
+
 export type TargetMatchKind = typeof TargetMatchKind[keyof typeof TargetMatchKind];
 
 
@@ -95,6 +104,14 @@ export interface Target {
   blastCount: number;
   imageUrl: string;
   description: string;
+  isCanonical?: boolean;
+  isPreloaded?: boolean;
+  /** @nullable */
+  preloadCategory?: string | null;
+  preloadStatus?: TargetPreloadStatus;
+  featured?: boolean;
+  verified?: boolean;
+  aliases?: string[];
   matchKind?: TargetMatchKind;
   /**
      * @minimum 0
@@ -208,6 +225,159 @@ export interface TargetConflict {
   message: string;
   canCreateNew: boolean;
   candidates: Target[];
+}
+
+export type PreloadedTargetInputType = typeof PreloadedTargetInputType[keyof typeof PreloadedTargetInputType];
+
+
+export const PreloadedTargetInputType = {
+  person: 'person',
+  business: 'business',
+  place: 'place',
+  product: 'product',
+  entertainment: 'entertainment',
+  sports: 'sports',
+  gaming: 'gaming',
+  other: 'other',
+} as const;
+
+export type PreloadedTargetInputStatus = typeof PreloadedTargetInputStatus[keyof typeof PreloadedTargetInputStatus];
+
+
+export const PreloadedTargetInputStatus = {
+  active: 'active',
+  disabled: 'disabled',
+} as const;
+
+export interface PreloadedTargetInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /** @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$ */
+  slug: string;
+  type: PreloadedTargetInputType;
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  category: string;
+  /**
+     * @maxItems 50
+     * @items.minLength 1
+     * @items.maxLength 120
+     */
+  aliases?: string[];
+  /** @maxLength 500 */
+  description?: string;
+  /** @maxLength 500 */
+  imageUrl?: string;
+  featured?: boolean;
+  verified?: boolean;
+  status?: PreloadedTargetInputStatus;
+}
+
+export type PreloadedTargetUpdateType = typeof PreloadedTargetUpdateType[keyof typeof PreloadedTargetUpdateType];
+
+
+export const PreloadedTargetUpdateType = {
+  person: 'person',
+  business: 'business',
+  place: 'place',
+  product: 'product',
+  entertainment: 'entertainment',
+  sports: 'sports',
+  gaming: 'gaming',
+  other: 'other',
+} as const;
+
+export type PreloadedTargetUpdateStatus = typeof PreloadedTargetUpdateStatus[keyof typeof PreloadedTargetUpdateStatus];
+
+
+export const PreloadedTargetUpdateStatus = {
+  active: 'active',
+  disabled: 'disabled',
+} as const;
+
+export interface PreloadedTargetUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name?: string;
+  /** @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$ */
+  slug?: string;
+  type?: PreloadedTargetUpdateType;
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  category?: string;
+  /**
+     * @maxItems 50
+     * @items.minLength 1
+     * @items.maxLength 120
+     */
+  aliases?: string[];
+  /** @maxLength 500 */
+  description?: string;
+  /** @maxLength 500 */
+  imageUrl?: string;
+  featured?: boolean;
+  verified?: boolean;
+  status?: PreloadedTargetUpdateStatus;
+  archive?: boolean;
+}
+
+export interface PreloadedTargetPage {
+  items: Target[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface PreloadedTargetMetrics {
+  targetId: string;
+  blastCount: number;
+  commentCount: number;
+  reactionCount: number;
+  viewCount: number;
+  shareCount: number;
+}
+
+export interface PreloadedCsvImport {
+  /**
+     * @minLength 1
+     * @maxLength 1000000
+     */
+  csv: string;
+}
+
+export type PreloadedImportPreviewRowsItemStatus = typeof PreloadedImportPreviewRowsItemStatus[keyof typeof PreloadedImportPreviewRowsItemStatus];
+
+
+export const PreloadedImportPreviewRowsItemStatus = {
+  create: 'create',
+  existing: 'existing',
+  duplicate: 'duplicate',
+  invalid: 'invalid',
+} as const;
+
+export type PreloadedImportPreviewRowsItem = {
+  line: number;
+  status: PreloadedImportPreviewRowsItemStatus;
+  message?: string;
+};
+
+export interface PreloadedImportPreview {
+  total: number;
+  createCount: number;
+  existingCount: number;
+  duplicateCount: number;
+  invalidCount: number;
+  rows: PreloadedImportPreviewRowsItem[];
 }
 
 export interface FeedResponse {
@@ -2283,6 +2453,30 @@ export const GetMyClipsStatus = {
   COMPLETED: 'COMPLETED',
   FAILED: 'FAILED',
   SHARED: 'SHARED',
+} as const;
+
+export type ListAdminPreloadedTargetsParams = {
+/**
+ * @minimum 1
+ */
+page?: PageParameter;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: LimitParameter;
+q?: string;
+status?: ListAdminPreloadedTargetsStatus;
+};
+
+export type ListAdminPreloadedTargetsStatus = typeof ListAdminPreloadedTargetsStatus[keyof typeof ListAdminPreloadedTargetsStatus];
+
+
+export const ListAdminPreloadedTargetsStatus = {
+  all: 'all',
+  active: 'active',
+  disabled: 'disabled',
+  archived: 'archived',
 } as const;
 
 export type GetAdminUsersParams = {

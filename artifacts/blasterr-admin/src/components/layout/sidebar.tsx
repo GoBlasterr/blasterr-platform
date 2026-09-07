@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Bell,
   Video,
+   Flame,
   Target,
   Briefcase,
   Megaphone as CampaignIcon,
@@ -41,6 +42,7 @@ const NAVIGATION_GROUPS = [
       { label: "Website CMS", href: "/cms", icon: Globe2 },
       { label: "Users", href: "/users", icon: Users },
       { label: "Content", href: "/content", icon: MessageSquare },
+       { label: "Preloaded Blasts", href: "/preloaded-blasts", icon: Flame },
       { label: "Reports", href: "/reports", icon: Flag },
       { label: "Moderation", href: "/moderation", icon: ShieldAlert },
     ]

@@ -534,6 +534,81 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminOverview"
+  /admin/preloaded-targets:
+    get:
+      operationId: listAdminPreloadedTargets
+      tags: [admin]
+      summary: List curated canonical Targets
+      security: [{ clerkSession: [] }]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - { name: q, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string, enum: [all, active, disabled, archived], default: all } }
+      responses:
+        "200": { description: Curated targets, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedTargetPage" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+    post:
+      operationId: createAdminPreloadedTarget
+      tags: [admin]
+      summary: Create a canonical curated Target
+      security: [{ clerkSession: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedTargetInput" } } } }
+      responses:
+        "201": { description: Created curated Target, content: { application/json: { schema: { $ref: "#/components/schemas/Target" } } } }
+        "409": { description: Canonical subject already exists }
+  /admin/preloaded-targets/{id}:
+    patch:
+      operationId: updateAdminPreloadedTarget
+      tags: [admin]
+      summary: Edit, disable, archive, feature, or verify a curated Target
+      security: [{ clerkSession: [] }]
+      parameters: [{ $ref: "#/components/parameters/UserId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedTargetUpdate" } } } }
+      responses:
+        "200": { description: Updated curated Target, content: { application/json: { schema: { $ref: "#/components/schemas/Target" } } } }
+        "404": { description: Curated Target not found }
+  /admin/preloaded-targets/{id}/metrics:
+    get:
+      operationId: getAdminPreloadedTargetMetrics
+      tags: [admin]
+      summary: Get real linked Target activity metrics
+      security: [{ clerkSession: [] }]
+      parameters: [{ $ref: "#/components/parameters/UserId" }]
+      responses:
+        "200": { description: Target metrics, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedTargetMetrics" } } } }
+        "404": { description: Curated Target not found }
+  /admin/preloaded-targets/{id}/adopt:
+    post:
+      operationId: adoptAdminPreloadedTarget
+      tags: [admin]
+      summary: Designate an existing Target as a canonical curated subject
+      security: [{ clerkSession: [] }]
+      parameters: [{ $ref: "#/components/parameters/UserId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedTargetInput" } } } }
+      responses:
+        "200": { description: Adopted Target, content: { application/json: { schema: { $ref: "#/components/schemas/Target" } } } }
+        "404": { description: Target not found }
+        "409": { description: Colliding or already-canonical subject; review returned conflicts }
+  /admin/preloaded-targets/import/preview:
+    post:
+      operationId: previewAdminPreloadedImport
+      tags: [admin]
+      summary: Validate CSV text without writing records
+      security: [{ clerkSession: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedCsvImport" } } } }
+      responses:
+        "200": { description: Import preview, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedImportPreview" } } } }
+  /admin/preloaded-targets/import:
+    post:
+      operationId: confirmAdminPreloadedImport
+      tags: [admin]
+      summary: Create validated missing curated Targets from CSV
+      security: [{ clerkSession: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedCsvImport" } } } }
+      responses:
+        "201": { description: Import completed, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedImportPreview" } } } }
   /admin/clips:
     get:
       operationId: getAdminClips
@@ -1539,6 +1614,13 @@ components:
         blastCount: { type: number }
         imageUrl: { type: string }
         description: { type: string }
+        isCanonical: { type: boolean }
+        isPreloaded: { type: boolean }
+        preloadCategory: { type: [string, "null"] }
+        preloadStatus: { type: string, enum: [active, disabled, archived] }
+        featured: { type: boolean }
+        verified: { type: boolean }
+        aliases: { type: array, items: { type: string } }
         matchKind:
           type: string
           enum: [exact, alias, likely, same-name-different-location]
@@ -1571,6 +1653,68 @@ components:
         candidates:
           type: array
           items: { $ref: "#/components/schemas/Target" }
+    PreloadedTargetInput:
+      type: object
+      required: [name, slug, type, category]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        slug: { type: string, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+        type: { type: string, enum: [person, business, place, product, entertainment, sports, gaming, other] }
+        category: { type: string, minLength: 1, maxLength: 60 }
+        aliases: { type: array, maxItems: 50, items: { type: string, minLength: 1, maxLength: 120 } }
+        description: { type: string, maxLength: 500 }
+        imageUrl: { type: string, maxLength: 500 }
+        featured: { type: boolean }
+        verified: { type: boolean }
+        status: { type: string, enum: [active, disabled] }
+    PreloadedTargetUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        slug: { type: string, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+        type: { type: string, enum: [person, business, place, product, entertainment, sports, gaming, other] }
+        category: { type: string, minLength: 1, maxLength: 60 }
+        aliases: { type: array, maxItems: 50, items: { type: string, minLength: 1, maxLength: 120 } }
+        description: { type: string, maxLength: 500 }
+        imageUrl: { type: string, maxLength: 500 }
+        featured: { type: boolean }
+        verified: { type: boolean }
+        status: { type: string, enum: [active, disabled] }
+        archive: { type: boolean }
+    PreloadedTargetPage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Target" } }
+        page: { type: number }
+        limit: { type: number }
+        total: { type: number }
+        hasMore: { type: boolean }
+    PreloadedTargetMetrics:
+      type: object
+      required: [targetId, blastCount, commentCount, reactionCount, viewCount, shareCount]
+      properties:
+        targetId: { type: string }
+        blastCount: { type: number }
+        commentCount: { type: number }
+        reactionCount: { type: number }
+        viewCount: { type: number }
+        shareCount: { type: number }
+    PreloadedCsvImport:
+      type: object
+      required: [csv]
+      properties:
+        csv: { type: string, minLength: 1, maxLength: 1000000 }
+    PreloadedImportPreview:
+      type: object
+      required: [total, createCount, existingCount, duplicateCount, invalidCount, rows]
+      properties:
+        total: { type: number }
+        createCount: { type: number }
+        existingCount: { type: number }
+        duplicateCount: { type: number }
+        invalidCount: { type: number }
+        rows: { type: array, items: { type: object, required: [line, status], properties: { line: { type: number }, status: { type: string, enum: [create, existing, duplicate, invalid] }, message: { type: string } } } }
     Blast:
       type: object
       required: [id, content, createdAt, author, target, location, mediaUrl, reactions, commentCount, shareCount, viewCount, isBookmarked]

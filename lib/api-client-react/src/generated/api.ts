@@ -130,10 +130,17 @@ import type {
   ListAdminCampaignsParams,
   ListAdminCreativesParams,
   ListAdminNotificationsParams,
+  ListAdminPreloadedTargetsParams,
   ListAdminPromotionsParams,
   ListTargetsParams,
   MarkAllAdminNotificationsRead200,
   Notification,
+  PreloadedCsvImport,
+  PreloadedImportPreview,
+  PreloadedTargetInput,
+  PreloadedTargetMetrics,
+  PreloadedTargetPage,
+  PreloadedTargetUpdate,
   Profile,
   Promotion,
   PromotionInput,
@@ -2500,6 +2507,524 @@ export function useGetAdminOverview<TData = Awaited<ReturnType<typeof getAdminOv
 
 
 
+
+export const getListAdminPreloadedTargetsUrl = (params?: ListAdminPreloadedTargetsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/preloaded-targets?${stringifiedParams}` : `/api/admin/preloaded-targets`
+}
+
+/**
+ * @summary List curated canonical Targets
+ */
+export const listAdminPreloadedTargets = async (params?: ListAdminPreloadedTargetsParams, options?: Parameters<typeof customFetch>[1]): Promise<PreloadedTargetPage> => {
+
+  return customFetch<PreloadedTargetPage>(getListAdminPreloadedTargetsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminPreloadedTargetsQueryKey = (params?: ListAdminPreloadedTargetsParams,) => {
+    return [
+    `/api/admin/preloaded-targets`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminPreloadedTargetsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminPreloadedTargets>>, TError = ErrorType<void>>(params?: ListAdminPreloadedTargetsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminPreloadedTargets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminPreloadedTargetsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminPreloadedTargets>>> = ({ signal }) => listAdminPreloadedTargets(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminPreloadedTargets>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminPreloadedTargetsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminPreloadedTargets>>>
+export type ListAdminPreloadedTargetsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List curated canonical Targets
+ */
+
+export function useListAdminPreloadedTargets<TData = Awaited<ReturnType<typeof listAdminPreloadedTargets>>, TError = ErrorType<void>>(
+ params?: ListAdminPreloadedTargetsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminPreloadedTargets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminPreloadedTargetsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAdminPreloadedTargetUrl = () => {
+
+
+
+
+  return `/api/admin/preloaded-targets`
+}
+
+/**
+ * @summary Create a canonical curated Target
+ */
+export const createAdminPreloadedTarget = async (preloadedTargetInput: PreloadedTargetInput, options?: Parameters<typeof customFetch>[1]): Promise<Target> => {
+
+  return customFetch<Target>(getCreateAdminPreloadedTargetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(preloadedTargetInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAdminPreloadedTargetMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminPreloadedTarget>>, TError,{data: BodyType<PreloadedTargetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminPreloadedTarget>>, TError,{data: BodyType<PreloadedTargetInput>}, TContext> => {
+
+const mutationKey = ['createAdminPreloadedTarget'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminPreloadedTarget>>, {data: BodyType<PreloadedTargetInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAdminPreloadedTarget(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminPreloadedTargetMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminPreloadedTarget>>>
+    export type CreateAdminPreloadedTargetMutationBody = BodyType<PreloadedTargetInput>
+    export type CreateAdminPreloadedTargetMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a canonical curated Target
+ */
+export const useCreateAdminPreloadedTarget = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminPreloadedTarget>>, TError,{data: BodyType<PreloadedTargetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminPreloadedTarget>>,
+        TError,
+        {data: BodyType<PreloadedTargetInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAdminPreloadedTargetMutationOptions(options));
+    }
+
+export const getUpdateAdminPreloadedTargetUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/preloaded-targets/${id}`
+}
+
+/**
+ * @summary Edit, disable, archive, feature, or verify a curated Target
+ */
+export const updateAdminPreloadedTarget = async (id: string,
+    preloadedTargetUpdate: PreloadedTargetUpdate, options?: Parameters<typeof customFetch>[1]): Promise<Target> => {
+
+  return customFetch<Target>(getUpdateAdminPreloadedTargetUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(preloadedTargetUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminPreloadedTargetMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminPreloadedTarget>>, TError,{id: string;data: BodyType<PreloadedTargetUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminPreloadedTarget>>, TError,{id: string;data: BodyType<PreloadedTargetUpdate>}, TContext> => {
+
+const mutationKey = ['updateAdminPreloadedTarget'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminPreloadedTarget>>, {id: string;data: BodyType<PreloadedTargetUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminPreloadedTarget(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminPreloadedTargetMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminPreloadedTarget>>>
+    export type UpdateAdminPreloadedTargetMutationBody = BodyType<PreloadedTargetUpdate>
+    export type UpdateAdminPreloadedTargetMutationError = ErrorType<void>
+
+    /**
+ * @summary Edit, disable, archive, feature, or verify a curated Target
+ */
+export const useUpdateAdminPreloadedTarget = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminPreloadedTarget>>, TError,{id: string;data: BodyType<PreloadedTargetUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminPreloadedTarget>>,
+        TError,
+        {id: string;data: BodyType<PreloadedTargetUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminPreloadedTargetMutationOptions(options));
+    }
+
+export const getGetAdminPreloadedTargetMetricsUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/preloaded-targets/${id}/metrics`
+}
+
+/**
+ * @summary Get real linked Target activity metrics
+ */
+export const getAdminPreloadedTargetMetrics = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<PreloadedTargetMetrics> => {
+
+  return customFetch<PreloadedTargetMetrics>(getGetAdminPreloadedTargetMetricsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminPreloadedTargetMetricsQueryKey = (id: string,) => {
+    return [
+    `/api/admin/preloaded-targets/${id}/metrics`
+    ] as const;
+    }
+
+
+export const getGetAdminPreloadedTargetMetricsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminPreloadedTargetMetrics>>, TError = ErrorType<void>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminPreloadedTargetMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminPreloadedTargetMetricsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminPreloadedTargetMetrics>>> = ({ signal }) => getAdminPreloadedTargetMetrics(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminPreloadedTargetMetrics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminPreloadedTargetMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminPreloadedTargetMetrics>>>
+export type GetAdminPreloadedTargetMetricsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get real linked Target activity metrics
+ */
+
+export function useGetAdminPreloadedTargetMetrics<TData = Awaited<ReturnType<typeof getAdminPreloadedTargetMetrics>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminPreloadedTargetMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminPreloadedTargetMetricsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAdoptAdminPreloadedTargetUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/preloaded-targets/${id}/adopt`
+}
+
+/**
+ * @summary Designate an existing Target as a canonical curated subject
+ */
+export const adoptAdminPreloadedTarget = async (id: string,
+    preloadedTargetInput: PreloadedTargetInput, options?: Parameters<typeof customFetch>[1]): Promise<Target> => {
+
+  return customFetch<Target>(getAdoptAdminPreloadedTargetUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(preloadedTargetInput)
+  }
+);}
+
+
+
+
+
+export const getAdoptAdminPreloadedTargetMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adoptAdminPreloadedTarget>>, TError,{id: string;data: BodyType<PreloadedTargetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adoptAdminPreloadedTarget>>, TError,{id: string;data: BodyType<PreloadedTargetInput>}, TContext> => {
+
+const mutationKey = ['adoptAdminPreloadedTarget'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adoptAdminPreloadedTarget>>, {id: string;data: BodyType<PreloadedTargetInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  adoptAdminPreloadedTarget(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdoptAdminPreloadedTargetMutationResult = NonNullable<Awaited<ReturnType<typeof adoptAdminPreloadedTarget>>>
+    export type AdoptAdminPreloadedTargetMutationBody = BodyType<PreloadedTargetInput>
+    export type AdoptAdminPreloadedTargetMutationError = ErrorType<void>
+
+    /**
+ * @summary Designate an existing Target as a canonical curated subject
+ */
+export const useAdoptAdminPreloadedTarget = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adoptAdminPreloadedTarget>>, TError,{id: string;data: BodyType<PreloadedTargetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adoptAdminPreloadedTarget>>,
+        TError,
+        {id: string;data: BodyType<PreloadedTargetInput>},
+        TContext
+      > => {
+      return useMutation(getAdoptAdminPreloadedTargetMutationOptions(options));
+    }
+
+export const getPreviewAdminPreloadedImportUrl = () => {
+
+
+
+
+  return `/api/admin/preloaded-targets/import/preview`
+}
+
+/**
+ * @summary Validate CSV text without writing records
+ */
+export const previewAdminPreloadedImport = async (preloadedCsvImport: PreloadedCsvImport, options?: Parameters<typeof customFetch>[1]): Promise<PreloadedImportPreview> => {
+
+  return customFetch<PreloadedImportPreview>(getPreviewAdminPreloadedImportUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(preloadedCsvImport)
+  }
+);}
+
+
+
+
+
+export const getPreviewAdminPreloadedImportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewAdminPreloadedImport>>, TError,{data: BodyType<PreloadedCsvImport>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewAdminPreloadedImport>>, TError,{data: BodyType<PreloadedCsvImport>}, TContext> => {
+
+const mutationKey = ['previewAdminPreloadedImport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewAdminPreloadedImport>>, {data: BodyType<PreloadedCsvImport>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewAdminPreloadedImport(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewAdminPreloadedImportMutationResult = NonNullable<Awaited<ReturnType<typeof previewAdminPreloadedImport>>>
+    export type PreviewAdminPreloadedImportMutationBody = BodyType<PreloadedCsvImport>
+    export type PreviewAdminPreloadedImportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Validate CSV text without writing records
+ */
+export const usePreviewAdminPreloadedImport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewAdminPreloadedImport>>, TError,{data: BodyType<PreloadedCsvImport>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewAdminPreloadedImport>>,
+        TError,
+        {data: BodyType<PreloadedCsvImport>},
+        TContext
+      > => {
+      return useMutation(getPreviewAdminPreloadedImportMutationOptions(options));
+    }
+
+export const getConfirmAdminPreloadedImportUrl = () => {
+
+
+
+
+  return `/api/admin/preloaded-targets/import`
+}
+
+/**
+ * @summary Create validated missing curated Targets from CSV
+ */
+export const confirmAdminPreloadedImport = async (preloadedCsvImport: PreloadedCsvImport, options?: Parameters<typeof customFetch>[1]): Promise<PreloadedImportPreview> => {
+
+  return customFetch<PreloadedImportPreview>(getConfirmAdminPreloadedImportUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(preloadedCsvImport)
+  }
+);}
+
+
+
+
+
+export const getConfirmAdminPreloadedImportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmAdminPreloadedImport>>, TError,{data: BodyType<PreloadedCsvImport>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmAdminPreloadedImport>>, TError,{data: BodyType<PreloadedCsvImport>}, TContext> => {
+
+const mutationKey = ['confirmAdminPreloadedImport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmAdminPreloadedImport>>, {data: BodyType<PreloadedCsvImport>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  confirmAdminPreloadedImport(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmAdminPreloadedImportMutationResult = NonNullable<Awaited<ReturnType<typeof confirmAdminPreloadedImport>>>
+    export type ConfirmAdminPreloadedImportMutationBody = BodyType<PreloadedCsvImport>
+    export type ConfirmAdminPreloadedImportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create validated missing curated Targets from CSV
+ */
+export const useConfirmAdminPreloadedImport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmAdminPreloadedImport>>, TError,{data: BodyType<PreloadedCsvImport>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof confirmAdminPreloadedImport>>,
+        TError,
+        {data: BodyType<PreloadedCsvImport>},
+        TContext
+      > => {
+      return useMutation(getConfirmAdminPreloadedImportMutationOptions(options));
+    }
 
 export const getGetAdminClipsUrl = () => {
 

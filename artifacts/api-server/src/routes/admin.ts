@@ -55,6 +55,13 @@ import {
   UpdateAdminBlockedWordBody,
   UpdateAdminBlockedWordParams,
   UpdateAdminBlockedWordResponse,
+  ListAdminPreloadedTargetsQueryParams, ListAdminPreloadedTargetsResponse,
+  CreateAdminPreloadedTargetBody, CreateAdminPreloadedTargetResponse,
+  UpdateAdminPreloadedTargetParams, UpdateAdminPreloadedTargetBody, UpdateAdminPreloadedTargetResponse,
+  PreviewAdminPreloadedImportBody, PreviewAdminPreloadedImportResponse,
+  ConfirmAdminPreloadedImportBody, ConfirmAdminPreloadedImportResponse,
+  GetAdminPreloadedTargetMetricsParams, GetAdminPreloadedTargetMetricsResponse,
+  AdoptAdminPreloadedTargetParams, AdoptAdminPreloadedTargetBody, AdoptAdminPreloadedTargetResponse,
 } from "@workspace/api-zod";
 import {
   adminAnnouncements,
@@ -84,11 +91,12 @@ import {
   adminNotificationsTable,
   blastsTable,
   db,
-  usersTable,
+  usersTable, targetsTable, targetAliasesTable, commentsTable, reactionsTable,
   validateDatabaseConnection,
 } from "@workspace/db";
 import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { checkR2Connection } from "../lib/r2";
+import { classifyPreloadedImport, parsePreloadedCsv } from "../lib/preloaded-import";
 
 const router: IRouter = Router();
 const startedAt = Date.now();
@@ -133,8 +141,121 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction): Pr
 
 router.use(requireAdmin);
 
+router.get("/preloaded-targets", async (req, res): Promise<void> => {
+  const parsed = ListAdminPreloadedTargetsQueryParams.safeParse(req.query);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  const query = parsed.data.q?.trim().toLowerCase();
+  const items = (await social.targets()).filter(target => target.isPreloaded)
+    .filter(target => parsed.data.status === "all" || target.preloadStatus === parsed.data.status)
+    .filter(target => !query || `${target.name} ${target.aliases.join(" ")} ${target.preloadCategory ?? ""}`.toLowerCase().includes(query));
+  const start = (parsed.data.page - 1) * parsed.data.limit;
+  res.json(ListAdminPreloadedTargetsResponse.parse({ items: items.slice(start, start + parsed.data.limit), page: parsed.data.page, limit: parsed.data.limit, total: items.length, hasMore: start + parsed.data.limit < items.length }));
+});
+router.post("/preloaded-targets", async (req, res): Promise<void> => {
+  const parsed = CreateAdminPreloadedTargetBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  try {
+    const created = await social.createPreloadedTarget(parsed.data, actorId(res));
+    if (!created.created) { res.status(409).json({ error: "Canonical subject already exists.", targetId: created.target.id }); return; }
+    await recordAudit({ action: "preloaded_target_created", entityType: "target", entityId: created.target.id, actorId: actorId(res), details: `Created canonical subject ${created.target.name}.` });
+    res.status(201).json(CreateAdminPreloadedTargetResponse.parse((await social.targets()).find(target => target.id === created.target.id)));
+  } catch (error) {
+    if (error instanceof social.PreloadedTargetCollisionError) { res.status(409).json({ error: error.message, conflicts: error.conflicts }); return; }
+    if (isUniqueViolation(error)) { res.status(409).json({ error: "A canonical slug or alias already exists." }); return; }
+    throw error;
+  }
+});
+router.patch("/preloaded-targets/:id", async (req, res): Promise<void> => {
+  const params = UpdateAdminPreloadedTargetParams.safeParse(req.params);
+  const body = UpdateAdminPreloadedTargetBody.safeParse(req.body);
+  if (!params.success || !body.success) { res.status(400).json({ error: "Invalid curated Target update." }); return; }
+  let updated;
+  try { updated = await social.updatePreloadedTarget(params.data.id, body.data); }
+  catch (error) {
+    if (error instanceof social.PreloadedTargetCollisionError) { res.status(409).json({ error: error.message, conflicts: error.conflicts }); return; }
+    throw error;
+  }
+  if (!updated) { res.status(404).json({ error: "Curated Target not found." }); return; }
+  await recordAudit({ action: body.data.archive ? "preloaded_target_archived" : "preloaded_target_updated", entityType: "target", entityId: updated.id, actorId: actorId(res), details: `Updated curated subject ${updated.name}.` });
+  res.json(UpdateAdminPreloadedTargetResponse.parse((await social.targets()).find(target => target.id === updated.id)));
+});
+router.post("/preloaded-targets/:id/adopt", async (req, res): Promise<void> => {
+  const params = AdoptAdminPreloadedTargetParams.safeParse(req.params);
+  const body = AdoptAdminPreloadedTargetBody.safeParse(req.body);
+  if (!params.success || !body.success) { res.status(400).json({ error: "Invalid curated Target adoption." }); return; }
+  try {
+    const adopted = await social.adoptPreloadedTarget(params.data.id, body.data, actorId(res));
+    if (!adopted) { res.status(404).json({ error: "Target not found." }); return; }
+    await recordAudit({ action: "preloaded_target_adopted", entityType: "target", entityId: adopted.id, actorId: actorId(res), details: `Adopted existing Target ${adopted.name} without changing its linked Blasts.` });
+    res.json(AdoptAdminPreloadedTargetResponse.parse((await social.targets()).find(target => target.id === adopted.id)));
+  } catch (error) {
+    if (error instanceof social.PreloadedTargetCollisionError) { res.status(409).json({ error: error.message, conflicts: error.conflicts }); return; }
+    throw error;
+  }
+});
+router.get("/preloaded-targets/:id/metrics", async (req, res): Promise<void> => {
+  const params = GetAdminPreloadedTargetMetricsParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  const target = (await social.targets()).find(item => item.id === params.data.id && item.isPreloaded);
+  if (!target) { res.status(404).json({ error: "Curated Target not found." }); return; }
+  const [[blastMetrics], [commentMetrics], [reactionMetrics]] = await Promise.all([
+    db.select({ blastCount: sql<number>`count(*)::int`, viewCount: sql<number>`coalesce(sum(${blastsTable.viewCount}), 0)::int`, shareCount: sql<number>`coalesce(sum(${blastsTable.shareCount}), 0)::int` }).from(blastsTable).where(eq(blastsTable.targetId, target.id)),
+    db.select({ commentCount: sql<number>`count(*)::int` }).from(commentsTable).innerJoin(blastsTable, eq(commentsTable.blastId, blastsTable.id)).where(eq(blastsTable.targetId, target.id)),
+    db.select({ reactionCount: sql<number>`count(*)::int` }).from(reactionsTable).innerJoin(blastsTable, eq(reactionsTable.blastId, blastsTable.id)).where(eq(blastsTable.targetId, target.id)),
+  ]);
+  res.json(GetAdminPreloadedTargetMetricsResponse.parse({ targetId: target.id, ...blastMetrics, ...commentMetrics, ...reactionMetrics }));
+});
+router.post("/preloaded-targets/import/preview", async (req, res): Promise<void> => {
+  const parsed = PreviewAdminPreloadedImportBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  res.json(PreviewAdminPreloadedImportResponse.parse(importPreview(await classifiedImport(parsed.data.csv))));
+});
+router.post("/preloaded-targets/import", async (req, res): Promise<void> => {
+  const parsed = ConfirmAdminPreloadedImportBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  const rows = await db.transaction(async tx => {
+    const reviewed = await classifiedImport(parsed.data.csv, tx);
+    for (const row of reviewed) if (row.status === "create" && row.subject) {
+      const outcome = await social.createPreloadedTargetInTransaction(tx, row.subject, actorId(res), "csv_import");
+      if (!outcome.created) { row.status = "existing"; row.message = "Canonical subject already exists."; }
+    }
+    return reviewed;
+  });
+  const result = importPreview(rows);
+  await recordAudit({ action: "preloaded_target_imported", entityType: "target_import", entityId: "csv", actorId: actorId(res), details: `Created ${result.createCount} curated subjects; ${result.existingCount} existed.` });
+  res.status(201).json(ConfirmAdminPreloadedImportResponse.parse(result));
+});
+
 function actorId(res: Response): string {
   return typeof res.locals.adminActorId === "string" ? res.locals.adminActorId : "unknown-admin";
+}
+
+function importPreview(rows: ReturnType<typeof parsePreloadedCsv>) {
+  return {
+    total: rows.length,
+    createCount: rows.filter(row => row.status === "create").length,
+    existingCount: rows.filter(row => row.status === "existing").length,
+    duplicateCount: rows.filter(row => row.status === "duplicate").length,
+    invalidCount: rows.filter(row => row.status === "invalid").length,
+    rows: rows.map(row => ({ line: row.line, status: row.status, ...(row.message ? { message: row.message } : {}) })),
+  };
+}
+async function classifiedImport(csv: string, executor: any = db) {
+  const rows = parsePreloadedCsv(csv);
+  const [targetRows, aliasRows] = await Promise.all([
+    executor.select().from(targetsTable),
+    executor.select().from(targetAliasesTable),
+  ]);
+  const aliasesByTarget = new Map<string, string[]>();
+  for (const alias of aliasRows) aliasesByTarget.set(alias.targetId, [...(aliasesByTarget.get(alias.targetId) ?? []), alias.alias]);
+  const existing: Array<{ id: string; canonicalKey: string | null; slug: string; name: string; aliases: string[] }> = targetRows.map((row: typeof targetsTable.$inferSelect) => ({ ...row, aliases: aliasesByTarget.get(row.id) ?? [] }));
+  const canonical = new Set<string>(existing.map(row => row.canonicalKey).filter((key): key is string => Boolean(key)));
+  const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, "-");
+  const terms = new Set(existing.flatMap(row => [row.slug, row.name, ...row.aliases]).map(normalize));
+  return classifyPreloadedImport(rows, canonical).map(row => row.status === "create" && row.subject &&
+    [row.subject.slug, row.subject.name, ...(row.subject.aliases ?? [])].map(normalize).some(term => terms.has(term))
+    ? { ...row, status: "existing" as const, message: "An existing Target matches this subject; use admin adoption after review." }
+    : row);
 }
 
 const appealPayload = (row: typeof adminAppealsTable.$inferSelect) => ({

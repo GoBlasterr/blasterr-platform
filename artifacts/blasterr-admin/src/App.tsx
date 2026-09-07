@@ -58,6 +58,7 @@ import BoostedContentPage from '@/pages/advertising/boosted';
 import BlockedWordsPage from '@/pages/blocked-words';
 import AppealsPage from '@/pages/appeals';
 import NotificationsPage from '@/pages/notifications';
+import PreloadedBlastsPage from '@/pages/preloaded-blasts';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -125,6 +126,7 @@ function AdminRouter() {
           <Route path="/appeals" component={AppealsPage} />
           <Route path="/trending" component={TrendingPage} />
           <Route path="/notifications" component={NotificationsPage} />
+           <Route path="/preloaded-blasts" component={PreloadedBlastsPage} />
           
           <Route component={NotFound} />
         </Switch>

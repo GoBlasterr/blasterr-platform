@@ -3,6 +3,7 @@ export type ResolvableTarget = {
   name: string;
   type: string;
   location: string;
+  aliases?: string[];
 };
 
 export type TargetMatchKind =
@@ -46,6 +47,10 @@ export function normalizeTargetText(value: string): string {
     .replace(/[^a-z0-9]+/g, " ")
     .trim()
     .replace(/\s+/g, " ");
+}
+/** Every canonical name and alias is a protected identity term. */
+export function normalizedTargetTerms(name: string, aliases: string[] = []): string[] {
+  return [...new Set([name, ...aliases].map(value => value.trim()).filter(Boolean).map(normalizeTargetText))];
 }
 
 export function targetIdentityLockKey(input: {
@@ -147,9 +152,11 @@ export function findTargetMatches<T extends ResolvableTarget>(
     .map((target): TargetMatch<T> | null => {
       const rawTargetName = normalizeTargetText(target.name);
       const targetName = canonicalTargetName(target.name);
+      const alias = target.aliases?.find(candidate => canonicalTargetName(candidate) === inputName);
+      const resolvedTargetName = alias ? inputName : targetName;
       const targetLocation = locationIdentity(target.location);
-      const exactCanonicalName = inputName === targetName;
-      const aliasMatch = exactCanonicalName && rawInputName !== rawTargetName;
+      const exactCanonicalName = inputName === resolvedTargetName;
+      const aliasMatch = Boolean(alias) || (exactCanonicalName && rawInputName !== rawTargetName);
       const nameSimilarity = exactCanonicalName
         ? 1
         : Math.max(similarity(inputName, targetName), tokenOverlap(inputName, targetName));

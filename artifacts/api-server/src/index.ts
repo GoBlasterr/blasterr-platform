@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { seedPreloadedSubjects } from "./lib/preloaded-seed";
 import { validateDatabaseConnection } from "@workspace/db";
 
 const rawPort = process.env["PORT"];
@@ -18,6 +19,8 @@ if (Number.isNaN(port) || port <= 0) {
 
 async function start(): Promise<void> {
   await validateDatabaseConnection();
+  const preloadSeed = await seedPreloadedSubjects();
+  logger.info({ preloadSeed }, "Canonical preloaded Targets synchronized");
 
   app.listen(port, (err) => {
     if (err) {

@@ -1,16 +1,16 @@
 import { randomUUID } from "node:crypto";
 import {
   adminAuditEventsTable, adminReportsTable, blastsTable, blocksTable, bookmarksTable, commentsTable, db, followsTable,
-  notificationsTable, reactionsTable, reportsTable, targetsTable, usersTable,
+  notificationsTable, reactionsTable, reportsTable, targetAliasesTable, targetsTable, usersTable,
 } from "@workspace/db";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { shouldBootstrapSocialFixtures } from "./social-bootstrap-policy";
-import { normalizeTargetText, targetIdentityLockKey } from "./target-resolution";
+import { normalizeTargetText, normalizedTargetTerms, targetIdentityLockKey } from "./target-resolution";
 import { readableProfileMedia } from "./profile-media";
 
 export type Reaction = "blast" | "facts" | "cap" | "funny" | "watching";
 export type SocialUser = { id: string; username: string; displayName: string; avatarUrl: string; coverUrl: string; bio: string; location: string; city: string; state: string; followers: number; following: number; blastCount: number; joinedAt: string; isFollowing?: boolean; zipCode?: string };
-export type SocialTarget = { id: string; name: string; slug: string; type: "person" | "business" | "place" | "product" | "entertainment" | "sports" | "gaming" | "other"; location: string; blastCount: number; imageUrl: string; description: string };
+export type SocialTarget = { id: string; name: string; slug: string; type: "person" | "business" | "place" | "product" | "entertainment" | "sports" | "gaming" | "other"; location: string; blastCount: number; imageUrl: string; description: string; isCanonical: boolean; isPreloaded: boolean; preloadCategory: string | null; preloadStatus: "active" | "disabled" | "archived"; featured: boolean; verified: boolean; canonicalKey: string | null; aliases: string[] };
 export class DuplicateAccountEmailError extends Error {
   constructor() {
     super("An account with this email already exists.");
@@ -122,25 +122,50 @@ export async function targets() {
     count: sql<number>`count(*)::int`,
   }).from(blastsTable).groupBy(blastsTable.targetId);
   const countByTarget = new Map(blastCounts.map((row) => [row.targetId, row.count]));
+  const aliases = await db.select().from(targetAliasesTable);
+  const aliasesByTarget = new Map<string, string[]>();
+  for (const alias of aliases) aliasesByTarget.set(alias.targetId, [...(aliasesByTarget.get(alias.targetId) ?? []), alias.alias]);
   return rows.map((row) => ({
     ...row,
     type: row.type as SocialTarget["type"],
+    preloadStatus: row.preloadStatus as SocialTarget["preloadStatus"],
+    aliases: aliasesByTarget.get(row.id) ?? [],
     blastCount: countByTarget.get(row.id) ?? 0,
   }));
 }
 export async function target(id: string) { await ensureSocialBootstrap(); const [row] = await db.select().from(targetsTable).where(eq(targetsTable.id, id)); return row; }
 export async function targetSlug(slug: string) { await ensureSocialBootstrap(); const [row] = await db.select().from(targetsTable).where(eq(targetsTable.slug, slug)); return row; }
+export async function canonicalTargetForTerm(term: string) {
+  await ensureSocialBootstrap();
+  const normalized = normalizeTargetText(term);
+  const [alias] = await db.select({ targetId: targetAliasesTable.targetId }).from(targetAliasesTable)
+    .where(eq(targetAliasesTable.normalizedAlias, normalized));
+  const where = alias ? eq(targetsTable.id, alias.targetId) : eq(targetsTable.normalizedName, normalized);
+  const [row] = await db.select().from(targetsTable).where(and(where, eq(targetsTable.isCanonical, true), eq(targetsTable.isPreloaded, true), eq(targetsTable.preloadStatus, "active")));
+  return row;
+}
 /**
  * The advisory transaction lock serializes duplicate checks before the
  * normalized composite unique index provides the final database guarantee.
  */
-export async function createTarget(input: Omit<SocialTarget, "blastCount">) {
+export async function createTarget(input: Pick<SocialTarget, "id" | "name" | "slug" | "type" | "location" | "imageUrl" | "description">) {
   await ensureSocialBootstrap();
   return db.transaction(async tx => {
     const normalizedName = normalizeTargetText(input.name);
     const normalizedLocation = normalizeTargetText(input.location);
     const identity = targetIdentityLockKey(input);
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${identity}))`);
+    const canonical = await tx.select({ id: targetsTable.id }).from(targetsTable)
+      .where(and(eq(targetsTable.isCanonical, true), eq(targetsTable.isPreloaded, true), or(
+        eq(targetsTable.normalizedName, normalizedName),
+        inArray(targetsTable.id, (await tx.select({ targetId: targetAliasesTable.targetId }).from(targetAliasesTable).where(eq(targetAliasesTable.normalizedAlias, normalizedName))).map(x => x.targetId) || [""]),
+      )));
+    if (canonical.length) {
+      const error = new Error("Canonical target already exists");
+      error.name = "CanonicalTargetConflictError";
+      (error as Error & { targetId?: string }).targetId = canonical[0]!.id;
+      throw error;
+    }
     const duplicate = await tx.select({ id: targetsTable.id }).from(targetsTable)
       .where(and(
         eq(targetsTable.type, input.type),
@@ -158,7 +183,93 @@ export async function createTarget(input: Omit<SocialTarget, "blastCount">) {
       normalizedLocation,
     }).returning();
     if (!row) throw new Error("Unable to create target");
-    return { ...row, type: row.type as SocialTarget["type"], blastCount: 0 };
+    return { ...row, type: row.type as SocialTarget["type"], preloadStatus: row.preloadStatus as SocialTarget["preloadStatus"], aliases: [], blastCount: 0 };
+  });
+}
+
+export type PreloadedSubjectInput = { name: string; slug: string; type: SocialTarget["type"]; category: string; aliases?: string[]; description?: string; imageUrl?: string; featured?: boolean; verified?: boolean; status?: "active" | "disabled" };
+export class PreloadedTargetCollisionError extends Error {
+  constructor(readonly conflicts: { targetIds: string[]; aliases: string[] }) {
+    super("A canonical key, slug, name, or alias already belongs to another Target.");
+    this.name = "PreloadedTargetCollisionError";
+  }
+}
+const canonicalKeyFor = (slug: string) => normalizeTargetText(slug).replace(/\s/g, "-");
+async function preloadedCollisions(tx: any, input: { name: string; slug: string; aliases?: string[] }, exceptId?: string) {
+  const canonicalKey = canonicalKeyFor(input.slug);
+  const normalizedAliases = normalizedTargetTerms(input.name, input.aliases);
+  const targetRows = await tx.select({ id: targetsTable.id }).from(targetsTable).where(or(
+    eq(targetsTable.canonicalKey, canonicalKey), eq(targetsTable.slug, input.slug.trim()), inArray(targetsTable.normalizedName, normalizedAliases),
+  ));
+  const aliasRows = normalizedAliases.length
+    ? await tx.select({ targetId: targetAliasesTable.targetId, normalizedAlias: targetAliasesTable.normalizedAlias }).from(targetAliasesTable).where(inArray(targetAliasesTable.normalizedAlias, normalizedAliases))
+    : [];
+  const targetIds = [...new Set([...targetRows.map((row: { id: string }) => row.id), ...aliasRows.map((row: { targetId: string }) => row.targetId)].filter(id => id !== exceptId))];
+  const aliases = aliasRows.filter((row: { targetId: string }) => row.targetId !== exceptId).map((row: { normalizedAlias: string }) => row.normalizedAlias);
+  return { targetIds, aliases };
+}
+export async function createPreloadedTargetInTransaction(tx: any, input: PreloadedSubjectInput, actorId: string, provenance = "admin") {
+  const canonicalKey = canonicalKeyFor(input.slug);
+    const [existing] = await tx.select().from(targetsTable).where(eq(targetsTable.canonicalKey, canonicalKey));
+    if (existing) return { target: existing, created: false };
+    const collisions = await preloadedCollisions(tx, input);
+    if (collisions.targetIds.length) throw new PreloadedTargetCollisionError(collisions);
+    const [target] = await tx.insert(targetsTable).values({
+      id: `target-${randomUUID()}`, name: input.name.trim(), slug: input.slug.trim(), type: input.type,
+      description: input.description?.trim() ?? "", imageUrl: input.imageUrl?.trim() ?? "", location: "",
+      normalizedName: normalizeTargetText(input.name), normalizedLocation: "", isCanonical: true, isPreloaded: true,
+      preloadCategory: input.category, preloadStatus: input.status ?? "active", featured: input.featured ?? false,
+      verified: input.verified ?? true, canonicalKey, provenance, createdByAdminId: actorId,
+    }).returning();
+    if (!target) throw new Error("Unable to create preloaded target");
+    const values = [...new Set([input.name, ...(input.aliases ?? [])].map(alias => alias.trim()).filter(Boolean))]
+      .map(alias => ({ targetId: target.id, alias, normalizedAlias: normalizeTargetText(alias) }));
+    if (values.length) await tx.insert(targetAliasesTable).values(values);
+    return { target, created: true };
+}
+export async function createPreloadedTarget(input: PreloadedSubjectInput, actorId: string, provenance = "admin") {
+  return db.transaction(tx => createPreloadedTargetInTransaction(tx, input, actorId, provenance));
+}
+export async function updatePreloadedTarget(id: string, input: Partial<PreloadedSubjectInput> & { archive?: boolean }) {
+  return db.transaction(async tx => {
+  const [existing] = await tx.select().from(targetsTable).where(and(eq(targetsTable.id, id), eq(targetsTable.isPreloaded, true)));
+  if (!existing) return undefined;
+  const candidate = { name: input.name ?? existing.name, slug: input.slug ?? existing.slug, aliases: input.aliases ?? (await tx.select({ alias: targetAliasesTable.alias }).from(targetAliasesTable).where(eq(targetAliasesTable.targetId, id))).map((row: { alias: string }) => row.alias) };
+  const collisions = await preloadedCollisions(tx, candidate, id);
+  if (collisions.targetIds.length) throw new PreloadedTargetCollisionError(collisions);
+  const [row] = await tx.update(targetsTable).set({
+    ...(input.name !== undefined ? { name: input.name.trim(), normalizedName: normalizeTargetText(input.name) } : {}),
+    ...(input.slug !== undefined ? { slug: input.slug.trim(), canonicalKey: normalizeTargetText(input.slug).replace(/\s/g, "-") } : {}),
+    ...(input.type !== undefined ? { type: input.type } : {}), ...(input.category !== undefined ? { preloadCategory: input.category } : {}),
+    ...(input.description !== undefined ? { description: input.description } : {}), ...(input.imageUrl !== undefined ? { imageUrl: input.imageUrl } : {}),
+    ...(input.featured !== undefined ? { featured: input.featured } : {}), ...(input.verified !== undefined ? { verified: input.verified } : {}),
+    ...(input.status !== undefined ? { preloadStatus: input.status } : {}), ...(input.archive ? { preloadStatus: "archived", archivedAt: new Date() } : {}),
+    updatedAt: new Date(),
+  }).where(eq(targetsTable.id, id)).returning();
+  if (row && input.aliases) {
+    await tx.delete(targetAliasesTable).where(eq(targetAliasesTable.targetId, id));
+    const aliases = [...new Set([row.name, ...input.aliases].map(alias => alias.trim()).filter(Boolean))].map(alias => ({ targetId: id, alias, normalizedAlias: normalizeTargetText(alias) }));
+    if (aliases.length) await tx.insert(targetAliasesTable).values(aliases);
+  }
+  return row;
+  });
+}
+export async function adoptPreloadedTarget(id: string, input: PreloadedSubjectInput, actorId: string) {
+  return db.transaction(async tx => {
+    const [existing] = await tx.select().from(targetsTable).where(eq(targetsTable.id, id));
+    if (!existing) return undefined;
+    if (existing.isPreloaded) throw new PreloadedTargetCollisionError({ targetIds: [id], aliases: [] });
+    const candidate = { name: existing.name, slug: input.slug, aliases: input.aliases ?? [] };
+    const collisions = await preloadedCollisions(tx, candidate, id);
+    if (collisions.targetIds.length) throw new PreloadedTargetCollisionError(collisions);
+    const [row] = await tx.update(targetsTable).set({
+      slug: input.slug, canonicalKey: canonicalKeyFor(input.slug), isCanonical: true, isPreloaded: true,
+      preloadCategory: input.category, preloadStatus: input.status ?? "active", featured: input.featured ?? false,
+      verified: input.verified ?? true, provenance: "admin_adoption", createdByAdminId: actorId, updatedAt: new Date(),
+    }).where(eq(targetsTable.id, id)).returning();
+    const aliases = [...new Set([existing.name, ...(input.aliases ?? [])].map(alias => alias.trim()).filter(Boolean))].map(alias => ({ targetId: id, alias, normalizedAlias: normalizeTargetText(alias) }));
+    if (aliases.length) await tx.insert(targetAliasesTable).values(aliases);
+    return row;
   });
 }
 

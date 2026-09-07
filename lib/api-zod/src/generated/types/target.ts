@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { TargetMatchKind } from './targetMatchKind';
+import type { TargetPreloadStatus } from './targetPreloadStatus';
 import type { TargetType } from './targetType';
 
 export interface Target {
@@ -17,6 +18,14 @@ export interface Target {
   blastCount: number;
   imageUrl: string;
   description: string;
+  isCanonical?: boolean;
+  isPreloaded?: boolean;
+  /** @nullable */
+  preloadCategory?: string | null;
+  preloadStatus?: TargetPreloadStatus;
+  featured?: boolean;
+  verified?: boolean;
+  aliases?: string[];
   matchKind?: TargetMatchKind;
   /**
      * @minimum 0

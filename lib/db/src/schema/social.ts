@@ -56,6 +56,17 @@ export const targetsTable = pgTable(
     location: text("location").notNull().default(""),
     normalizedName: text("normalized_name").notNull().default(""),
     normalizedLocation: text("normalized_location").notNull().default(""),
+    /** Curated subjects are still normal Targets; this is only their discovery layer. */
+    isCanonical: boolean("is_canonical").notNull().default(false),
+    isPreloaded: boolean("is_preloaded").notNull().default(false),
+    preloadCategory: text("preload_category"),
+    preloadStatus: text("preload_status").notNull().default("active"),
+    featured: boolean("featured").notNull().default(false),
+    verified: boolean("verified").notNull().default(false),
+    canonicalKey: text("canonical_key"),
+    provenance: text("provenance").notNull().default("user"),
+    createdByAdminId: text("created_by_admin_id"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
     latitude: doublePrecision("latitude"),
     longitude: doublePrecision("longitude"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -70,10 +81,31 @@ export const targetsTable = pgTable(
     ),
     index("targets_type_idx").on(table.type),
     index("targets_coordinates_idx").on(table.latitude, table.longitude),
+    uniqueIndex("targets_canonical_key_unique").on(table.canonicalKey),
+    index("targets_preloaded_discovery_idx").on(table.isPreloaded, table.preloadStatus, table.featured, table.createdAt),
     check("targets_type_check", sql`${table.type} in ('person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other')`),
     check("targets_latitude_check", sql`${table.latitude} is null or ${table.latitude} between -90 and 90`),
     check("targets_longitude_check", sql`${table.longitude} is null or ${table.longitude} between -180 and 180`),
     check("targets_coordinates_pair_check", sql`(${table.latitude} is null) = (${table.longitude} is null)`),
+    check("targets_preload_status_check", sql`${table.preloadStatus} in ('active', 'disabled', 'archived')`),
+    check("targets_canonical_preloaded_check", sql`not ${table.isCanonical} or ${table.isPreloaded}`),
+  ],
+);
+
+/** Persisted normalized aliases make canonical subject resolution deterministic. */
+export const targetAliasesTable = pgTable(
+  "target_aliases",
+  {
+    id: text("id").primaryKey().$defaultFn(randomUUID),
+    targetId: text("target_id").notNull().references(() => targetsTable.id, { onDelete: "cascade" }),
+    alias: text("alias").notNull(),
+    normalizedAlias: text("normalized_alias").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("target_aliases_normalized_unique").on(table.normalizedAlias),
+    uniqueIndex("target_aliases_target_normalized_unique").on(table.targetId, table.normalizedAlias),
+    index("target_aliases_target_idx").on(table.targetId),
   ],
 );
 
@@ -287,6 +319,7 @@ export const blocksTable = pgTable(
 
 export const insertUserSchema = createInsertSchema(usersTable);
 export const insertTargetSchema = createInsertSchema(targetsTable);
+export const insertTargetAliasSchema = createInsertSchema(targetAliasesTable);
 export const insertBlastSchema = createInsertSchema(blastsTable);
 export const insertCommentSchema = createInsertSchema(commentsTable);
 export const insertReportSchema = createInsertSchema(reportsTable);
@@ -294,5 +327,6 @@ export const insertClipSchema = createInsertSchema(clipsTable);
 
 export type UserRow = typeof usersTable.$inferSelect;
 export type TargetRow = typeof targetsTable.$inferSelect;
+export type TargetAliasRow = typeof targetAliasesTable.$inferSelect;
 export type BlastRow = typeof blastsTable.$inferSelect;
 export type ClipRow = typeof clipsTable.$inferSelect;
