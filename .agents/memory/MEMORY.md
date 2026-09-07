@@ -9,3 +9,4 @@
 - [Target creation integrity](target-creation-integrity.md) — use PostgreSQL-safe lock keys, classify only known duplicate errors as conflicts, and require real auth for user mutations.
 - [Development auth recreation](development-auth-recreation.md) — recreated preview auth can collide with stale email ownership; preserve linked rows without weakening production checks.
 - [Development social fixtures](development-social-fixtures.md) — keep social fixtures opt-in; ordinary previews must remain empty until real users create data.
+- [Admin authentication boundary](admin-authentication-boundary.md) — Admin uses Supabase sessions; public website and mobile remain on Clerk.

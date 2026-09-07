@@ -1,7 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useAuth, useClerk, useUser } from '@clerk/react';
-import { useSignIn } from '@clerk/react/legacy';
 import { getGetAdminOverviewQueryKey, useGetAdminOverview } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -59,6 +57,7 @@ import BlockedWordsPage from '@/pages/blocked-words';
 import AppealsPage from '@/pages/appeals';
 import NotificationsPage from '@/pages/notifications';
 import PreloadedBlastsPage from '@/pages/preloaded-blasts';
+import { useAdminAuth } from '@/lib/admin-auth';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -136,33 +135,27 @@ function AdminRouter() {
 }
 
 function SignInPage() {
-  const { isLoaded, signIn, setActive } = useSignIn();
-  const [email, setEmail] = useState('info@blasterr.co');
+  const { signIn, signUp, recover } = useAdminAuth();
+  const [email, setEmail] = useState('admin@getblaster.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mode, setMode] = useState<'signin' | 'signup' | 'recover'>('signin');
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isLoaded || !email.trim() || !password || isSubmitting) return;
+    if (!email.trim() || (mode !== 'recover' && !password) || isSubmitting) return;
     setError('');
+    setMessage('');
     setIsSubmitting(true);
     try {
-      const firstFactor = await signIn.create({ identifier: email.trim() });
-      if (firstFactor.status !== 'needs_first_factor') {
-        throw new Error('This account is not configured for password sign-in.');
-      }
-      const result = await signIn.attemptFirstFactor({
-        strategy: 'password',
-        password,
-      });
-      if (result.status !== 'complete' || !result.createdSessionId) {
-        throw new Error('Additional verification is required. Contact a BLASTERR administrator.');
-      }
-      await setActive({ session: result.createdSessionId });
+      if (mode === 'signin') await signIn(email.trim(), password);
+      else if (mode === 'signup') setMessage(await signUp(email.trim(), password));
+      else setMessage(await recover(email.trim()));
     } catch (cause: any) {
-      setError(cause?.errors?.[0]?.longMessage || cause?.message || 'Unable to sign in with those credentials.');
+      setError(cause?.message || 'Unable to complete the request.');
     } finally {
       setIsSubmitting(false);
     }
@@ -178,8 +171,8 @@ function SignInPage() {
           data-testid="img-sign-in-blasterr-logo"
         />
         <section className="w-full rounded-sm border border-white/20 bg-black p-8 text-white shadow-2xl">
-          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.22em] text-[#e5f403]">
-            Restricted control center
+            <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.22em] text-[#e5f403]">
+              {mode === 'signin' ? 'Restricted control center' : mode === 'signup' ? 'Create approved Admin account' : 'Recover Admin access'}
           </p>
           <form className="mt-8 space-y-5" onSubmit={submit}>
             <div className="space-y-2">
@@ -197,7 +190,7 @@ function SignInPage() {
                 data-testid="staff-email"
               />
             </div>
-            <div className="space-y-2">
+            {mode !== 'recover' && <div className="space-y-2">
               <label className="text-sm font-medium text-white" htmlFor="staff-password">Password</label>
               <div className="relative">
                 <Input
@@ -222,16 +215,22 @@ function SignInPage() {
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
-            </div>
+            </div>}
             {error && <p className="text-sm text-red-400" role="alert">{error}</p>}
+            {message && <p className="text-sm text-[#e5f403]" role="status">{message}</p>}
             <button
               type="submit"
-              disabled={!isLoaded || isSubmitting || !email.trim() || !password}
+              disabled={isSubmitting || !email.trim() || (mode !== 'recover' && !password)}
               className="inline-flex h-10 w-full items-center justify-center rounded-sm bg-[#e5f403] px-5 text-sm font-semibold text-black transition-colors hover:bg-[#e5f403]/90 disabled:cursor-not-allowed"
               data-testid="staff-sign-in"
             >
-              {isSubmitting ? 'Signing in…' : 'Sign in'}
+              {isSubmitting ? 'Working…' : mode === 'signin' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send recovery email'}
             </button>
+            <div className="flex justify-between text-xs">
+              {mode !== 'signin' && <button type="button" className="text-[#e5f403] underline" onClick={() => setMode('signin')}>Back to sign in</button>}
+              {mode === 'signin' && <button type="button" className="text-[#e5f403] underline" onClick={() => setMode('recover')}>Forgot password?</button>}
+              {mode === 'signin' && <button type="button" className="text-[#e5f403] underline" onClick={() => setMode('signup')}>Create Admin account</button>}
+            </div>
           </form>
         </section>
       </div>
@@ -239,11 +238,38 @@ function SignInPage() {
   );
 }
 
+function ResetPasswordPage() {
+  const { updatePassword } = useAdminAuth();
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [pending, setPending] = useState(false);
+  const token = new URLSearchParams(window.location.hash.slice(1)).get('access_token') ?? '';
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setPending(true); setError(''); setMessage('');
+    try { setMessage(await updatePassword(token, password)); }
+    catch (cause: any) { setError(cause?.message ?? 'Unable to update password.'); }
+    finally { setPending(false); }
+  };
+  return <main className="flex min-h-[100dvh] items-center justify-center bg-black px-4 text-white">
+    <form onSubmit={submit} className="w-full max-w-md space-y-5 border border-white/20 p-8">
+      <h1 className="text-center text-xs font-semibold uppercase tracking-[0.22em] text-[#e5f403]">Update Admin password</h1>
+      <Input type="password" minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="New password (6+ characters)" required />
+      {error && <p className="text-sm text-red-400">{error}</p>}
+      {message && <p className="text-sm text-[#e5f403]">{message}</p>}
+      <button disabled={pending || password.length < 6 || !token} className="h-10 w-full bg-[#e5f403] text-black disabled:opacity-50">{pending ? 'Updating…' : 'Update password'}</button>
+      <a href={`${basePath}/sign-in`} className="block text-center text-xs text-[#e5f403] underline">Back to sign in</a>
+    </form>
+  </main>;
+}
+
 function SignedOutRouter() {
   return (
     <Switch>
       <Route path="/" component={() => <Redirect to="/sign-in" />} />
       <Route path="/sign-in/*?" component={SignInPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/sign-up/*?" component={() => <Redirect to="/sign-in" />} />
       <Route component={() => <Redirect to="/sign-in" />} />
     </Switch>
@@ -267,9 +293,7 @@ function AuthLoadingState() {
 }
 
 function AccessDeniedState() {
-  const { user } = useUser();
-  const { signOut } = useClerk();
-  const identity = user?.primaryEmailAddress?.emailAddress ?? user?.username ?? 'this account';
+  const { email: identity, signOut } = useAdminAuth();
 
   return (
     <main className="flex min-h-[100dvh] items-center justify-center bg-background p-6 text-foreground">
@@ -290,7 +314,7 @@ function AccessDeniedState() {
           type="button"
           variant="outline"
           className="mt-7 rounded-sm font-mono text-xs uppercase tracking-wider"
-          onClick={() => void signOut({ redirectUrl: basePath || '/' })}
+          onClick={() => void signOut()}
           data-testid="button-sign-out-denied"
         >
           Sign out
@@ -301,7 +325,7 @@ function AccessDeniedState() {
 }
 
 function SessionVerificationState() {
-  const { signOut } = useClerk();
+  const { signOut } = useAdminAuth();
 
   return (
     <main className="flex min-h-[100dvh] items-center justify-center bg-background p-6 text-foreground">
@@ -318,7 +342,7 @@ function SessionVerificationState() {
           type="button"
           variant="outline"
           className="mt-7 rounded-sm font-mono text-xs uppercase tracking-wider"
-          onClick={() => void signOut({ redirectUrl: `${basePath}/sign-in` })}
+          onClick={() => void signOut()}
           data-testid="button-refresh-session"
         >
           Sign in again
@@ -358,13 +382,13 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 function App() {
-  const { isSignedIn } = useAuth();
+  const { authenticated, loading } = useAdminAuth();
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          {import.meta.env.DEV ? <AdminRouter /> : isSignedIn ? <AuthenticatedRouter /> : <SignedOutRouter />}
+          {import.meta.env.DEV ? <AdminRouter /> : loading ? <AuthLoadingState /> : authenticated ? <AuthenticatedRouter /> : <SignedOutRouter />}
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

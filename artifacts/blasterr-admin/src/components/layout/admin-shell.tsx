@@ -1,5 +1,4 @@
 import { ReactNode, useState } from "react";
-import { useClerk, useUser } from "@clerk/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import {
@@ -12,23 +11,19 @@ import { Bell, Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useAdminAuth } from "@/lib/admin-auth";
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const queryClient = useQueryClient();
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const { signOut, email } = useAdminAuth();
   const notificationParams = { limit: 5 };
   const notifications = useListAdminAdvertisingNotifications(notificationParams, {
     query: { queryKey: getListAdminAdvertisingNotificationsQueryKey(notificationParams), refetchInterval: 30_000 },
   });
   const markRead = useMarkAdminAdvertisingNotificationRead();
-  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ")
-    || user?.username
-    || user?.primaryEmailAddress?.emailAddress
-    || "Staff user";
-  const initials = [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join("")
-    || displayName.slice(0, 2).toUpperCase();
+  const displayName = email || "Staff user";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground flex w-full">
@@ -105,7 +100,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 variant="outline"
                 size="sm"
                 className="rounded-sm font-mono text-[10px] uppercase tracking-wider"
-                onClick={() => void signOut({ redirectUrl: import.meta.env.BASE_URL.replace(/\/$/, '') || "/" })}
+                onClick={() => void signOut()}
                 data-testid="button-sign-out"
               >
                 Sign out

@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import socialRouter from "./social";
+import adminAuthRouter from "./admin-auth";
 import storageRouter from "./storage";
 import clipsRouter from "./clips";
 import advertisingRouter from "./advertising";
@@ -10,6 +11,7 @@ import cmsRouter from "./cms";
 import appealsRouter from "./appeals";
 
 const router: IRouter = Router();
+router.use("/admin-auth", adminAuthRouter);
 
 router.use(healthRouter);
 router.use(announcementsRouter);

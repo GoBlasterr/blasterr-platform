@@ -1,4 +1,4 @@
-import { clerkClient, getAuth } from "@clerk/express";
+import { getAuth } from "@clerk/express";
 import * as v from "@workspace/api-zod";
 import {
   adApprovalRecordsTable, adBoostRequestsTable, adEventsTable, adTransactionsTable, advertisementsTable, advertisersTable,
@@ -35,16 +35,7 @@ function verifyDeliveryToken(token: string): DeliveryTokenPayload | null {
   return verifySignedDeliveryToken(token, process.env.SESSION_SECRET);
 }
 async function admin(req: Request): Promise<string | null> {
-  const { userId } = getAuth(req);
-  if (process.env.NODE_ENV === "development" && process.env.DEV_ADMIN_BYPASS === "true") {
-    return userId ?? "development-admin";
-  }
-  if (!userId) return null;
-  try {
-    const user = await clerkClient.users.getUser(userId);
-    const metadata = user.publicMetadata as Record<string, unknown>;
-    return metadata.role === "admin" || metadata.isAdmin === true ? userId : null;
-  } catch { return null; }
+  return req.res?.locals.adminActorId ?? null;
 }
 function isHttpUrl(value: string | undefined): boolean {
   if (!value) return true;

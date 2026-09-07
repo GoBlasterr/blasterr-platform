@@ -28,6 +28,8 @@ channel = "stable-25_05"
 
 [userenv.shared]
 CLOUDFLARE_R2_BUCKET = "blasterbucket"
+ADMIN_EMAILS = "admin@getblaster.com"
+ADMIN_APP_URL = "https://goblasterr.com/blasterr-admin"
 
 [[ports]]
 localPort = 8080

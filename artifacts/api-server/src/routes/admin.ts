@@ -1,4 +1,4 @@
-import { clerkClient, getAuth } from "@clerk/express";
+import { clerkClient } from "@clerk/express";
 import { Router, type IRouter, type NextFunction, type Request, type Response } from "express";
 import {
   CreateAdminAnnouncementBody,
@@ -82,7 +82,6 @@ import {
   updateAdminReportWithAudit,
   updateAdminSettingsWithAudit,
 } from "../lib/admin-state";
-import { isActiveAdmin, isSuspended } from "../lib/admin-auth";
 import * as social from "../lib/social-repository";
 import {
   adminReportsTable,
@@ -109,34 +108,8 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction): Pr
     res.status(503).json({ error: "Admin state is temporarily unavailable." });
     return;
   }
-  const developmentBypass = process.env.NODE_ENV === "development" && process.env.DEV_ADMIN_BYPASS === "true";
-  if (developmentBypass) {
-    res.locals.adminActorId = getAuth(req).userId ?? "development-admin";
-    next();
-    return;
-  }
-  const { userId } = getAuth(req);
-  if (!userId) {
-    res.status(401).json({ error: "Authentication required." });
-    return;
-  }
-  try {
-    const user = await clerkClient.users.getUser(userId);
-    const metadata = user.publicMetadata as Record<string, unknown>;
-    if (isSuspended(metadata)) {
-      res.status(403).json({ error: "This account is suspended." });
-      return;
-    }
-    if (!isActiveAdmin(metadata)) {
-      res.status(403).json({ error: "Admin access required." });
-      return;
-    }
-    res.locals.adminActorId = userId;
-    next();
-  } catch (error) {
-    req.log.warn({ err: error, userId }, "Unable to authorize admin request");
-    res.status(403).json({ error: "Admin access required." });
-  }
+  if (!res.locals.adminActorId) return void res.status(401).json({ error: "Authentication required." });
+  next();
 }
 
 router.use(requireAdmin);

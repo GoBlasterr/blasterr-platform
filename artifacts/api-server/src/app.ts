@@ -13,6 +13,7 @@ import {
 import { adminSettings, ensureAdminState } from "./lib/admin-state";
 import { isSuspended } from "./lib/admin-auth";
 import { handleAdvertisingBillingWebhook } from "./lib/ad-billing";
+import { requireSupabaseAdmin } from "./lib/admin-supabase-auth";
 
 const app: Express = express();
 app.set("trust proxy", 1);
@@ -60,6 +61,7 @@ app.use(
     ),
   })),
 );
+app.use("/api/admin", requireSupabaseAdmin);
 
 app.use(async (req, res, next) => {
   if (!req.path.startsWith("/api/") || req.path === "/api/healthz" || req.path.startsWith("/api/admin/")) {
