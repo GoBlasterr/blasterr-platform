@@ -27,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { TranslatedText } from "@/components/shared/translated-text";
 
 import { 
   MessageSquare, 
@@ -225,7 +226,7 @@ export function BlastCard({ blast, showTarget = true, showMedia = false }: { bla
           </div>
 
           <p className="mt-2 text-[15px] leading-relaxed text-white whitespace-pre-wrap break-words">
-            {blast.content}
+            <TranslatedText text={blast.content} context="blast" />
           </p>
 
           {showMedia && blast.mediaUrl && (

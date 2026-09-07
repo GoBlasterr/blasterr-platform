@@ -17,7 +17,41 @@ tags:
   - name: announcements
   - name: admin
   - name: advertising
+  - name: localization
 paths:
+  /localization/locale:
+    get:
+      operationId: getViewerLocale
+      tags: [localization]
+      summary: Detect the viewer language without storing personal location data
+      responses:
+        "200":
+          description: Supported viewer locale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViewerLocale"
+  /localization/translate:
+    post:
+      operationId: translateText
+      tags: [localization]
+      summary: Translate user text without changing its stored original
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranslationInput"
+      responses:
+        "200":
+          description: Translation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslationResult"
+        "400": { description: Invalid translation request }
+        "429": { description: Translation rate limit exceeded }
+        "502": { description: Translation provider unavailable }
   /healthz:
     get:
       operationId: healthCheck
@@ -1543,6 +1577,41 @@ components:
       schema:
         type: string
   schemas:
+    ViewerLocale:
+      type: object
+      required: [language, direction]
+      properties:
+        language:
+          type: string
+          enum: [en, fr, es, de, pt, it, nl, tr, ru, ar, zh, ja, ko]
+        direction:
+          type: string
+          enum: [ltr, rtl]
+    TranslationInput:
+      type: object
+      additionalProperties: false
+      required: [text, targetLanguage]
+      properties:
+        text: { type: string, minLength: 1, maxLength: 5000 }
+        targetLanguage:
+          type: string
+          enum: [en, fr, es, de, pt, it, nl, tr, ru, ar, zh, ja, ko]
+        context:
+          type: string
+          enum: [blast, comment, bio, notification]
+    TranslationResult:
+      type: object
+      required: [originalText, translatedText, detectedLanguage, targetLanguage, translated]
+      properties:
+        originalText: { type: string }
+        translatedText: { type: string }
+        detectedLanguage:
+          type: string
+          enum: [en, fr, es, de, pt, it, nl, tr, ru, ar, zh, ja, ko, und]
+        targetLanguage:
+          type: string
+          enum: [en, fr, es, de, pt, it, nl, tr, ru, ar, zh, ja, ko]
+        translated: { type: boolean }
     HealthStatus:
       type: object
       required: [status]

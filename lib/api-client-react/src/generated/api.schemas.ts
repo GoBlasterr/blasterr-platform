@@ -5,6 +5,124 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+export type ViewerLocaleLanguage = typeof ViewerLocaleLanguage[keyof typeof ViewerLocaleLanguage];
+
+
+export const ViewerLocaleLanguage = {
+  en: 'en',
+  fr: 'fr',
+  es: 'es',
+  de: 'de',
+  pt: 'pt',
+  it: 'it',
+  nl: 'nl',
+  tr: 'tr',
+  ru: 'ru',
+  ar: 'ar',
+  zh: 'zh',
+  ja: 'ja',
+  ko: 'ko',
+} as const;
+
+export type ViewerLocaleDirection = typeof ViewerLocaleDirection[keyof typeof ViewerLocaleDirection];
+
+
+export const ViewerLocaleDirection = {
+  ltr: 'ltr',
+  rtl: 'rtl',
+} as const;
+
+export interface ViewerLocale {
+  language: ViewerLocaleLanguage;
+  direction: ViewerLocaleDirection;
+}
+
+export type TranslationInputTargetLanguage = typeof TranslationInputTargetLanguage[keyof typeof TranslationInputTargetLanguage];
+
+
+export const TranslationInputTargetLanguage = {
+  en: 'en',
+  fr: 'fr',
+  es: 'es',
+  de: 'de',
+  pt: 'pt',
+  it: 'it',
+  nl: 'nl',
+  tr: 'tr',
+  ru: 'ru',
+  ar: 'ar',
+  zh: 'zh',
+  ja: 'ja',
+  ko: 'ko',
+} as const;
+
+export type TranslationInputContext = typeof TranslationInputContext[keyof typeof TranslationInputContext];
+
+
+export const TranslationInputContext = {
+  blast: 'blast',
+  comment: 'comment',
+  bio: 'bio',
+  notification: 'notification',
+} as const;
+
+export interface TranslationInput {
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
+  text: string;
+  targetLanguage: TranslationInputTargetLanguage;
+  context?: TranslationInputContext;
+}
+
+export type TranslationResultDetectedLanguage = typeof TranslationResultDetectedLanguage[keyof typeof TranslationResultDetectedLanguage];
+
+
+export const TranslationResultDetectedLanguage = {
+  en: 'en',
+  fr: 'fr',
+  es: 'es',
+  de: 'de',
+  pt: 'pt',
+  it: 'it',
+  nl: 'nl',
+  tr: 'tr',
+  ru: 'ru',
+  ar: 'ar',
+  zh: 'zh',
+  ja: 'ja',
+  ko: 'ko',
+  und: 'und',
+} as const;
+
+export type TranslationResultTargetLanguage = typeof TranslationResultTargetLanguage[keyof typeof TranslationResultTargetLanguage];
+
+
+export const TranslationResultTargetLanguage = {
+  en: 'en',
+  fr: 'fr',
+  es: 'es',
+  de: 'de',
+  pt: 'pt',
+  it: 'it',
+  nl: 'nl',
+  tr: 'tr',
+  ru: 'ru',
+  ar: 'ar',
+  zh: 'zh',
+  ja: 'ja',
+  ko: 'ko',
+} as const;
+
+export interface TranslationResult {
+  originalText: string;
+  translatedText: string;
+  detectedLanguage: TranslationResultDetectedLanguage;
+  targetLanguage: TranslationResultTargetLanguage;
+  translated: boolean;
+}
+
 export interface HealthStatus {
   status: string;
 }

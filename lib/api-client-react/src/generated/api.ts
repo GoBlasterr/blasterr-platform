@@ -159,8 +159,11 @@ import type {
   TargetConflict,
   TargetDetail,
   TargetInput,
+  TranslationInput,
+  TranslationResult,
   TrendingResponse,
-  UserUpdate
+  UserUpdate,
+  ViewerLocale
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -189,6 +192,154 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetViewerLocaleUrl = () => {
+
+
+
+
+  return `/api/localization/locale`
+}
+
+/**
+ * @summary Detect the viewer language without storing personal location data
+ */
+export const getViewerLocale = async ( options?: Parameters<typeof customFetch>[1]): Promise<ViewerLocale> => {
+
+  return customFetch<ViewerLocale>(getGetViewerLocaleUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetViewerLocaleQueryKey = () => {
+    return [
+    `/api/localization/locale`
+    ] as const;
+    }
+
+
+export const getGetViewerLocaleQueryOptions = <TData = Awaited<ReturnType<typeof getViewerLocale>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getViewerLocale>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetViewerLocaleQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getViewerLocale>>> = ({ signal }) => getViewerLocale({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getViewerLocale>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetViewerLocaleQueryResult = NonNullable<Awaited<ReturnType<typeof getViewerLocale>>>
+export type GetViewerLocaleQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Detect the viewer language without storing personal location data
+ */
+
+export function useGetViewerLocale<TData = Awaited<ReturnType<typeof getViewerLocale>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getViewerLocale>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetViewerLocaleQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getTranslateTextUrl = () => {
+
+
+
+
+  return `/api/localization/translate`
+}
+
+/**
+ * @summary Translate user text without changing its stored original
+ */
+export const translateText = async (translationInput: TranslationInput, options?: Parameters<typeof customFetch>[1]): Promise<TranslationResult> => {
+
+  return customFetch<TranslationResult>(getTranslateTextUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(translationInput)
+  }
+);}
+
+
+
+
+
+export const getTranslateTextMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof translateText>>, TError,{data: BodyType<TranslationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof translateText>>, TError,{data: BodyType<TranslationInput>}, TContext> => {
+
+const mutationKey = ['translateText'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof translateText>>, {data: BodyType<TranslationInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  translateText(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TranslateTextMutationResult = NonNullable<Awaited<ReturnType<typeof translateText>>>
+    export type TranslateTextMutationBody = BodyType<TranslationInput>
+    export type TranslateTextMutationError = ErrorType<void>
+
+    /**
+ * @summary Translate user text without changing its stored original
+ */
+export const useTranslateText = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof translateText>>, TError,{data: BodyType<TranslationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof translateText>>,
+        TError,
+        {data: BodyType<TranslationInput>},
+        TContext
+      > => {
+      return useMutation(getTranslateTextMutationOptions(options));
+    }
 
 export const getHealthCheckUrl = () => {
 

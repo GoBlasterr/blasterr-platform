@@ -9,6 +9,37 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Detect the viewer language without storing personal location data
+ */
+export const GetViewerLocaleResponse = zod.object({
+  "language": zod.enum(['en', 'fr', 'es', 'de', 'pt', 'it', 'nl', 'tr', 'ru', 'ar', 'zh', 'ja', 'ko']),
+  "direction": zod.enum(['ltr', 'rtl'])
+})
+
+
+/**
+ * @summary Translate user text without changing its stored original
+ */
+export const translateTextBodyTextMax = 5000;
+
+
+
+export const TranslateTextBody = zod.object({
+  "text": zod.string().min(1).max(translateTextBodyTextMax),
+  "targetLanguage": zod.enum(['en', 'fr', 'es', 'de', 'pt', 'it', 'nl', 'tr', 'ru', 'ar', 'zh', 'ja', 'ko']),
+  "context": zod.enum(['blast', 'comment', 'bio', 'notification']).optional()
+})
+
+export const TranslateTextResponse = zod.object({
+  "originalText": zod.string(),
+  "translatedText": zod.string(),
+  "detectedLanguage": zod.enum(['en', 'fr', 'es', 'de', 'pt', 'it', 'nl', 'tr', 'ru', 'ar', 'zh', 'ja', 'ko', 'und']),
+  "targetLanguage": zod.enum(['en', 'fr', 'es', 'de', 'pt', 'it', 'nl', 'tr', 'ru', 'ar', 'zh', 'ja', 'ko']),
+  "translated": zod.boolean()
+})
+
+
+/**
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({

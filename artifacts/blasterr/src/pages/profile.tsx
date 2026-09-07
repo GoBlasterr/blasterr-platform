@@ -11,6 +11,7 @@ import { useState } from "react";
 import { ProfileMediaImage } from "@/components/shared/profile-media-image";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Seo, absoluteUrl, canonicalUrl } from "@/components/seo";
+import { TranslatedText } from "@/components/shared/translated-text";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -149,7 +150,11 @@ export default function Profile() {
           <p className="text-muted-foreground text-[15px]">@{profile.username}</p>
         </div>
 
-        {profile.bio && <p className="text-white/90 text-[15px] mb-4 leading-relaxed">{profile.bio}</p>}
+        {profile.bio && (
+          <p className="text-white/90 text-[15px] mb-4 leading-relaxed">
+            <TranslatedText text={profile.bio} context="bio" />
+          </p>
+        )}
 
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground mb-4">
           {profile.location && (

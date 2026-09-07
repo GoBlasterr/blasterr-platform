@@ -13,6 +13,7 @@ import {
   Star
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { TranslatedText } from "@/components/shared/translated-text";
 
 export default function Notifications() {
   const [, setLocation] = useLocation();
@@ -68,7 +69,7 @@ export default function Notifications() {
                 </Avatar>
                 <div className="text-[15px] text-white/90">
                   <span className="font-bold text-white mr-1">{notif.actor.displayName}</span>
-                  {notif.message}
+                  <TranslatedText text={notif.message} context="notification" />
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
