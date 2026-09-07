@@ -13,7 +13,9 @@ import {
 } from "recharts";
 
 export default function OverviewPage() {
-  const { data: overview, isLoading, isError } = useGetAdminOverview();
+  const { data: overview, isLoading, isError } = useGetAdminOverview({
+    request: { cache: "no-store" },
+  });
 
   if (isLoading) {
     return (
