@@ -34,12 +34,35 @@ export default function Splash() {
     const video = videoRef.current;
     if (!video) return;
 
-    video.muted = true;
-    video.defaultMuted = true;
-    video.setAttribute("muted", "");
-    void video.play().catch(() => undefined);
+    const enableSound = () => {
+      video.muted = false;
+      video.defaultMuted = false;
+      video.removeAttribute("muted");
+      if (video.paused) {
+        void video.play().catch(() => undefined);
+      }
+    };
+
+    const startPlayback = async () => {
+      enableSound();
+      try {
+        await video.play();
+      } catch {
+        // Browsers can reject audible autoplay until the first user gesture.
+        video.muted = true;
+        video.defaultMuted = true;
+        video.setAttribute("muted", "");
+        await video.play().catch(() => undefined);
+      }
+    };
+
+    void startPlayback();
+    window.addEventListener("pointerdown", enableSound, { once: true });
+    window.addEventListener("keydown", enableSound, { once: true });
 
     return () => {
+      window.removeEventListener("pointerdown", enableSound);
+      window.removeEventListener("keydown", enableSound);
       if (finishTimerRef.current !== null) {
         window.clearTimeout(finishTimerRef.current);
       }
@@ -109,15 +132,11 @@ export default function Splash() {
         ref={videoRef}
         className="absolute inset-0 h-full w-full object-contain"
         autoPlay
-        muted
         playsInline
         preload="auto"
         controls={false}
         disablePictureInPicture
         controlsList="nodownload nofullscreen noplaybackrate"
-        onCanPlay={() => {
-          videoRef.current?.play().catch(() => undefined);
-        }}
         onEnded={finish}
         onError={finish}
         aria-label="BLASTERR introduction"

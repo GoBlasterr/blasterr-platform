@@ -41,13 +41,45 @@ function useSplashCompletion() {
 function WebSplash() {
   const finish = useSplashCompletion();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(true);
   const [assets] = useAssets([introVideoWeb]);
   const source = assets?.[0]?.localUri ?? assets?.[0]?.uri;
 
   useEffect(() => {
     if (!source) return;
-    videoRef.current?.play().catch(() => undefined);
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    const enableSound = () => {
+      video.muted = false;
+      video.defaultMuted = false;
+      video.removeAttribute('muted');
+      if (video.paused) {
+        void video.play().catch(() => undefined);
+      }
+    };
+
+    const startPlayback = async () => {
+      enableSound();
+      try {
+        await video.play();
+      } catch {
+        // Browsers can reject audible autoplay until the first user gesture.
+        video.muted = true;
+        video.defaultMuted = true;
+        video.setAttribute('muted', '');
+        await video.play().catch(() => undefined);
+      }
+    };
+
+    void startPlayback();
+    window.addEventListener('pointerdown', enableSound, { once: true });
+    window.addEventListener('keydown', enableSound, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', enableSound);
+      window.removeEventListener('keydown', enableSound);
+    };
   }, [source]);
 
   return (
@@ -58,13 +90,11 @@ function WebSplash() {
           ref={videoRef}
           src={source}
           autoPlay
-          muted={muted}
           playsInline
           controls={false}
           disablePictureInPicture
           controlsList="nodownload nofullscreen noplaybackrate"
           onEnded={finish}
-          onClick={() => setMuted(false)}
           style={webVideoStyle}
         />
       ) : null}
