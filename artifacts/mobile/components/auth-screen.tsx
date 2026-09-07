@@ -57,7 +57,7 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle: str
         accessibilityLabel="BLASTERR"
       />
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 190, paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 150, paddingBottom: insets.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={[styles.card, { backgroundColor: colors.authCard, borderColor: colors.authBorder }]}>

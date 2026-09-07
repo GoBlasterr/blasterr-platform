@@ -1,13 +1,11 @@
 import { AuthScreen } from '@/components/auth-screen';
-import { useLocalSearchParams } from 'expo-router';
+import { Platform } from 'react-native';
 
 export default function SignUp() {
-  const { preview } = useLocalSearchParams<{ preview?: string }>();
-
   return (
     <AuthScreen
       mode="sign-up"
-      allowSignedInPreview={__DEV__ && preview === '1'}
+      allowSignedInPreview={__DEV__ && Platform.OS === 'web'}
     />
   );
 }

@@ -10,6 +10,7 @@ import { hasVisitedApp, markAppVisited } from '@/lib/onboarding';
 
 const introVideo = require('@/assets/videos/blasterr-intro.mp4');
 const introVideoWeb = require('@/assets/videos/blasterr-intro.webm');
+const SPLASH_DURATION_MS = 3_000;
 
 export default function SplashScreen() {
   return Platform.OS === 'web' ? <WebSplash /> : <NativeSplash />;
@@ -20,6 +21,11 @@ function useSplashCompletion() {
   const { isLoaded, isSignedIn, userId } = useAuth();
   const { user } = useUser();
   const [ended, setEnded] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setEnded(true), SPLASH_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!ended || !isLoaded) return;
@@ -35,11 +41,10 @@ function useSplashCompletion() {
     return () => { active = false; };
   }, [ended, isLoaded, isSignedIn, router, user, userId]);
 
-  return useCallback(() => setEnded(true), []);
 }
 
 function WebSplash() {
-  const finish = useSplashCompletion();
+  useSplashCompletion();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [assets] = useAssets([introVideoWeb]);
   const source = assets?.[0]?.localUri ?? assets?.[0]?.uri;
@@ -94,7 +99,6 @@ function WebSplash() {
           controls={false}
           disablePictureInPicture
           controlsList="nodownload nofullscreen noplaybackrate"
-          onEnded={finish}
           style={webVideoStyle}
         />
       ) : null}
@@ -103,26 +107,22 @@ function WebSplash() {
 }
 
 function NativeSplash() {
-  const finish = useSplashCompletion();
+  useSplashCompletion();
   const player = useVideoPlayer(introVideo, (videoPlayer) => {
     videoPlayer.loop = false;
     videoPlayer.muted = false;
   });
 
   useEffect(() => {
-    const endSubscription = player.addListener('playToEnd', () => {
-      finish();
-    });
     const statusSubscription = player.addListener('statusChange', ({ status }) => {
       if (status === 'readyToPlay') player.play();
     });
     player.muted = false;
     player.play();
     return () => {
-      endSubscription.remove();
       statusSubscription.remove();
     };
-  }, [finish, player]);
+  }, [player]);
 
   return (
     <View style={styles.screen}>

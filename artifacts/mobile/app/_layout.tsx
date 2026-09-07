@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -16,10 +16,8 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { ClerkLoaded, ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
-import { usePathname } from 'expo-router';
 import { setAuthTokenGetter, setBaseUrl } from '@workspace/api-client-react';
 import { CosmicBackground } from '@/components/cosmic-background';
-import { AuthScreen } from '@/components/auth-screen';
 import { useColors } from '@/hooks/useColors';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -41,21 +39,6 @@ function ApiAuthBridge() {
 
 function RootLayoutNav() {
   const colors = useColors();
-  const pathname = usePathname();
-
-  if (
-    __DEV__ &&
-    Platform.OS === 'web' &&
-    pathname !== '/' &&
-    pathname !== '/splash'
-  ) {
-    return (
-      <AuthScreen
-        mode={pathname === '/sign-in' ? 'sign-in' : 'sign-up'}
-        allowSignedInPreview
-      />
-    );
-  }
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
