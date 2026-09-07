@@ -164,7 +164,7 @@ function SignUpScreen({ allowSignedInPreview }: { allowSignedInPreview: boolean 
   }
 
   return (
-    <AuthShell title="Request Clearance" subtitle="Join the network and start blasting.">
+    <AuthShell title="Create Account" subtitle="Join the network and start blasting.">
       <GoogleButton busy={busy} onPress={() => { void google(); }} colors={colors} />
       <Divider colors={colors} />
       <LabeledInput label="Email address" value={email} onChangeText={setEmail} placeholder="Enter your email address" autoCapitalize="none" keyboardType="email-address" autoComplete="email" colors={colors} />
