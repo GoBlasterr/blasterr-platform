@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { Path, Svg } from 'react-native-svg';
 import { useAuth, useSignIn, useSignUp } from '@clerk/expo';
 import { useSSO } from '@clerk/expo/experimental';
@@ -50,14 +49,6 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle: str
           <Text style={[styles.backText, { color: colors.authMuted }]}>Back to Base</Text>
         </Pressable>
       </View>
-      <Image
-        source={require('@/assets/images/blasterr-auth-logo.png')}
-        style={[styles.logo, { top: insets.top + 164 }]}
-        contentFit="contain"
-        cachePolicy="memory-disk"
-        priority="high"
-        accessibilityLabel="BLASTERR"
-      />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 150, paddingBottom: insets.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
@@ -337,7 +328,6 @@ const styles = StyleSheet.create({
   backButton: { minHeight: 36, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12 },
   backText: { fontFamily: 'Inter_400Regular', fontSize: 14 },
   content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 12 },
-  logo: { position: 'absolute', zIndex: 1, width: 220, height: 74, alignSelf: 'center' },
   card: { width: '100%', maxWidth: 448, alignSelf: 'center', borderRadius: 24, borderWidth: 1, padding: 16 },
   title: { fontFamily: 'Inter_700Bold', fontSize: 24, lineHeight: 29, textAlign: 'center', marginBottom: 4 },
   subtitle: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20, textAlign: 'center', marginBottom: 12 },

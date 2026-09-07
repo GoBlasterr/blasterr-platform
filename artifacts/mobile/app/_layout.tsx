@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -12,10 +12,12 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { Image } from 'expo-image';
 import { ClerkLoaded, ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { setAuthTokenGetter, setBaseUrl } from '@workspace/api-client-react';
 import { CosmicBackground } from '@/components/cosmic-background';
 import { useColors } from '@/hooks/useColors';
@@ -39,10 +41,31 @@ function ApiAuthBridge() {
 
 function RootLayoutNav() {
   const colors = useColors();
+  const pathname = usePathname();
+  const insets = useSafeAreaInsets();
+  const showAuthLogo =
+    pathname === '/sign-in' ||
+    pathname === '/sign-up' ||
+    (__DEV__ && Platform.OS === 'web' && pathname === '/settings');
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <CosmicBackground />
+      <Image
+        source={require('@/assets/images/blasterr-auth-logo.png')}
+        style={[
+          styles.authLogo,
+          {
+            top: insets.top + 164,
+            opacity: showAuthLogo ? 1 : 0,
+          },
+        ]}
+        contentFit="contain"
+        cachePolicy="memory-disk"
+        priority="high"
+        accessibilityLabel={showAuthLogo ? 'BLASTERR' : undefined}
+        pointerEvents="none"
+      />
       <Stack initialRouteName="index" screenOptions={{ headerBackTitle: 'Back', contentStyle: { backgroundColor: 'transparent' } }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="splash" options={{ headerShown: false }} />
@@ -96,4 +119,11 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  authLogo: {
+    position: 'absolute',
+    zIndex: 1,
+    width: 220,
+    height: 74,
+    alignSelf: 'center',
+  },
 });
