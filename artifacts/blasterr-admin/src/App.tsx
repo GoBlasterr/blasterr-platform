@@ -364,7 +364,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          {isSignedIn ? <AuthenticatedRouter /> : <SignedOutRouter />}
+          {import.meta.env.DEV ? <AdminRouter /> : isSignedIn ? <AuthenticatedRouter /> : <SignedOutRouter />}
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
