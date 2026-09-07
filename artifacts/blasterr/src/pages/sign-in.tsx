@@ -194,7 +194,7 @@ export default function SignIn() {
                     <Loader2 className="h-4 w-4 animate-spin" /> Signing in…
                   </span>
                 ) : (
-                  "Blast in"
+                  "Sign in"
                 )}
               </button>
             </form>
