@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { clerkClient, getAuth } from "@clerk/express";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { adminContentStatuses, adminFeatureFlags, adminSettings, recordAudit, setContentStatusWithAudit } from "../lib/admin-state";
 import { canCreateUserContent, canManageOwnedResource, isActiveAdmin } from "../lib/admin-auth";
 import { evaluateModeratedText } from "../lib/content-moderation";
@@ -27,7 +27,7 @@ const validStates = new Set(Object.values(stateAbbreviations));
 function title(value: string) { return value.toLowerCase().replace(/\b([a-z])/g, x => x.toUpperCase()); }
 function normalizeState(value: string) { return stateAbbreviations[value.trim().toLowerCase()] ?? (validStates.has(value.trim().toUpperCase()) ? value.trim().toUpperCase() : title(value.trim())); }
 function normalizeLocation(value: string) { const p = value.trim().replace(/\s+/g, " ").split(",").map(x => x.trim()); return p.length > 1 ? `${title(p.slice(0, -1).join(" "))}, ${normalizeState(p.at(-1)!)}` : title(value.trim()); }
-async function viewer(req: Parameters<typeof getAuth>[0]) { const { userId } = getAuth(req); return userId ? social.userByAuth(userId) : process.env.NODE_ENV === "development" ? social.devViewer() : undefined; }
+async function viewer(req: Parameters<typeof getAuth>[0]) { const { userId } = getAuth(req); return userId ? social.userByAuth(userId) : undefined; }
 async function authenticatedProfile(authId: string) {
   const clerk = await clerkClient.users.getUser(authId); const meta = clerk.publicMetadata as Record<string, unknown>;
   const email = clerk.emailAddresses[0]?.emailAddress ?? `${authId}@clerk.invalid`;
@@ -173,5 +173,5 @@ router.get("/notifications",async(req,res)=>{const v=await current(req);res.json
 router.get("/bookmarks",async(req,res)=>{const v=await current(req);res.json(GetBookmarksResponse.parse(v?(await published(v.id)).filter(x=>x.isBookmarked):[]));});
 router.post("/reports",async(req,res)=>{const b=CreateReportBody.safeParse(req.body),v=await current(req);if(!v)return void res.status(401).json({error:"Sign in is required to submit a report."});if(!b.success)return void res.status(400).json({error:b.error.message});const x=await social.createReport({reporterId:v.id,...b.data,description:b.data.description??""});res.status(201).json(CreateReportResponse.parse({id:x.id,status:x.status}));});
 router.post("/blocks",async(req,res)=>{const b=ToggleBlockBody.safeParse(req.body),v=await current(req);if(!b.success)return void res.status(400).json({error:b.error.message});if(!v)return void res.status(401).json({error:"Sign in is required."});res.json(ToggleBlockResponse.parse({isBlocked:await social.toggleBlock(v.id,b.data.userId)}));});
-router.get("/admin/overview",async(req,res)=>{res.set("Cache-Control","no-store, no-cache, must-revalidate");const developmentBypass=process.env.NODE_ENV==="development"&&process.env.DEV_ADMIN_BYPASS==="true";const id=getAuth(req).userId;if(!developmentBypass&&!id)return void res.status(401).json({error:"Authentication required."});if(!developmentBypass&&id&&!await isAdmin(id))return void res.status(403).json({error:"Admin access required."});res.json(GetAdminOverviewResponse.parse({usersOnline:2543,blastsToday:12842,trendingCount:78,newUsers:1231,engagement:24,chart:[{label:"Mon",users:640,blasts:3100,engagement:58},{label:"Tue",users:720,blasts:4200,engagement:63},{label:"Wed",users:880,blasts:5100,engagement:69},{label:"Thu",users:1120,blasts:7300,engagement:74},{label:"Fri",users:1360,blasts:9200,engagement:81},{label:"Sat",users:1820,blasts:12842,engagement:89}]}));});
+router.get("/admin/overview",async(req,res)=>{res.set("Cache-Control","no-store, no-cache, must-revalidate");const developmentBypass=process.env.NODE_ENV==="development"&&process.env.DEV_ADMIN_BYPASS==="true";const id=getAuth(req).userId;if(!developmentBypass&&!id)return void res.status(401).json({error:"Authentication required."});if(!developmentBypass&&id&&!await isAdmin(id))return void res.status(403).json({error:"Admin access required."});const [[users],[blasts]]=await Promise.all([db.select({value:sql<number>`count(*)::int`}).from(usersTable),db.select({value:sql<number>`count(*)::int`}).from(blastsTable)]);const userCount=users?.value??0;const blastCount=blasts?.value??0;res.json(GetAdminOverviewResponse.parse({usersOnline:userCount,blastsToday:blastCount,trendingCount:0,newUsers:userCount,engagement:0,chart:["Mon","Tue","Wed","Thu","Fri","Sat"].map(label=>({label,users:0,blasts:0,engagement:0}))}));});
 export default router;

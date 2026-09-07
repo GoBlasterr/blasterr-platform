@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { shouldBootstrapSocialFixtures } from "./social-bootstrap-policy.ts";
 
-test("social fixture bootstrap is development-only and can safely be requested repeatedly", () => {
-  assert.equal(shouldBootstrapSocialFixtures("development"), true);
-  assert.equal(shouldBootstrapSocialFixtures("production"), false);
-  assert.equal(shouldBootstrapSocialFixtures("test"), false);
+test("social fixture bootstrap requires explicit development opt-in", () => {
+  assert.equal(shouldBootstrapSocialFixtures("development"), false);
+  assert.equal(shouldBootstrapSocialFixtures("development", "true"), true);
+  assert.equal(shouldBootstrapSocialFixtures("production", "true"), false);
+  assert.equal(shouldBootstrapSocialFixtures("test", "true"), false);
 });
 
 test("social join-table uniqueness is represented by the database schema", async () => {
