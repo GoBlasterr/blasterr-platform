@@ -50,12 +50,12 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle: str
       </View>
       <Image
         source={require('@/assets/images/blasterr-mobile-logo.png')}
-        style={[styles.logo, { top: insets.top + 120 }]}
+        style={[styles.logo, { top: insets.top + 164 }]}
         contentFit="contain"
         accessibilityLabel="BLASTERR"
       />
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 190, paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 225, paddingBottom: insets.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={[styles.card, { backgroundColor: colors.authCard, borderColor: colors.authBorder }]}>
