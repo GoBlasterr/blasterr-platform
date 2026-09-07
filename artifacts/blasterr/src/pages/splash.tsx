@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@clerk/react";
 
@@ -23,11 +23,38 @@ export default function Splash() {
   const finishTimerRef = useRef<number | null>(null);
   const { isLoaded, isSignedIn } = useAuth();
   const [hasFinished, setHasFinished] = useState(false);
+  const [needsSoundGesture, setNeedsSoundGesture] = useState(false);
   const [isMobileBrowser] = useState(detectMobileBrowser);
   const [continueInBrowser, setContinueInBrowser] = useState(() =>
     typeof window !== "undefined" &&
     window.sessionStorage.getItem(MOBILE_BROWSER_KEY) === "true"
   );
+
+  const playWithSound = useCallback(async (restart = false) => {
+    const video = videoRef.current;
+    if (!video) return false;
+
+    if (restart) {
+      if (finishTimerRef.current !== null) {
+        window.clearTimeout(finishTimerRef.current);
+        finishTimerRef.current = null;
+      }
+      setHasFinished(false);
+      video.currentTime = 0;
+    }
+
+    video.muted = false;
+    video.defaultMuted = false;
+    video.removeAttribute("muted");
+
+    try {
+      await video.play();
+      setNeedsSoundGesture(false);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     if (isMobileBrowser && !continueInBrowser) return;
@@ -35,24 +62,18 @@ export default function Splash() {
     if (!video) return;
 
     const enableSound = () => {
-      video.muted = false;
-      video.defaultMuted = false;
-      video.removeAttribute("muted");
-      if (video.paused) {
-        void video.play().catch(() => undefined);
-      }
+      void playWithSound(true);
     };
 
     const startPlayback = async () => {
-      enableSound();
-      try {
-        await video.play();
-      } catch {
+      const startedWithSound = await playWithSound();
+      if (!startedWithSound) {
         // Browsers can reject audible autoplay until the first user gesture.
         video.muted = true;
         video.defaultMuted = true;
         video.setAttribute("muted", "");
         await video.play().catch(() => undefined);
+        setNeedsSoundGesture(true);
       }
     };
 
@@ -67,7 +88,7 @@ export default function Splash() {
         window.clearTimeout(finishTimerRef.current);
       }
     };
-  }, [continueInBrowser, isMobileBrowser]);
+  }, [continueInBrowser, isMobileBrowser, playWithSound]);
 
   useEffect(() => {
     if (!isLoaded || !hasFinished) return;
@@ -144,6 +165,16 @@ export default function Splash() {
         <source src={INTRO_VIDEO_WEB_URL} type="video/webm" />
         <source src={INTRO_VIDEO_URL} type="video/mp4" />
       </video>
+      {needsSoundGesture ? (
+        <button
+          type="button"
+          onClick={() => void playWithSound(true)}
+          className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/25 bg-black/75 px-5 py-3 text-sm font-semibold text-white shadow-lg backdrop-blur transition-colors hover:bg-black/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label="Restart introduction with sound"
+        >
+          Tap for sound
+        </button>
+      ) : null}
     </main>
   );
 }
