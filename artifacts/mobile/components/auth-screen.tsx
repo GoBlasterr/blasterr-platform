@@ -51,9 +51,11 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle: str
         </Pressable>
       </View>
       <Image
-        source={require('@/assets/images/blasterr-mobile-logo.png')}
+        source={require('@/assets/images/blasterr-auth-logo.png')}
         style={[styles.logo, { top: insets.top + 164 }]}
         contentFit="contain"
+        cachePolicy="memory-disk"
+        priority="high"
         accessibilityLabel="BLASTERR"
       />
       <ScrollView
