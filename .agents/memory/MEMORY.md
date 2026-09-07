@@ -11,3 +11,4 @@
 - [Development social fixtures](development-social-fixtures.md) — keep social fixtures opt-in; ordinary previews must remain empty until real users create data.
 - [Admin authentication boundary](admin-authentication-boundary.md) — Admin uses Supabase sessions; public website and mobile remain on Clerk.
 - [User-content translation boundary](user-content-translation-boundary.md) — translate on demand without modifying originals or persistently retaining translated user text.
+- [IP locale trust boundary](ip-locale-trust-boundary.md) — derive interface locale from proxy country evidence, with a short-lived cookie and English fallback.

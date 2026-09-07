@@ -1,6 +1,12 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request } from "express";
 import { GetViewerLocaleResponse, TranslateTextBody, TranslateTextResponse } from "@workspace/api-zod";
-import { detectViewerLanguage, translationCacheKey, type SupportedLanguage } from "../lib/localization";
+import {
+  isCountryCode,
+  languageForCountry,
+  localeFromCookie,
+  translationCacheKey,
+  type SupportedLanguage,
+} from "../lib/localization";
 
 const router: IRouter = Router();
 const cache = new Map<string, unknown>();
@@ -18,10 +24,35 @@ function rateLimited(key: string): boolean {
   return current.count > 30;
 }
 
+function trustedCountry(req: Request): string | undefined {
+  const cloudflareCountry = req.get("cf-ipcountry");
+  if (isCountryCode(cloudflareCountry) && (process.env.NODE_ENV !== "production" || (req.get("cf-ray") && req.get("cf-connecting-ip")))) {
+    return cloudflareCountry.toUpperCase();
+  }
+  const vercelCountry = req.get("x-vercel-ip-country");
+  if (isCountryCode(vercelCountry) && (process.env.NODE_ENV !== "production" || req.get("x-vercel-id"))) {
+    return vercelCountry.toUpperCase();
+  }
+  const deploymentCountry = req.get("x-country-code");
+  const isDeploymentProxy = Boolean(process.env.REPLIT_DEPLOYMENT) && Boolean(req.get("x-forwarded-for"));
+  if (isCountryCode(deploymentCountry) && (process.env.NODE_ENV !== "production" || isDeploymentProxy)) {
+    return deploymentCountry.toUpperCase();
+  }
+  return undefined;
+}
+
 router.get("/localization/locale", (req, res) => {
-  res.set("Cache-Control", "private, max-age=3600");
-  const country = req.get("cf-ipcountry") || req.get("x-vercel-ip-country") || req.get("x-country-code");
-  const language = detectViewerLanguage(country, req.get("accept-language"));
+  res.set("Cache-Control", "private, max-age=300");
+  res.set("Vary", "CF-IPCountry, X-Vercel-IP-Country, X-Country-Code");
+  const country = trustedCountry(req);
+  const language = country ? languageForCountry(country) : (localeFromCookie(req.get("cookie")) ?? "en");
+  res.cookie("blasterr_locale", language, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 6 * 60 * 60 * 1_000,
+    path: "/",
+  });
   res.json(GetViewerLocaleResponse.parse({ language, direction: language === "ar" ? "rtl" : "ltr" }));
 });
 

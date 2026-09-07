@@ -1,0 +1,407 @@
+I need you to implement and VERIFY a production-ready IP-based language detection system for BLASTERR.
+
+
+
+PRIMARY REQUIREMENT:
+
+
+
+When a visitor opens BLASTERR, the system MUST detect the visitor's COUNTRY from their public IP address and automatically select the appropriate website language based on that country.
+
+
+
+This must happen automatically. The visitor should NOT have to select their language.
+
+REQUIRED FLOW
+
+Visitor opens:
+
+
+
+website or app
+
+
+
+↓
+
+
+
+Detect visitor public IP address
+
+
+
+↓
+
+
+
+Resolve IP address to country
+
+
+
+↓
+
+
+
+Map country to the correct language
+
+
+
+↓
+
+
+
+Load BLASTERR UI in that language
+
+
+
+The detected country must come from the visitor's actual IP/location, NOT from a hardcoded country and NOT from an arbitrary browser setting.
+
+COUNTRY → LANGUAGE MAPPING
+
+Use a proper country-to-language mapping.
+
+
+
+Examples:
+
+
+
+United States → English
+United Kingdom → English
+Nigeria → English
+Canada → English
+Australia → English
+New Zealand → English
+
+
+
+France → French
+Belgium → French
+Switzerland → French
+
+
+
+Spain → Spanish
+Mexico → Spanish
+Argentina → Spanish
+Colombia → Spanish
+
+
+
+Germany → German
+Austria → German
+
+
+
+Italy → Italian
+
+
+
+Portugal → Portuguese
+Brazil → Portuguese
+
+
+
+Netherlands → Dutch
+
+
+
+Turkey → Turkish
+
+
+
+Russia → Russian
+
+
+
+China → Simplified Chinese
+
+
+
+Japan → Japanese
+
+
+
+South Korea → Korean
+
+
+
+Arabic-speaking countries → Arabic
+
+
+
+For countries without a configured language, use English as the fallback.
+
+VERY IMPORTANT
+
+Do NOT assume:
+
+
+
+IP = city language.
+
+
+
+IP detection should first identify the COUNTRY.
+
+
+
+For example:
+
+
+
+Idanre, Nigeria → Nigeria → English
+
+
+
+Paris, France → France → French
+
+
+
+Tokyo, Japan → Japan → Japanese
+
+
+
+New York, USA → United States → English
+
+NO MANUAL LANGUAGE SELECTION
+
+Do NOT add a language-selection popup.
+
+
+
+Do NOT require the visitor to choose a language.
+
+
+
+Do NOT require the visitor to create an account.
+
+
+
+The first visit must automatically determine the language from IP.
+
+DO NOT USE FAKE DETECTION
+
+Do NOT hardcode the current developer's country.
+
+
+
+Do NOT use localhost location as the production location.
+
+
+
+Do NOT simply inspect navigator.language and claim that is IP detection.
+
+
+
+Do NOT use a static country value.
+
+
+
+Use a reliable production IP geolocation method that works with the actual visitor's public IP when deployed.
+
+PROXY / CDN SUPPORT
+
+The system must correctly handle visitors behind:
+
+
+
+Cloudflare
+
+Replit deployment proxy
+
+Reverse proxies
+
+CDN
+
+Load balancers
+
+
+
+Use the correct trusted IP/geolocation headers provided by the production infrastructure where available.
+
+
+
+Do not blindly trust arbitrary client-provided headers.
+
+SERVER-SIDE DETECTION
+
+Perform country detection server-side/at the edge where possible so the correct language can be selected before the page is rendered.
+
+
+
+Avoid:
+
+
+
+English page loading first
+→ JavaScript detects country
+→ page changes language
+
+
+
+The goal is:
+
+
+
+Visitor request
+→ IP country detection
+→ language selection
+→ page rendered in correct language
+
+
+
+This prevents visible language flashing.
+
+LANGUAGE PERSISTENCE
+
+After automatically determining the language:
+
+
+
+Store the detected language in a cookie.
+
+Do not repeatedly perform unnecessary geolocation requests.
+
+Cookie should improve performance.
+
+
+
+However, the system must still be capable of detecting a new country if the visitor changes location.
+
+
+
+Do NOT permanently lock the user to their first detected country.
+
+USER-GENERATED CONTENT
+
+This IP-based language detection controls the BLASTERR interface language.
+
+
+
+It must NOT translate or modify the original user-generated content stored in the database.
+
+
+
+User-generated posts, messages, comments, reviews, and descriptions must remain in their original language.
+
+
+
+The separate Translate feature can translate that content when required.
+
+SECURITY
+
+Do not expose private user information.
+
+
+
+Do not store raw IP addresses unnecessarily.
+
+
+
+Do not add unnecessary database tables.
+
+
+
+Do not modify existing authentication.
+
+
+
+Do not modify Stripe/payment functionality.
+
+
+
+Do not modify existing marketplace functionality.
+
+
+
+Do not modify existing user data.
+
+
+
+Do not modify existing database structure unless absolutely required.
+
+TESTING — THIS IS REQUIRED
+
+After implementation, test the country detection using controlled test environments/headers or a proper IP-geolocation testing method.
+
+
+
+Verify at minimum:
+
+
+
+USA → English
+Nigeria → English
+France → French
+Germany → German
+Spain → Spanish
+Brazil → Portuguese
+Japan → Japanese
+China → Chinese
+South Korea → Korean
+Saudi Arabia → Arabic
+
+
+
+Also verify:
+
+
+
+Unknown country → English fallback
+
+PRODUCTION VERIFICATION
+
+Before saying the task is complete, verify:
+
+
+
+The real visitor IP can be obtained in the deployed production environment.
+
+The IP can be resolved to a country.
+
+The country is mapped to the correct locale.
+
+The locale is applied before rendering where technically possible.
+
+The language actually changes based on the detected country.
+
+The system works behind the production proxy/CDN.
+
+The English fallback works.
+
+Existing BLASTERR functionality still works.
+
+Build succeeds.
+
+No unrelated files or functionality are unnecessarily changed.
+
+FINAL REPORT
+
+When finished, give me a clear report showing:
+
+
+
+IP detection method used.
+
+Where the country is obtained from.
+
+How country → language mapping works.
+
+How the language is applied.
+
+How production proxy/CDN IP detection is handled.
+
+How you tested different countries.
+
+Any environment variables/API keys required.
+
+Confirmation that existing BLASTERR functionality was not changed.
+
+
+
+DO NOT tell me the system is working merely because the code compiles.
+
+
+
+I need you to VERIFY the actual IP → COUNTRY → LANGUAGE flow in the deployed BLASTERR environment.

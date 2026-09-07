@@ -19,6 +19,7 @@ import { ClerkLoaded, ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { setAuthTokenGetter, setBaseUrl } from '@workspace/api-client-react';
+import { useGetViewerLocale } from '@workspace/api-client-react';
 import { CosmicBackground } from '@/components/cosmic-background';
 import { useColors } from '@/hooks/useColors';
 
@@ -37,6 +38,20 @@ function ApiAuthBridge() {
     return () => setAuthTokenGetter(null);
   }, [getToken]);
   return null;
+}
+
+function LocaleBootstrap({ ready, children }: { ready: boolean; children: React.ReactNode }) {
+  const locale = useGetViewerLocale();
+  const localeReady = locale.isFetched || locale.isError;
+
+  useEffect(() => {
+    if (ready && localeReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [ready, localeReady]);
+
+  if (!ready || !localeReady) return null;
+  return <>{children}</>;
 }
 
 function RootLayoutNav() {
@@ -88,12 +103,6 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
-
   if (!fontsLoaded && !fontError) return null;
   if (!publishableKey) throw new Error('Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY.');
 
@@ -104,11 +113,13 @@ export default function RootLayout() {
           <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
               <ApiAuthBridge />
-              <GestureHandlerRootView>
-                <KeyboardProvider>
-                  <RootLayoutNav />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
+              <LocaleBootstrap ready={fontsLoaded || Boolean(fontError)}>
+                <GestureHandlerRootView>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </LocaleBootstrap>
             </QueryClientProvider>
           </ErrorBoundary>
         </SafeAreaProvider>
