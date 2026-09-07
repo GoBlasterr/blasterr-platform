@@ -1,0 +1,903 @@
+# BLASTERR — PRELOADED BLAST SEEDING SYSTEM
+
+I need you to add a **Preloaded Blast Seeding System** to the existing Blasterr platform.
+
+IMPORTANT: The Blasterr platform is already built and functional. Do NOT rebuild the platform, replace the database, create a separate system, or disrupt existing functionality.
+
+The purpose of this feature is to allow me to provide a curated list of major people, places, sports teams, brands, entertainment subjects, etc., and have the system automatically create the appropriate **canonical/preloaded Blast conversation** for each subject.
+
+I want to be able to preload hundreds or thousands of carefully selected major subjects without manually creating each Blast through the UI.
+
+---
+
+# 1. CORE CONCEPT
+
+Blasterr allows users to:
+
+**Create a Blast about anything.**
+
+That functionality must remain exactly as it currently works.
+
+However, Blasterr will also have a curated collection of **Preloaded Blasts** for extremely high-profile subjects.
+
+Examples:
+
+* Donald Trump
+* Los Angeles
+* New York Knicks
+* Los Angeles Lakers
+* Taylor Swift
+* LeBron James
+* New York City
+* Dallas Cowboys
+* etc.
+
+When a user searches for one of these subjects, Blasterr should route the user to the existing canonical/preloaded Blast rather than encouraging them to create a duplicate Blast for that same subject.
+
+The preloaded Blast is essentially the **already-existing conversation starter** for that subject.
+
+---
+
+# 2. DO NOT TURN EVERYTHING INTO A PRELOADED BLAST
+
+This is extremely important.
+
+Preloaded Blasts are NOT intended for every possible subject.
+
+They are reserved for the **top echelon of globally or nationally recognizable subjects**.
+
+Potential categories:
+
+* Major public figures
+* Major celebrities
+* Major athletes
+* Major sports teams
+* Major cities
+* Major landmarks
+* Major companies/brands
+* Major entertainment properties
+* Major events
+* Other extremely high-interest subjects
+
+Normal users must still be able to create new Blasts about anything that isn't preloaded.
+
+---
+
+# 3. CREATE A PRELOADED BLAST DATA STRUCTURE
+
+Inspect the existing database and reuse the existing Blast/post architecture.
+
+Do NOT create a completely separate content system unless absolutely necessary.
+
+Add the minimum required fields/tables to identify a canonical/preloaded Blast.
+
+For example, if appropriate for the existing schema, support fields conceptually similar to:
+
+* is_preloaded
+* is_canonical
+* preload_category
+* preload_subject
+* subject_slug
+* aliases
+* status
+* featured
+* verified
+* created_by/admin identifier
+
+Use the existing naming conventions and database architecture instead of blindly copying these field names.
+
+The existing normal Blast functionality must continue to work.
+
+---
+
+# 4. CREATE A PRELOADED SUBJECT CONFIGURATION FILE
+
+Create a centralized seed/configuration file containing the subjects I want to preload.
+
+For example, conceptually:
+
+PRELOADED_SUBJECTS
+
+Each record should contain information such as:
+
+* Name
+* Type/category
+* Slug
+* Search aliases
+* Description if supported
+* Image/logo if supported
+* Featured status
+* Active status
+
+Example structure conceptually:
+
+Donald Trump
+type: person
+aliases:
+
+* Trump
+* Donald J Trump
+* Donald Trump
+
+Los Angeles
+type: city
+aliases:
+
+* LA
+* Los Angeles CA
+* City of Los Angeles
+
+New York Knicks
+type: sports_team
+aliases:
+
+* Knicks
+* NY Knicks
+* New York Knicks
+
+Do NOT use this exact schema if the existing Blasterr architecture has a better structure.
+
+Adapt it to the existing database.
+
+---
+
+# 5. MAKE THE SEEDING PROCESS IDEMPOTENT
+
+This is extremely important.
+
+I must be able to run the preload process multiple times without creating duplicates.
+
+For example:
+
+First run:
+
+Donald Trump → creates 1 canonical Blast
+
+Second run:
+
+Donald Trump → detects existing canonical Blast → does NOT create another
+
+Third run:
+
+Donald Trump → still only 1 canonical Blast
+
+The system should identify existing records using a reliable unique identifier such as:
+
+* canonical subject ID
+* normalized slug
+* unique subject key
+* existing database ID
+
+Do NOT rely solely on the display name.
+
+---
+
+# 6. PRELOADED BLAST CREATION
+
+When the seed process runs, it should:
+
+1. Read the curated subject list.
+2. Normalize each subject.
+3. Check whether that subject already has a canonical/preloaded Blast.
+4. If it exists, leave it alone.
+5. If it doesn't exist, create the canonical/preloaded Blast.
+6. Associate the correct category/type.
+7. Create aliases/search terms.
+8. Add image/logo if the existing platform supports it.
+9. Mark the Blast as preloaded/canonical.
+10. Make it available through existing Blasterr search/discovery functionality.
+
+Do not create fake user engagement.
+
+Do NOT generate fake:
+
+* likes
+* comments
+* views
+* followers
+* users
+* reactions
+* activity
+
+The preloaded Blast should start legitimately with zero user engagement unless real activity exists.
+
+---
+
+# 7. PRELOADED BLAST OWNER
+
+Determine how the existing Blasterr architecture handles Blast ownership.
+
+If every Blast requires a creator, use the existing appropriate system for an administrative/system-created Blast.
+
+Do not create a fake human user account such as:
+
+"Blasterr Admin"
+
+unless the existing architecture specifically requires it and there is already an appropriate system/admin account architecture.
+
+Prefer a system/canonical ownership mechanism if possible.
+
+The user should understand that this is a Blasterr-provided conversation, not a fake user pretending to be a person.
+
+---
+
+# 8. SEARCH INTEGRATION
+
+Integrate preloaded subjects into the existing Blasterr search.
+
+Example:
+
+User searches:
+
+"Trump"
+
+Search should recognize:
+
+Donald Trump
+
+and surface the canonical/preloaded Blast.
+
+User searches:
+
+"Knicks"
+
+Search should recognize:
+
+New York Knicks
+
+and surface the canonical/preloaded Blast.
+
+User searches:
+
+"LA"
+
+Search should be capable of recognizing:
+
+Los Angeles
+
+where appropriate.
+
+Use aliases and normalized search matching.
+
+---
+
+# 9. PREVENT DUPLICATE MAJOR-SUBJECT BLASTS
+
+When a user attempts to create a Blast about a subject that has a preloaded canonical Blast, the existing Create Blast flow should be enhanced rather than replaced.
+
+Example:
+
+User begins typing:
+
+"Donald Trump"
+
+The system recognizes the preloaded subject.
+
+Display something similar to:
+
+"Donald Trump already has a conversation on Blasterr."
+
+[🔥 JOIN EXISTING BLAST]
+
+The user can then add their contribution to that existing Blast.
+
+Do not prevent users from creating unrelated Blasts that merely mention the same person.
+
+The system needs to distinguish between:
+
+"I want to Blast Donald Trump."
+
+and:
+
+"I went to a restaurant in Los Angeles and had the worst burger."
+
+The second should NOT automatically be forced into the Los Angeles canonical Blast unless the user's intent indicates that Los Angeles itself is the subject.
+
+Avoid overly aggressive automatic matching.
+
+---
+
+# 10. BLAST THIS BUTTON
+
+Every preloaded Blast should support the existing:
+
+**🔥 BLAST THIS**
+
+function.
+
+When the user taps it:
+
+Open the existing Blast composer with the subject already attached.
+
+The user should NOT have to recreate the subject.
+
+---
+
+# 11. PRELOADED BLAST DISPLAY
+
+Preloaded Blasts should look like normal Blasterr Blasts while clearly being recognized as canonical conversations.
+
+Do NOT create an entirely different content format.
+
+If the existing UI supports badges, you may use something subtle such as:
+
+**✓ Official Blasterr Subject**
+
+or
+
+**🔥 Featured Conversation**
+
+Only use terminology consistent with the existing Blasterr brand.
+
+---
+
+# 12. ADMIN MANAGEMENT
+
+Add management functionality to the EXISTING Blasterr Admin platform.
+
+Do NOT create a separate admin dashboard.
+
+Create a section such as:
+
+## PRELOADED BLASTS
+
+Admin should be able to:
+
+* View all preloaded subjects
+* Search subjects
+* Add subject
+* Edit subject
+* Disable subject
+* Re-enable subject
+* Delete/archive subject
+* Change category
+* Add aliases
+* Edit description
+* Change image
+* Feature/unfeature
+* Verify/unverify
+* View linked canonical Blast
+* View Blast activity
+
+---
+
+# 13. BULK IMPORT
+
+This is one of the most important requirements.
+
+The admin should eventually be able to upload a CSV file containing preloaded subjects.
+
+For example:
+
+name,type,aliases,slug,status
+
+Donald Trump,person,"Trump|Donald J Trump",donald-trump,active
+
+Los Angeles,city,"LA|Los Angeles CA",los-angeles,active
+
+New York Knicks,sports_team,"Knicks|NY Knicks",new-york-knicks,active
+
+The system should:
+
+1. Validate the file.
+2. Show a preview.
+3. Detect duplicates.
+4. Detect existing subjects.
+5. Show how many will be created.
+6. Show how many already exist.
+7. Show errors.
+8. Require confirmation.
+9. Create missing canonical Blasts.
+10. Leave existing records untouched unless the admin explicitly chooses an update operation.
+
+---
+
+# 14. DRY RUN MODE
+
+Create a safe "Preview Import" or "Dry Run" mode.
+
+Before creating anything, the admin should be able to see:
+
+### Example
+
+100 subjects uploaded
+
+85 new subjects
+
+10 already exist
+
+3 duplicates in upload
+
+2 invalid records
+
+Then:
+
+[Cancel]
+
+[Create 85 Preloaded Blasts]
+
+This prevents accidental database pollution.
+
+---
+
+# 15. DUPLICATE DETECTION
+
+Normalize:
+
+* capitalization
+* punctuation
+* whitespace
+* common abbreviations
+* aliases
+
+For example:
+
+Donald Trump
+
+Donald J. Trump
+
+donald trump
+
+Trump
+
+should be capable of mapping to the same canonical subject where appropriate.
+
+However, do not automatically merge unrelated subjects just because their names are similar.
+
+For ambiguous subjects, flag them for admin review.
+
+---
+
+# 16. SUBJECT ALIASES
+
+Allow multiple search terms to point to the same canonical Blast.
+
+Example:
+
+CANONICAL:
+
+Donald Trump
+
+ALIASES:
+
+Trump
+Donald J. Trump
+Donald J Trump
+DJT
+
+All should lead users to:
+
+**Donald Trump — Canonical Blasterr Blast**
+
+Similarly:
+
+CANONICAL:
+
+Los Angeles
+
+ALIASES:
+
+LA
+L.A.
+Los Angeles CA
+City of Los Angeles
+
+---
+
+# 17. CATEGORY SYSTEM
+
+Use categories consistent with the existing Blasterr platform.
+
+Potential categories:
+
+PERSON
+PLACE
+SPORTS_TEAM
+ATHLETE
+CELEBRITY
+COMPANY
+BRAND
+ENTERTAINMENT
+EVENT
+LANDMARK
+OTHER
+
+Do not add categories that conflict with the existing database/category system.
+
+---
+
+# 18. SEEDING INITIAL LIST
+
+Create the infrastructure so I can easily provide a list such as:
+
+### PEOPLE
+
+Donald Trump
+LeBron James
+Taylor Swift
+Drake
+Beyoncé
+Elon Musk
+
+### CITIES
+
+Los Angeles
+New York City
+Chicago
+Miami
+Atlanta
+Houston
+Dallas
+Las Vegas
+
+### SPORTS
+
+Los Angeles Lakers
+New York Knicks
+Dallas Cowboys
+Kansas City Chiefs
+New York Yankees
+Los Angeles Dodgers
+
+This is only an example.
+
+Do not assume these are the final subjects.
+
+I need to be able to easily add hundreds or thousands more later.
+
+---
+
+# 19. IMPORTANT: DO NOT HARD-CODE THE LIST INTO THE UI
+
+The list must live in a manageable data source/configuration system.
+
+Adding a new preloaded subject should NOT require editing frontend components.
+
+The architecture should allow:
+
+Admin/database/configuration → new preloaded subject → automatically appears in search/discovery.
+
+---
+
+# 20. EXISTING BLAST SYSTEM MUST REMAIN OPEN
+
+This is a fundamental Blasterr requirement.
+
+The platform must continue to allow:
+
+### PRELOADED SUBJECT
+
+User joins existing canonical Blast.
+
+AND:
+
+### NEW SUBJECT
+
+User creates a completely new Blast.
+
+Both must coexist.
+
+Do not change Blasterr into a closed list of predefined subjects.
+
+---
+
+# 21. MOBILE + WEBSITE
+
+The preloaded Blast system must work across:
+
+* Blasterr website
+* Blasterr mobile app
+* Existing admin dashboard
+
+All three must use the same underlying data.
+
+If a subject is added from Admin:
+
+It should become available to:
+
+Website → immediately/according to existing caching rules
+
+Mobile → immediately/according to existing caching rules
+
+If a subject is disabled by Admin:
+
+It should no longer be presented as an active preloaded subject.
+
+Existing user content should NOT automatically be deleted simply because a preloaded subject was disabled.
+
+---
+
+# 22. ANALYTICS
+
+If the existing Blasterr analytics system supports it, track:
+
+* Subject views
+* Blast views
+* "Blast This" clicks
+* Searches
+* Search-to-Blast conversions
+* New contributions
+* Comments
+* Reactions
+* Shares
+* Followers if applicable
+
+Admin should eventually be able to see:
+
+### MOST ACTIVE PRELOADED BLASTS
+
+Donald Trump
+48,291 Blasts
+
+Los Angeles
+35,219 Blasts
+
+New York Knicks
+21,830 Blasts
+
+etc.
+
+Do not fabricate these numbers.
+
+---
+
+# 23. PERFORMANCE
+
+The system should support potentially:
+
+* Hundreds
+* Thousands
+* Eventually tens of thousands
+
+of preloaded subjects.
+
+Use proper:
+
+* Database indexes
+* Unique constraints
+* Search optimization
+* Pagination
+* Caching where appropriate
+
+Do not load the entire preloaded subject database into the client.
+
+---
+
+# 24. DATABASE SAFETY
+
+Before making schema changes:
+
+1. Inspect the existing database.
+2. Understand the existing Blast/post schema.
+3. Determine whether an existing subject/entity/topic system already exists.
+4. Reuse it if possible.
+5. Create only the minimum required migration.
+6. Do not delete existing records.
+7. Do not drop existing tables.
+8. Do not modify production data destructively.
+
+---
+
+# 25. IMPORTANT — EXISTING DATA
+
+If the platform already contains Blasts about:
+
+Donald Trump
+Los Angeles
+New York Knicks
+etc.
+
+Do NOT automatically delete or duplicate them.
+
+Determine whether the existing Blast can be designated as the canonical/preloaded Blast.
+
+If multiple existing Blasts appear to represent the same subject, DO NOT automatically merge them without admin review.
+
+Provide an admin-safe process for selecting which existing Blast should become canonical.
+
+---
+
+# 26. CANONICAL BLAST SELECTION
+
+If a preloaded subject already has multiple user-created Blasts, the admin should be able to select one as:
+
+**Canonical Blast**
+
+Then:
+
+* Mark it as the official/preloaded conversation.
+* Preserve its existing comments/reactions where appropriate.
+* Preserve its existing author attribution.
+* Do not destroy the original content.
+* Route future users to that canonical Blast.
+
+If the existing architecture requires a different approach, explain the safest implementation before modifying data.
+
+---
+
+# 27. SECURITY
+
+Only authorized admins should be able to:
+
+* Create preloaded subjects
+* Edit preloaded subjects
+* Delete/disable preloaded subjects
+* Designate canonical Blasts
+* Bulk import subjects
+
+Normal users must not be able to manipulate canonical/preloaded status.
+
+Enforce permissions server-side.
+
+---
+
+# 28. FINAL TEST
+
+After implementation, test the following.
+
+### TEST 1
+
+Preload:
+
+Donald Trump
+
+Search:
+
+Trump
+
+Expected:
+
+Existing canonical Donald Trump Blast appears.
+
+---
+
+### TEST 2
+
+Search:
+
+Donald J. Trump
+
+Expected:
+
+Same canonical Donald Trump Blast.
+
+---
+
+### TEST 3
+
+Search:
+
+Los Angeles
+
+Expected:
+
+Canonical Los Angeles Blast.
+
+---
+
+### TEST 4
+
+Search:
+
+LA
+
+Expected:
+
+Los Angeles canonical Blast, if LA is configured as an alias.
+
+---
+
+### TEST 5
+
+Search for an unknown subject:
+
+"My local barber shop"
+
+Expected:
+
+No preloaded subject.
+
+User can create a brand-new Blast.
+
+---
+
+### TEST 6
+
+Run the seed process twice.
+
+Expected:
+
+No duplicate canonical Blasts.
+
+---
+
+### TEST 7
+
+Upload CSV containing 500 subjects.
+
+Expected:
+
+System identifies:
+
+* New
+* Existing
+* Duplicates
+* Invalid
+
+before making changes.
+
+---
+
+### TEST 8
+
+Admin disables:
+
+Donald Trump
+
+Expected:
+
+It is no longer presented as an active preloaded subject.
+
+Do not delete the underlying Blast unless explicitly instructed.
+
+---
+
+# 29. DELIVERABLE
+
+Build this as a production-quality extension to the existing Blasterr platform.
+
+The final system should allow me to go from:
+
+**Curated Subject List**
+
+↓
+
+**Import / Seed**
+
+↓
+
+**Automatically Create Canonical Preloaded Blasts**
+
+↓
+
+**Users Search**
+
+↓
+
+**Users Find Existing Conversation**
+
+↓
+
+**Users Click "BLAST THIS"**
+
+↓
+
+**Users Contribute to the Existing Blast**
+
+while still preserving:
+
+**Create a new Blast about anything that isn't already a preloaded subject.**
+
+---
+
+# MOST IMPORTANT REQUIREMENT
+
+The philosophy of this feature is:
+
+**Blasterr already knows about the world's biggest subjects, so users don't have to start those conversations from scratch.**
+
+But:
+
+**Blasterr remains completely open.**
+
+If the subject isn't preloaded, the user can create it.
+
+Do not remove or weaken the existing "Create a Blast about something" functionality.
+
+Do not turn Blasterr into an entity directory.
+
+Do not create duplicate conversations for protected/preloaded subjects.
+
+Create a **curated canonical conversation layer on top of the existing Blasterr Blast system.**
+
+Before making database changes, inspect the existing architecture and provide a concise implementation plan identifying exactly what will be reused, what will be added, and what migrations are required.
