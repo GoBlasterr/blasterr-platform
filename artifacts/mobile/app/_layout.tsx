@@ -43,7 +43,12 @@ function RootLayoutNav() {
   const colors = useColors();
   const pathname = usePathname();
 
-  if (__DEV__ && Platform.OS === 'web') {
+  if (
+    __DEV__ &&
+    Platform.OS === 'web' &&
+    pathname !== '/' &&
+    pathname !== '/splash'
+  ) {
     return (
       <AuthScreen
         mode={pathname === '/sign-in' ? 'sign-in' : 'sign-up'}

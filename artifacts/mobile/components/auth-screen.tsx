@@ -32,7 +32,9 @@ function useWarmBrowser() {
 }
 
 export function AuthScreen({ mode, allowSignedInPreview = false }: { mode: Mode; allowSignedInPreview?: boolean }) {
-  return mode === 'sign-up' ? <SignUpScreen allowSignedInPreview={allowSignedInPreview} /> : <SignInScreen />;
+  return mode === 'sign-up'
+    ? <SignUpScreen allowSignedInPreview={allowSignedInPreview} />
+    : <SignInScreen allowSignedInPreview={allowSignedInPreview} />;
 }
 
 function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
@@ -173,7 +175,7 @@ function SignUpScreen({ allowSignedInPreview }: { allowSignedInPreview: boolean 
   );
 }
 
-function SignInScreen() {
+function SignInScreen({ allowSignedInPreview }: { allowSignedInPreview: boolean }) {
   const colors = useColors();
   const router = useRouter();
   const { isSignedIn } = useAuth();
@@ -189,8 +191,8 @@ function SignInScreen() {
   useWarmBrowser();
 
   useEffect(() => {
-    if (isSignedIn && signIn.status !== 'complete') router.replace('/home');
-  }, [isSignedIn, router, signIn.status]);
+    if (!allowSignedInPreview && isSignedIn && signIn.status !== 'complete') router.replace('/home');
+  }, [allowSignedInPreview, isSignedIn, router, signIn.status]);
 
   const finalize = useCallback(async () => {
     await signIn.finalize({
