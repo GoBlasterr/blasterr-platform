@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { Link, Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 import { ClerkLoaded, ClerkLoading, ClerkProvider, Show, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { dark } from '@clerk/themes';
@@ -124,9 +124,10 @@ function ClerkQueryClientCacheInvalidator() {
 }
 
 function AppContent() {
-  const [, setLocation] = useLocation();
-  const currentPath = stripBase(window.location.pathname);
+  const [location, setLocation] = useLocation();
+  const currentPath = stripBase(location);
   const isSplashRoute = currentPath === "/" || currentPath === "/splash";
+  const isAuthRoute = currentPath.startsWith("/sign-in") || currentPath.startsWith("/sign-up");
 
   return (
     <ClerkProvider
@@ -162,6 +163,25 @@ function AppContent() {
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
+        <Link
+          href="/"
+          className={`fixed left-1/2 top-12 z-[30] -translate-x-1/2 transition-opacity md:top-14 ${
+            isAuthRoute
+              ? 'pointer-events-auto opacity-100 hover:opacity-80'
+              : 'pointer-events-none opacity-0'
+          }`}
+          aria-label={isAuthRoute ? 'Go to BLASTERR home' : undefined}
+          aria-hidden={!isAuthRoute}
+          tabIndex={isAuthRoute ? 0 : -1}
+        >
+          <img
+            src={`${basePath}/logo.png`}
+            alt={isAuthRoute ? 'BLASTERR' : ''}
+            className="h-20 w-auto object-contain md:h-24"
+            fetchPriority="high"
+            decoding="sync"
+          />
+        </Link>
         {isSplashRoute ? (
           <ThemeProvider>
             <Splash />
