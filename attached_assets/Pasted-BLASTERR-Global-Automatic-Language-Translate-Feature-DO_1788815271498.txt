@@ -1,0 +1,212 @@
+BLASTERR Global Automatic Language + Translate Feature (DO NOT BREAK ANYTHING)
+
+
+
+
+
+Integrate a production-ready multilingual system into BLASTERR WITHOUT changing any existing UI, authentication, Supabase schema, marketplace logic, Stripe, messaging, admin dashboard, SEO, or current functionality.
+
+PRIMARY REQUIREMENTS
+
+1. Automatic Website Language by IP
+
+Detect visitor country from IP before rendering.
+
+Automatically display the website UI in that country's language.
+
+English remains default for English-speaking countries.
+
+No popup.
+
+No language selection screen.
+
+No visible language switcher.
+
+2. Translate User Content
+
+Every user-generated text must support translation.
+
+
+
+This includes:
+
+
+
+Marketplace posts.
+
+Job descriptions.
+
+Comments.
+
+Reviews.
+
+Messages.
+
+User bios.
+
+Community posts.
+
+Notifications containing user text.
+
+
+
+If the text language is different from the viewer's language:
+
+
+
+Display:
+
+
+
+Translate
+
+
+
+When clicked:
+
+
+
+Detect original language.
+
+Translate into viewer language.
+
+Show translated version.
+
+Keep "See Original" option.
+
+
+
+Never replace the original permanently.
+
+3. Automatic Language Detection for Text
+
+Detect language automatically when users write.
+
+
+
+Examples:
+
+
+
+French text → store as French.
+Spanish text → store as Spanish.
+Japanese text → store as Japanese.
+
+
+
+Save original text unchanged.
+
+4. Smart Translation
+
+Translate only for viewers needing translation.
+
+Cache translations.
+
+Preserve emojis, usernames, hashtags, mentions, links, formatting, and line breaks.
+
+5. Messaging
+
+Inside chat:
+
+
+
+Incoming messages show:
+
+
+
+Translate
+
+
+
+Tap Translate.
+
+
+
+Message becomes viewer language.
+
+
+
+Tap See Original.
+
+
+
+Return original.
+
+
+
+Do not modify sender message.
+
+6. Marketplace Tasks
+
+A French client posts in French.
+
+
+
+A Nigerian worker automatically sees:
+
+
+
+Translated English version.
+
+
+
+French client still sees French.
+
+7. Reviews
+
+Every review supports:
+
+
+
+Translate
+See Original
+
+8. Performance
+
+Detect language server-side.
+
+Lazy-load translations.
+
+Cache results.
+
+Avoid duplicate translations.
+
+9. Supported Languages
+
+English
+French
+Spanish
+German
+Portuguese
+Italian
+Dutch
+Turkish
+Russian
+Arabic (RTL)
+Chinese Simplified
+Japanese
+Korean
+
+
+
+Architecture must allow adding unlimited languages later.
+
+TEST EVERYTHING
+
+Verify visitors from multiple IP countries receive the correct UI language.
+
+
+
+Verify posts, comments, reviews, and chats translate correctly.
+
+
+
+Verify original content is never altered.
+
+
+
+Verify build passes with zero regressions.
+
+
+
+DO NOT MODIFY ANY OTHER BLASTERR FEATURE. and verified you dont do torch any pages pls
