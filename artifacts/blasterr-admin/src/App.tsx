@@ -139,6 +139,7 @@ function AdminRouter() {
 
 function SignInPage() {
   const { signIn, signUp, recover } = useAdminAuth();
+  const [, navigate] = useLocation();
   const [email, setEmail] = useState('blasterrclips@gmail.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -154,7 +155,10 @@ function SignInPage() {
     setMessage('');
     setIsSubmitting(true);
     try {
-      if (mode === 'signin') await signIn(email.trim(), password);
+      if (mode === 'signin') {
+        await signIn(email.trim(), password);
+        navigate('/overview', { replace: true });
+      }
       else if (mode === 'signup') setMessage(await signUp(email.trim(), password));
       else setMessage(await recover(email.trim()));
     } catch (cause: any) {
@@ -243,6 +247,7 @@ function SignInPage() {
 
 function ResetPasswordPage() {
   const { updatePassword } = useAdminAuth();
+  const [, navigate] = useLocation();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -251,7 +256,10 @@ function ResetPasswordPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setPending(true); setError(''); setMessage('');
-    try { setMessage(await updatePassword(token, password)); }
+    try {
+      await updatePassword(token, password);
+      navigate('/overview', { replace: true });
+    }
     catch (cause: any) { setError(cause?.message ?? 'Unable to update password.'); }
     finally { setPending(false); }
   };
