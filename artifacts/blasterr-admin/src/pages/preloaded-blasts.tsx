@@ -131,6 +131,7 @@ function TargetFormDialog({ target, open, onOpenChange }: { target: Target | nul
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [form, setForm] = useState<FormState>(blankForm);
+  const lastAutomaticName = useRef("");
   const create = useCreateAdminPreloadedTarget();
   const enrich = useEnrichAdminPreloadedTarget();
   const update = useUpdateAdminPreloadedTarget();
@@ -138,6 +139,7 @@ function TargetFormDialog({ target, open, onOpenChange }: { target: Target | nul
   const pending = create.isPending || update.isPending || enrich.isPending;
   useEffect(() => {
     if (!open) return;
+    lastAutomaticName.current = "";
     setForm(target ? { name: target.name, slug: target.slug, type: target.type, category: target.preloadCategory ?? "", aliases: (target.aliases ?? []).join("\n"), description: target.description ?? "", imageUrl: target.imageUrl ?? "", status: target.preloadStatus === "disabled" ? "disabled" : "active", featured: !!target.featured, verified: !!target.verified } : blankForm());
   }, [open, target?.id]);
   const begin = (value: boolean) => {
@@ -151,12 +153,12 @@ function TargetFormDialog({ target, open, onOpenChange }: { target: Target | nul
     const callbacks = { onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListAdminPreloadedTargetsQueryKey() }); toast({ title: isEditing ? "Subject updated" : "Subject created" }); onOpenChange(false); }, onError: (error: unknown) => toast({ title: "Unable to save subject", description: messageFor(error), variant: "destructive" }) };
     if (target) update.mutate({ id: target.id, data }, callbacks); else create.mutate({ data }, callbacks);
   };
-  const autofill = () => {
-    if (form.name.trim().length < 2) {
+  const autofill = (requestedName = form.name.trim(), automatic = false) => {
+    if (requestedName.length < 2) {
       toast({ title: "Enter a name first", description: "Add the person, place, team, product, or organization name.", variant: "destructive" });
       return;
     }
-    enrich.mutate({ data: { name: form.name.trim() } }, {
+    enrich.mutate({ data: { name: requestedName } }, {
       onSuccess: (proposal) => {
         setForm((current) => ({
           ...current,
@@ -170,14 +172,26 @@ function TargetFormDialog({ target, open, onOpenChange }: { target: Target | nul
         }));
         toast({ title: "Profile fields populated", description: "Review the information and image, then save when ready." });
       },
-      onError: (error: unknown) => toast({ title: "Profile autofill failed", description: messageFor(error), variant: "destructive" }),
+      onError: (error: unknown) => {
+        if (!automatic) toast({ title: "Profile autofill failed", description: messageFor(error), variant: "destructive" });
+      },
     });
   };
+  useEffect(() => {
+    const requestedName = form.name.trim();
+    const hasManualProfileData = !!(form.category.trim() || form.aliases.trim() || form.description.trim() || form.imageUrl.trim());
+    if (!open || isEditing || requestedName.length < 2 || hasManualProfileData || enrich.isPending || lastAutomaticName.current === requestedName) return;
+    const timeout = window.setTimeout(() => {
+      lastAutomaticName.current = requestedName;
+      autofill(requestedName, true);
+    }, 900);
+    return () => window.clearTimeout(timeout);
+  }, [open, isEditing, form.name, form.category, form.aliases, form.description, form.imageUrl, enrich.isPending]);
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((current) => ({ ...current, [key]: value }));
   return <Dialog open={open} onOpenChange={begin}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
     <DialogHeader><DialogTitle>{isEditing ? "Edit preloaded Blast" : "Add preloaded Blast"}</DialogTitle><DialogDescription>Creates or updates the canonical Target; it does not fabricate activity.</DialogDescription></DialogHeader>
     <div className="grid gap-4 sm:grid-cols-2">
-      <label className="space-y-1 text-sm font-medium">Name<div className="flex gap-2"><Input value={form.name} onChange={(e) => { set("name", e.target.value); if (!isEditing) set("slug", slugify(e.target.value)); }} data-testid="input-preloaded-name" /><Button type="button" variant="outline" onClick={autofill} disabled={enrich.isPending || form.name.trim().length < 2} data-testid="button-autofill-preloaded">{enrich.isPending ? "Finding…" : "Auto-fill"}</Button></div></label>
+      <label className="space-y-1 text-sm font-medium">Name<div className="flex gap-2"><Input value={form.name} onChange={(e) => { set("name", e.target.value); if (!isEditing) set("slug", slugify(e.target.value)); }} data-testid="input-preloaded-name" /><Button type="button" variant="outline" onClick={() => autofill()} disabled={enrich.isPending || form.name.trim().length < 2} data-testid="button-autofill-preloaded">{enrich.isPending ? "Finding…" : "Auto-fill"}</Button></div></label>
       <label className="space-y-1 text-sm font-medium">Slug<Input value={form.slug} onChange={(e) => set("slug", slugify(e.target.value))} data-testid="input-preloaded-slug" /></label>
       <label className="space-y-1 text-sm font-medium">Type<Select value={form.type} onValueChange={(value) => set("type", value as FormState["type"])}><SelectTrigger data-testid="select-preloaded-type"><SelectValue /></SelectTrigger><SelectContent>{TYPES.map((type) => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent></Select></label>
       <label className="space-y-1 text-sm font-medium">Category<Input value={form.category} onChange={(e) => set("category", e.target.value)} placeholder="e.g. athlete" data-testid="input-preloaded-category" /></label>

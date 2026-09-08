@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createReadyMedia } from "./media-repository";
 import { buildMediaObjectKey, getR2Config, objectPathForKey, uploadBytesToR2 } from "./r2";
+import { selectWikipediaLogoTitle } from "./preloaded-profile-image-selection";
 import type { SocialTarget } from "./social-repository";
 
 const targetTypes: SocialTarget["type"][] = ["person", "business", "place", "product", "entertainment", "sports", "gaming", "other"];
@@ -54,10 +55,7 @@ async function wikipediaLogoImage(name: string) {
   if (!imageListResponse.ok) return undefined;
   const imageListBody = await imageListResponse.json() as { query?: { pages?: Record<string, { images?: Array<{ title?: string }> }> } };
   const titles = Object.values(imageListBody.query?.pages ?? {}).flatMap(page => page.images ?? []).map(image => image.title ?? "");
-  const normalizedName = name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-  const logoCandidates = titles.filter(title => /(?:logo|wordmark)/i.test(title) && !/(commons-logo|open access|closed access)/i.test(title));
-  const logoTitle = logoCandidates.find(title => title.toLowerCase().replace(/[^a-z0-9]+/g, " ").includes(`${normalizedName} logo`))
-    ?? logoCandidates.find(title => title.toLowerCase().replace(/[^a-z0-9]+/g, " ").includes(normalizedName));
+  const logoTitle = selectWikipediaLogoTitle(name, titles);
   if (!logoTitle) return undefined;
   const imageQuery = new URLSearchParams({
     action: "query",
