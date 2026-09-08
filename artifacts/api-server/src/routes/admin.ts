@@ -62,6 +62,7 @@ import {
   ConfirmAdminPreloadedImportBody, ConfirmAdminPreloadedImportResponse,
   GetAdminPreloadedTargetMetricsParams, GetAdminPreloadedTargetMetricsResponse,
   AdoptAdminPreloadedTargetParams, AdoptAdminPreloadedTargetBody, AdoptAdminPreloadedTargetResponse,
+  EnrichAdminPreloadedTargetBody, EnrichAdminPreloadedTargetResponse,
 } from "@workspace/api-zod";
 import {
   adminAnnouncements,
@@ -96,6 +97,7 @@ import {
 import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { checkR2Connection } from "../lib/r2";
 import { classifyPreloadedImport, parsePreloadedCsv } from "../lib/preloaded-import";
+import { enrichPreloadedProfile } from "../lib/preloaded-profile-enrichment";
 
 const router: IRouter = Router();
 const startedAt = Date.now();
@@ -136,6 +138,18 @@ router.post("/preloaded-targets", async (req, res): Promise<void> => {
     if (error instanceof social.PreloadedTargetCollisionError) { res.status(409).json({ error: error.message, conflicts: error.conflicts }); return; }
     if (isUniqueViolation(error)) { res.status(409).json({ error: "A canonical slug or alias already exists." }); return; }
     throw error;
+  }
+});
+router.post("/preloaded-targets/enrich", async (req, res): Promise<void> => {
+  const parsed = EnrichAdminPreloadedTargetBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Enter a valid profile name." }); return; }
+  try {
+    const proposal = await enrichPreloadedProfile(parsed.data.name, `admin-${actorId(res)}`);
+    res.json(EnrichAdminPreloadedTargetResponse.parse(proposal));
+  } catch (error) {
+    req.log.warn({ err: error }, "Unable to enrich curated Target profile");
+    const message = error instanceof Error ? error.message : "Profile autofill is temporarily unavailable.";
+    res.status(message.includes("No reliable public profile") ? 404 : 502).json({ error: message });
   }
 });
 router.patch("/preloaded-targets/:id", async (req, res): Promise<void> => {

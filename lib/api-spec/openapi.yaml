@@ -592,6 +592,16 @@ paths:
       responses:
         "201": { description: Created curated Target, content: { application/json: { schema: { $ref: "#/components/schemas/Target" } } } }
         "409": { description: Canonical subject already exists }
+  /admin/preloaded-targets/enrich:
+    post:
+      operationId: enrichAdminPreloadedTarget
+      tags: [admin]
+      summary: Propose curated Target fields and import a current Wikimedia profile image
+      security: [{ clerkSession: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedTargetEnrichmentInput" } } } }
+      responses:
+        "200": { description: Review-only enrichment proposal, content: { application/json: { schema: { $ref: "#/components/schemas/PreloadedTargetEnrichment" } } } }
+        "404": { description: No reliable public profile found }
   /admin/preloaded-targets/{id}:
     patch:
       operationId: updateAdminPreloadedTarget
@@ -1750,6 +1760,23 @@ components:
         verified: { type: boolean }
         status: { type: string, enum: [active, disabled] }
         archive: { type: boolean }
+    PreloadedTargetEnrichmentInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+    PreloadedTargetEnrichment:
+      type: object
+      required: [name, slug, type, category, aliases, description, imageUrl, sourcePageUrl]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        slug: { type: string, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+        type: { type: string, enum: [person, business, place, product, entertainment, sports, gaming, other] }
+        category: { type: string, minLength: 1, maxLength: 60 }
+        aliases: { type: array, maxItems: 50, items: { type: string, minLength: 1, maxLength: 120 } }
+        description: { type: string, maxLength: 500 }
+        imageUrl: { type: string, maxLength: 500 }
+        sourcePageUrl: { type: string, maxLength: 500 }
     PreloadedTargetPage:
       type: object
       required: [items, page, limit, total, hasMore]

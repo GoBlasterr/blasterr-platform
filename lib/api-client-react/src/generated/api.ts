@@ -137,6 +137,8 @@ import type {
   Notification,
   PreloadedCsvImport,
   PreloadedImportPreview,
+  PreloadedTargetEnrichment,
+  PreloadedTargetEnrichmentInput,
   PreloadedTargetInput,
   PreloadedTargetMetrics,
   PreloadedTargetPage,
@@ -2812,6 +2814,77 @@ export const useCreateAdminPreloadedTarget = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getCreateAdminPreloadedTargetMutationOptions(options));
+    }
+
+export const getEnrichAdminPreloadedTargetUrl = () => {
+
+
+
+
+  return `/api/admin/preloaded-targets/enrich`
+}
+
+/**
+ * @summary Propose curated Target fields and import a current Wikimedia profile image
+ */
+export const enrichAdminPreloadedTarget = async (preloadedTargetEnrichmentInput: PreloadedTargetEnrichmentInput, options?: Parameters<typeof customFetch>[1]): Promise<PreloadedTargetEnrichment> => {
+
+  return customFetch<PreloadedTargetEnrichment>(getEnrichAdminPreloadedTargetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(preloadedTargetEnrichmentInput)
+  }
+);}
+
+
+
+
+
+export const getEnrichAdminPreloadedTargetMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enrichAdminPreloadedTarget>>, TError,{data: BodyType<PreloadedTargetEnrichmentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof enrichAdminPreloadedTarget>>, TError,{data: BodyType<PreloadedTargetEnrichmentInput>}, TContext> => {
+
+const mutationKey = ['enrichAdminPreloadedTarget'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof enrichAdminPreloadedTarget>>, {data: BodyType<PreloadedTargetEnrichmentInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  enrichAdminPreloadedTarget(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EnrichAdminPreloadedTargetMutationResult = NonNullable<Awaited<ReturnType<typeof enrichAdminPreloadedTarget>>>
+    export type EnrichAdminPreloadedTargetMutationBody = BodyType<PreloadedTargetEnrichmentInput>
+    export type EnrichAdminPreloadedTargetMutationError = ErrorType<void>
+
+    /**
+ * @summary Propose curated Target fields and import a current Wikimedia profile image
+ */
+export const useEnrichAdminPreloadedTarget = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enrichAdminPreloadedTarget>>, TError,{data: BodyType<PreloadedTargetEnrichmentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof enrichAdminPreloadedTarget>>,
+        TError,
+        {data: BodyType<PreloadedTargetEnrichmentInput>},
+        TContext
+      > => {
+      return useMutation(getEnrichAdminPreloadedTargetMutationOptions(options));
     }
 
 export const getUpdateAdminPreloadedTargetUrl = (id: string,) => {

@@ -2007,6 +2007,47 @@ export const CreateAdminPreloadedTargetResponse = zod.object({
 
 
 /**
+ * @summary Propose curated Target fields and import a current Wikimedia profile image
+ */
+export const enrichAdminPreloadedTargetBodyNameMin = 2;
+export const enrichAdminPreloadedTargetBodyNameMax = 120;
+
+
+
+export const EnrichAdminPreloadedTargetBody = zod.object({
+  "name": zod.string().min(enrichAdminPreloadedTargetBodyNameMin).max(enrichAdminPreloadedTargetBodyNameMax)
+})
+
+export const enrichAdminPreloadedTargetResponseNameMax = 120;
+
+export const enrichAdminPreloadedTargetResponseSlugRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const enrichAdminPreloadedTargetResponseCategoryMax = 60;
+
+export const enrichAdminPreloadedTargetResponseAliasesItemMax = 120;
+
+export const enrichAdminPreloadedTargetResponseAliasesMax = 50;
+
+export const enrichAdminPreloadedTargetResponseDescriptionMax = 500;
+
+export const enrichAdminPreloadedTargetResponseImageUrlMax = 500;
+
+export const enrichAdminPreloadedTargetResponseSourcePageUrlMax = 500;
+
+
+
+export const EnrichAdminPreloadedTargetResponse = zod.object({
+  "name": zod.string().min(1).max(enrichAdminPreloadedTargetResponseNameMax),
+  "slug": zod.string().regex(enrichAdminPreloadedTargetResponseSlugRegExp),
+  "type": zod.enum(['person', 'business', 'place', 'product', 'entertainment', 'sports', 'gaming', 'other']),
+  "category": zod.string().min(1).max(enrichAdminPreloadedTargetResponseCategoryMax),
+  "aliases": zod.array(zod.string().min(1).max(enrichAdminPreloadedTargetResponseAliasesItemMax)).max(enrichAdminPreloadedTargetResponseAliasesMax),
+  "description": zod.string().max(enrichAdminPreloadedTargetResponseDescriptionMax),
+  "imageUrl": zod.string().max(enrichAdminPreloadedTargetResponseImageUrlMax),
+  "sourcePageUrl": zod.string().max(enrichAdminPreloadedTargetResponseSourcePageUrlMax)
+})
+
+
+/**
  * @summary Edit, disable, archive, feature, or verify a curated Target
  */
 export const UpdateAdminPreloadedTargetParams = zod.object({

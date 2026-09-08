@@ -448,6 +448,56 @@ export interface PreloadedTargetUpdate {
   archive?: boolean;
 }
 
+export interface PreloadedTargetEnrichmentInput {
+  /**
+     * @minLength 2
+     * @maxLength 120
+     */
+  name: string;
+}
+
+export type PreloadedTargetEnrichmentType = typeof PreloadedTargetEnrichmentType[keyof typeof PreloadedTargetEnrichmentType];
+
+
+export const PreloadedTargetEnrichmentType = {
+  person: 'person',
+  business: 'business',
+  place: 'place',
+  product: 'product',
+  entertainment: 'entertainment',
+  sports: 'sports',
+  gaming: 'gaming',
+  other: 'other',
+} as const;
+
+export interface PreloadedTargetEnrichment {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /** @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$ */
+  slug: string;
+  type: PreloadedTargetEnrichmentType;
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  category: string;
+  /**
+     * @maxItems 50
+     * @items.minLength 1
+     * @items.maxLength 120
+     */
+  aliases: string[];
+  /** @maxLength 500 */
+  description: string;
+  /** @maxLength 500 */
+  imageUrl: string;
+  /** @maxLength 500 */
+  sourcePageUrl: string;
+}
+
 export interface PreloadedTargetPage {
   items: Target[];
   page: number;
