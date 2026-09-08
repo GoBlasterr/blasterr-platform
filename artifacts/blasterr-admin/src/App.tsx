@@ -136,7 +136,7 @@ function AdminRouter() {
 
 function SignInPage() {
   const { signIn, signUp, recover } = useAdminAuth();
-  const [email, setEmail] = useState('admin@getblaster.com');
+  const [email, setEmail] = useState('blasterrclips@gmail.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
