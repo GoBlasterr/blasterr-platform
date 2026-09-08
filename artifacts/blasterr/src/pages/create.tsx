@@ -458,8 +458,8 @@ export default function CreateBlast() {
             },
           );
           queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
-          toast({ title: "Blast fired successfully!" });
-          setLocation("/splash");
+          toast({ title: "Blast Created", description: "Your Blast is live." });
+          setLocation("/");
         },
         onError: () => {
           toast({ title: "Failed to fire Blast", variant: "destructive" });
