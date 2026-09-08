@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetAdminPreloadedTargetMetricsQueryKey,
@@ -34,6 +34,53 @@ type FormState = { name: string; slug: string; type: typeof TYPES[number]; categ
 const blankForm = (): FormState => ({ name: "", slug: "", type: "person", category: "", aliases: "", description: "", imageUrl: "", status: "active", featured: false, verified: false });
 const messageFor = (error: unknown) => error instanceof Error ? error.message : "The request could not be completed. Please try again.";
 const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+async function uploadTargetImage(file: File): Promise<string> {
+  const allowed = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+  if (!allowed.has(file.type)) throw new Error("Choose a JPG, PNG, WebP, or GIF image.");
+  if (file.size <= 0 || file.size > 10 * 1024 * 1024) throw new Error("Images must be 10 MB or smaller.");
+  const prepared = await fetch("/api/storage/uploads/request-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, purpose: "target-image" }),
+  });
+  const details = await prepared.json() as { uploadURL?: string; objectPath?: string; assetId?: string; error?: string };
+  if (!prepared.ok || !details.uploadURL || !details.objectPath || !details.assetId) throw new Error(details.error || "Could not prepare the image upload.");
+  const uploaded = await fetch(details.uploadURL, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+  if (!uploaded.ok) throw new Error("Could not upload the image.");
+  const completed = await fetch(`/api/storage/uploads/${details.assetId}/complete`, { method: "POST" });
+  if (!completed.ok) throw new Error("The uploaded image could not be verified.");
+  return `/api/storage${details.objectPath}`;
+}
+
+function TargetImageUpload({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const [uploading, setUploading] = useState(false);
+  const choose = async (file?: File) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      onChange(await uploadTargetImage(file));
+      toast({ title: "Profile image uploaded", description: "Save the profile to publish this image." });
+    } catch (error) {
+      toast({ title: "Image upload failed", description: messageFor(error), variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+  return <div className="space-y-2 sm:col-span-2">
+    <div className="text-sm font-medium">Profile image</div>
+    <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => void choose(event.target.files?.[0])} data-testid="input-preloaded-image-upload" />
+    <div className="flex items-center gap-3">
+      {value ? <img src={value} alt="Profile preview" className="h-16 w-16 rounded-sm border object-cover" /> : <div className="flex h-16 w-16 items-center justify-center rounded-sm border bg-muted text-xs text-muted-foreground">No image</div>}
+      <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} disabled={uploading} data-testid="button-upload-preloaded-image"><Upload className="mr-2 h-4 w-4" />{uploading ? "Uploading…" : "Upload image"}</Button>
+      {value && <Button type="button" variant="ghost" onClick={() => onChange("")} disabled={uploading}>Remove</Button>}
+    </div>
+    <p className="text-xs text-muted-foreground">JPG, PNG, WebP, or GIF. Maximum 10 MB.</p>
+  </div>;
+}
 
 function AdoptionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const queryClient = useQueryClient();
@@ -71,7 +118,7 @@ function AdoptionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
       <label className="block space-y-1 text-sm font-medium">Category<Input value={category} onChange={(event) => setCategory(event.target.value)} data-testid="input-adopt-category" /></label>
       <label className="block space-y-1 text-sm font-medium">Aliases <span className="font-normal text-muted-foreground">(one per line or comma-separated)</span><Textarea value={aliases} onChange={(event) => setAliases(event.target.value)} data-testid="input-adopt-aliases" /></label>
       <label className="block space-y-1 text-sm font-medium">Description<Textarea value={description} onChange={(event) => setDescription(event.target.value)} data-testid="input-adopt-description" /></label>
-      <label className="block space-y-1 text-sm font-medium">Image URL<Input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} data-testid="input-adopt-image-url" /></label>
+      <TargetImageUpload value={imageUrl} onChange={setImageUrl} />
       <div className="flex gap-5 text-sm"><label className="flex items-center gap-2"><input type="checkbox" checked={featured} onChange={(event) => setFeatured(event.target.checked)} data-testid="checkbox-adopt-featured" />Featured</label><label className="flex items-center gap-2"><input type="checkbox" checked={verified} onChange={(event) => setVerified(event.target.checked)} data-testid="checkbox-adopt-verified" />Verified</label></div>
       {conflict && <div className="rounded-sm border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive" data-testid="text-adoption-conflict"><strong>Conflict requires review.</strong><br />{conflict} Review the existing curated subject and choose a different public Target if they represent the same entity.</div>}
     </div>}
@@ -87,8 +134,11 @@ function TargetFormDialog({ target, open, onOpenChange }: { target: Target | nul
   const update = useUpdateAdminPreloadedTarget();
   const isEditing = !!target;
   const pending = create.isPending || update.isPending;
+  useEffect(() => {
+    if (!open) return;
+    setForm(target ? { name: target.name, slug: target.slug, type: target.type, category: target.preloadCategory ?? "", aliases: (target.aliases ?? []).join("\n"), description: target.description ?? "", imageUrl: target.imageUrl ?? "", status: target.preloadStatus === "disabled" ? "disabled" : "active", featured: !!target.featured, verified: !!target.verified } : blankForm());
+  }, [open, target?.id]);
   const begin = (value: boolean) => {
-    if (value) setForm(target ? { name: target.name, slug: target.slug, type: target.type, category: target.preloadCategory ?? "", aliases: (target.aliases ?? []).join("\n"), description: target.description ?? "", imageUrl: target.imageUrl ?? "", status: target.preloadStatus === "disabled" ? "disabled" : "active", featured: !!target.featured, verified: !!target.verified } : blankForm());
     onOpenChange(value);
   };
   const save = () => {
@@ -109,7 +159,7 @@ function TargetFormDialog({ target, open, onOpenChange }: { target: Target | nul
       <label className="space-y-1 text-sm font-medium">Category<Input value={form.category} onChange={(e) => set("category", e.target.value)} placeholder="e.g. athlete" data-testid="input-preloaded-category" /></label>
       <label className="space-y-1 text-sm font-medium sm:col-span-2">Aliases <span className="font-normal text-muted-foreground">(one per line or comma-separated)</span><Textarea value={form.aliases} onChange={(e) => set("aliases", e.target.value)} data-testid="input-preloaded-aliases" /></label>
       <label className="space-y-1 text-sm font-medium sm:col-span-2">Description<Textarea value={form.description} onChange={(e) => set("description", e.target.value)} data-testid="input-preloaded-description" /></label>
-      <label className="space-y-1 text-sm font-medium sm:col-span-2">Image URL<Input type="url" value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} data-testid="input-preloaded-image-url" /></label>
+      <TargetImageUpload value={form.imageUrl} onChange={(value) => set("imageUrl", value)} />
       <label className="space-y-1 text-sm font-medium">Status<Select value={form.status} onValueChange={(value) => set("status", value as FormState["status"])}><SelectTrigger data-testid="select-preloaded-status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="disabled">Disabled</SelectItem></SelectContent></Select></label>
       <div className="flex items-end gap-5 pb-2 text-sm"><label className="flex items-center gap-2"><input type="checkbox" checked={form.featured} onChange={(e) => set("featured", e.target.checked)} data-testid="checkbox-preloaded-featured" /> Featured</label><label className="flex items-center gap-2"><input type="checkbox" checked={form.verified} onChange={(e) => set("verified", e.target.checked)} data-testid="checkbox-preloaded-verified" /> Verified</label></div>
     </div>
@@ -146,7 +196,7 @@ export default function PreloadedBlastsPage() {
       <CardContent className="overflow-x-auto p-0">{list.isLoading ? <div className="space-y-3 p-6">{[1,2,3].map((n) => <Skeleton key={n} className="h-14 w-full" />)}</div> : list.isError ? <AdminErrorState error={list.error} /> : <Table><TableHeader className="bg-muted/50"><TableRow><TableHead>Subject</TableHead><TableHead>Category</TableHead><TableHead>Status</TableHead><TableHead>Signals</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{!list.data?.items.length ? <TableRow><TableCell colSpan={5} className="h-32 text-center font-mono text-sm text-muted-foreground">NO_PRELOADED_BLASTS_FOUND</TableCell></TableRow> : list.data.items.map((target) => <TableRow key={target.id} data-testid={`row-preloaded-${target.id}`}><TableCell><div className="flex items-center gap-3">{target.imageUrl ? <img src={target.imageUrl} alt="" className="h-9 w-9 rounded-sm object-cover" /> : <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-muted font-bold">{target.name.slice(0,1)}</div>}<div><div className="font-medium">{target.name}</div><a href={`/targets/${target.slug}`} className="font-mono text-xs text-primary hover:underline" data-testid={`link-canonical-${target.id}`}>/targets/{target.slug}</a></div></div></TableCell><TableCell><Badge variant="outline">{target.preloadCategory || target.type}</Badge></TableCell><TableCell><div className="flex flex-wrap gap-1"><Badge variant={target.preloadStatus === "active" ? "outline" : "secondary"}>{target.preloadStatus ?? "active"}</Badge>{target.featured && <Badge>Featured</Badge>}{target.verified && <Badge variant="outline"><CheckCircle2 className="mr-1 h-3 w-3" />Verified</Badge>}</div></TableCell><TableCell><button className="font-mono text-sm hover:text-primary hover:underline" onClick={() => setMetricsTarget(target)} data-testid={`button-metrics-${target.id}`}>{target.blastCount.toLocaleString()} blasts</button></TableCell><TableCell className="text-right"><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" disabled={update.isPending} data-testid={`button-actions-preloaded-${target.id}`}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => { setEditing(target); setFormOpen(true); }}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem><DropdownMenuItem onClick={() => setMetricsTarget(target)}><Eye className="mr-2 h-4 w-4" />View activity</DropdownMenuItem><DropdownMenuItem onClick={() => mutate(target, { status: target.preloadStatus === "disabled" ? "active" : "disabled" }, target.preloadStatus === "disabled" ? "Subject re-enabled" : "Subject disabled")} >{target.preloadStatus === "disabled" ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <XCircle className="mr-2 h-4 w-4" />}{target.preloadStatus === "disabled" ? "Re-enable" : "Disable"}</DropdownMenuItem><DropdownMenuItem onClick={() => mutate(target, { featured: !target.featured }, target.featured ? "Subject unfeatured" : "Subject featured")}><Star className="mr-2 h-4 w-4" />{target.featured ? "Unfeature" : "Feature"}</DropdownMenuItem><DropdownMenuItem onClick={() => mutate(target, { verified: !target.verified }, target.verified ? "Subject unverified" : "Subject verified")}><CheckCircle2 className="mr-2 h-4 w-4" />{target.verified ? "Unverify" : "Verify"}</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem className="text-destructive" onClick={() => mutate(target, { archive: true }, "Subject archived", true)}><Archive className="mr-2 h-4 w-4" />Archive</DropdownMenuItem></DropdownMenuContent></DropdownMenu></TableCell></TableRow>)}</TableBody></Table>}</CardContent>
     </Card>
     {list.data && <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Page {list.data.page} · {list.data.total.toLocaleString()} subjects</p><div className="flex gap-2"><Button variant="outline" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} data-testid="button-preloaded-prev">Previous</Button><Button variant="outline" disabled={!list.data.hasMore} onClick={() => setPage((value) => value + 1)} data-testid="button-preloaded-next">Next</Button></div></div>}
-    <TargetFormDialog target={editing} open={formOpen} onOpenChange={setFormOpen} /><AdoptionDialog open={adoptOpen} onOpenChange={setAdoptOpen} /><MetricsDialog target={metricsTarget} open={!!metricsTarget} onOpenChange={(open) => !open && setMetricsTarget(null)} />
+    <TargetFormDialog target={editing} open={formOpen} onOpenChange={(open) => { setFormOpen(open); if (!open) setEditing(null); }} /><AdoptionDialog open={adoptOpen} onOpenChange={setAdoptOpen} /><MetricsDialog target={metricsTarget} open={!!metricsTarget} onOpenChange={(open) => !open && setMetricsTarget(null)} />
     <Dialog open={importOpen} onOpenChange={setImportOpen}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl"><DialogHeader><DialogTitle>Import preloaded Blasts</DialogTitle><DialogDescription>Preview is a dry run: nothing is created until you explicitly confirm.</DialogDescription></DialogHeader><input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => readFile(e.target.files?.[0])} data-testid="input-preloaded-csv-file" /><div className="flex items-center justify-between"><span className="text-sm font-medium">CSV text</span><Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} data-testid="button-choose-preloaded-csv"><FileUp className="mr-2 h-4 w-4" />Choose CSV</Button></div><Textarea className="min-h-44 font-mono text-xs" value={csv} onChange={(e) => { setCsv(e.target.value); setPreview(null); }} placeholder={"name,type,aliases,slug,status\nDonald Trump,person,\"Trump|Donald J Trump\",donald-trump,active"} data-testid="textarea-preloaded-csv" />
       {preview && <div className="space-y-3 rounded-sm border p-4"><div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">{[["New",preview.createCount],["Existing — adopt",preview.existingCount],["Duplicates",preview.duplicateCount],["Invalid",preview.invalidCount],["Total",preview.total]].map(([label, value]) => <div key={String(label)}><div className="text-muted-foreground">{label}</div><strong>{value}</strong></div>)}</div>{preview.existingCount > 0 && <p className="rounded-sm bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400" data-testid="text-import-adoption-required">Existing/review rows will not be created or modified by this import. Use “Adopt Target” to review and adopt an existing public Target in place.</p>}{preview.rows.filter((row) => row.status !== "create").length > 0 && <div className="max-h-36 overflow-auto border-t pt-2 text-xs">{preview.rows.filter((row) => row.status !== "create").map((row) => <p key={row.line} className={`py-1 ${row.status === "existing" ? "text-amber-700 dark:text-amber-400" : "text-destructive"}`}>Line {row.line}: {row.status === "existing" ? "Requires adoption" : row.status} {row.message ? `— ${row.message}` : ""}</p>)}</div>}</div>}
       <DialogFooter><Button variant="outline" onClick={() => setImportOpen(false)} data-testid="button-cancel-preloaded-import">Cancel</Button><Button variant="outline" onClick={previewCsv} disabled={!csv.trim() || previewImport.isPending} data-testid="button-preview-preloaded-import">{previewImport.isPending ? "Previewing…" : "Preview import"}</Button><Button onClick={confirmCsv} disabled={!preview || preview.createCount === 0 || confirmImport.isPending} data-testid="button-confirm-preloaded-import">{confirmImport.isPending ? "Creating…" : `Create ${preview?.createCount ?? 0} subjects`}</Button></DialogFooter>

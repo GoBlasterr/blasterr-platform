@@ -20,6 +20,7 @@ import {
   ToggleBlockBody, ToggleBlockResponse, ToggleBookmarkParams, ToggleBookmarkResponse, ToggleFollowParams,
   ToggleFollowResponse, UpdateBlastBody, UpdateBlastParams, UpdateBlastResponse, UpdateCurrentUserBody, UpdateCurrentUserResponse,
 } from "@workspace/api-zod";
+import { sentimentPercentages } from "../lib/sentiment-percentages";
 
 const router: IRouter = Router();
 const stateAbbreviations: Record<string, string> = { alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA", colorado: "CO", connecticut: "CT", delaware: "DE", florida: "FL", georgia: "GA", hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA", kansas: "KS", kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD", massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS", missouri: "MO", montana: "MT", nebraska: "NE", nevada: "NV", "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY", "north carolina": "NC", "north dakota": "ND", ohio: "OH", oklahoma: "OK", oregon: "OR", pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC", "south dakota": "SD", tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT", virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI", wyoming: "WY", "district of columbia": "DC" };
@@ -159,7 +160,27 @@ router.post("/targets", async (req, res) => {
     res.status(500).json({ error: "Target could not be created. Please try again." });
   }
 });
-router.get("/targets/:slug", async(req,res)=>{const p=GetTargetParams.safeParse(req.params);if(!p.success)return void res.status(400).json({error:p.error.message});const t=await social.targetSlug(p.data.slug);if(!t||(t.isPreloaded&&t.preloadStatus!=="active"))return void res.status(404).json({error:"Target not found"});const b=(await published((await viewer(req))?.id)).filter(x=>x.target.id===t.id);res.json(GetTargetResponse.parse({target:(await social.targets()).find(x=>x.id===t.id),blasts:b,stats:{positiveReactions:b.reduce((s,x)=>s+x.reactions.blast+x.reactions.facts,0),negativeReactions:b.reduce((s,x)=>s+x.reactions.cap,0),engagement:b.reduce((s,x)=>s+x.commentCount+x.shareCount,0),activity:24}}));});
+router.get("/targets/:slug", async(req,res)=>{
+  const p=GetTargetParams.safeParse(req.params);
+  if(!p.success)return void res.status(400).json({error:p.error.message});
+  const t=await social.targetSlug(p.data.slug);
+  if(!t||(t.isPreloaded&&t.preloadStatus!=="active"))return void res.status(404).json({error:"Target not found"});
+  const b=(await published((await viewer(req))?.id)).filter(x=>x.target.id===t.id);
+  const sentiment=sentimentPercentages(
+    b.reduce((sum, blast)=>sum+blast.reactions.blast+blast.reactions.facts,0),
+    b.reduce((sum, blast)=>sum+blast.reactions.cap,0),
+  );
+  res.json(GetTargetResponse.parse({
+    target:(await social.targets()).find(x=>x.id===t.id),
+    blasts:b,
+    stats:{
+      positiveReactions:sentiment.positivePercentage,
+      negativeReactions:sentiment.negativePercentage,
+      engagement:b.reduce((sum,blast)=>sum+blast.commentCount+blast.shareCount,0),
+      activity:24,
+    },
+  }));
+});
 router.get("/users/:username", async(req,res)=>{const p=GetUserProfileParams.safeParse(req.params);if(!p.success)return void res.status(400).json({error:p.error.message});const u=await social.userByUsername(p.data.username);if(!u)return void res.status(404).json({error:"User not found"});const b=(await published((await viewer(req))?.id)).filter(x=>x.author.id===u.id);res.json(GetUserProfileResponse.parse({...await social.profile(u,(await viewer(req))?.id),blasts:b,media:b.filter(x=>x.mediaUrl)}));});
 router.post("/users/:username/follow", async(req,res)=>{const p=ToggleFollowParams.safeParse(req.params);if(!p.success)return void res.status(400).json({error:p.error.message});const v=await current(req),u=await social.userByUsername(p.data.username);if(!u)return void res.status(404).json({error:"User not found"});if(!v)return void res.status(401).json({error:"Sign in is required."});if(v.id===u.id)return void res.status(400).json({error:"You cannot follow yourself."});const yes=await social.toggleFollow(v.id,u.id);res.json(ToggleFollowResponse.parse({isFollowing:yes,followerCount:(await social.profile(u,v.id)).followers}));});
 async function create(req: Request, res: Response, back = false): Promise<void> { const body=(back?CreateBlastBackBody:CreateBlastBody).safeParse(req.body), params=back?CreateBlastBackParams.safeParse(req.params):null; if(!body.success||params&&!params.success)return void res.status(400).json({error:back?"Invalid Blast Back":"Invalid Blast"}); if(back&&!enabled("blast_back"))return void res.status(403).json({error:"Blast Back is currently disabled."}); const moderation=await evaluateModeratedText(body.data.content); if(moderation?.action==="block")return void res.status(400).json({error:"This Blast contains a term that is not allowed."}); const v=await current(req), target=await social.target(body.data.targetId); if(!v||!canCreateUserContent(getAuth(req).userId))return void res.status(401).json({error:"Sign in is required to create a Blast."}); if(!target)return void res.status(back?404:400).json({error:back?"Blast or Target not found":"Target is required"}); if(target.isPreloaded&&target.preloadStatus!=="active")return void res.status(409).json({error:"This curated Target is currently unavailable for new Blasts."}); if(back&&!await db.select().from(blastsTable).where(eq(blastsTable.id,params!.data.id)).then(x=>x[0]))return void res.status(404).json({error:"Blast or Target not found"}); const row=await social.createBlast({userId:v.id,targetId:target.id,content:body.data.content,location:body.data.location??v.location,mediaUrl:body.data.mediaUrl,mediaType:body.data.mediaType,originalBlastId:back?params!.data.id:undefined}); if(adminSettings.contentReviewMode||moderation?.action==="flag")await setContentStatusWithAudit(row.id,"hidden",{action:"content_hidden_for_review",entityType:"blast",entityId:row.id,actorId:"system",details:moderation?.action==="flag"?`An active moderation term flagged this Blast (${moderation.termId}).`:"Content review mode hid a newly created Blast."}); const blast=(await social.blasts(v.id)).find(x=>x.id===row.id);res.status(201).json((back?CreateBlastBackResponse:CreateBlastResponse).parse(blast)); }

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { getAuth } from "@clerk/express";
+import { getAdminSession, originMatchesHost } from "../lib/admin-supabase-auth";
 import {
   buildMediaObjectKey,
   checkR2Connection,
@@ -64,10 +65,13 @@ export async function getSignedObjectUrl({
   }
 }
 
-function authenticatedOwner(req: Request): string | null {
+async function authenticatedOwner(req: Request, res: Response): Promise<string | null> {
   const { userId } = getAuth(req);
   if (userId) return userId;
-  return process.env.NODE_ENV === "development" ? "demo-preview-user" : null;
+  if (process.env.NODE_ENV === "development") return "demo-preview-user";
+  if (!originMatchesHost(req.get("origin"), req.get("x-forwarded-host") || req.get("host"))) return null;
+  const admin = await getAdminSession(req, res);
+  return admin ? `admin-${admin.id}` : null;
 }
 
 function uploadPurpose(value: unknown): "avatar" | "banner" | "target-image" | "blast-media" | "clip-asset" | "general" {
@@ -92,7 +96,7 @@ function allowedUpload(contentType: unknown, purpose: string, size: unknown): { 
 }
 
 router.post("/storage/uploads/request-url", async (req: Request, res: Response) => {
-  const ownerId = authenticatedOwner(req);
+  const ownerId = await authenticatedOwner(req, res);
   if (!ownerId) {
     res.status(401).json({ error: "Sign in is required before uploading files." });
     return;
@@ -134,7 +138,7 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
 });
 
 router.put("/storage/uploads/:id/content", async (req: Request, res: Response) => {
-  const ownerId = authenticatedOwner(req);
+  const ownerId = await authenticatedOwner(req, res);
   if (!ownerId) {
     res.status(401).json({ error: "Sign in is required to upload files." });
     return;
@@ -161,7 +165,7 @@ router.put("/storage/uploads/:id/content", async (req: Request, res: Response) =
 });
 
 router.post("/storage/uploads/:id/complete", async (req: Request, res: Response) => {
-  const ownerId = authenticatedOwner(req);
+  const ownerId = await authenticatedOwner(req, res);
   if (!ownerId) {
     res.status(401).json({ error: "Sign in is required to complete an upload." });
     return;
@@ -192,7 +196,7 @@ router.post("/storage/uploads/:id/complete", async (req: Request, res: Response)
 });
 
 router.delete("/storage/uploads/:id", async (req: Request, res: Response) => {
-  const ownerId = authenticatedOwner(req);
+  const ownerId = await authenticatedOwner(req, res);
   if (!ownerId) {
     res.status(401).json({ error: "Sign in is required to delete uploads." });
     return;
