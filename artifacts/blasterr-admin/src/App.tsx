@@ -68,6 +68,9 @@ function AdminRouter() {
       <RoutedErrorBoundary>
         <Switch>
           <Route path="/" component={() => <Redirect to="/overview" />} />
+          <Route path="/sign-in/*?" component={() => <Redirect to="/overview" />} />
+          <Route path="/sign-up/*?" component={() => <Redirect to="/overview" />} />
+          <Route path="/reset-password" component={() => <Redirect to="/overview" />} />
           <Route path="/overview" component={OverviewPage} />
           <Route path="/media" component={MediaPage} />
           <Route path="/cms" component={CmsPage} />
