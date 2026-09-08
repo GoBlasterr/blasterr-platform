@@ -120,7 +120,7 @@ function SignUpForm() {
   return (
     <>
       <h1 className="font-display font-bold text-2xl text-white mb-1 text-center">
-        {isVerificationStep ? "Verify Your Account" : "Request Clearance"}
+        {isVerificationStep ? "Verify Your Account" : "Create Account"}
       </h1>
       <p className="text-muted-foreground mb-3 text-center">
         {isVerificationStep
