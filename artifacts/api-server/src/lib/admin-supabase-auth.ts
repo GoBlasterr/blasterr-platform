@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response as ExpressResponse } from "express";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
 type SupabaseUser = { id: string; email?: string };
 type TokenResponse = {
@@ -16,6 +17,14 @@ function config() {
   const anonKey = process.env.SUPABASE_ANON_KEY;
   if (!url || !anonKey) throw new Error("Supabase Admin Auth is not configured.");
   return { url, anonKey };
+}
+
+function serviceConfig() {
+  const { url, anonKey } = config();
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!serviceKey || !sessionSecret) throw new Error("Secure Admin recovery is not configured.");
+  return { url, anonKey, serviceKey, sessionSecret };
 }
 
 function allowedEmails() {
@@ -160,4 +169,66 @@ export function writeAdminSession(req: Request, res: ExpressResponse, token: Tok
 export async function verifyRecoveryToken(accessToken: string) {
   const user = await userForToken(accessToken);
   return user && isAllowedAdminEmail(user.email) ? user : null;
+}
+
+export async function generateAdminRecoveryToken(email: string): Promise<string> {
+  const { url, serviceKey } = serviceConfig();
+  const response = await fetch(`${url}/auth/v1/admin/generate_link`, {
+    method: "POST",
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ type: "recovery", email }),
+  });
+  const body = await response.json() as { hashed_token?: unknown };
+  if (!response.ok || typeof body.hashed_token !== "string" || body.hashed_token.length < 20) {
+    throw new Error(`Supabase recovery token generation failed (${response.status}).`);
+  }
+  return body.hashed_token;
+}
+
+function recoveryKey(sessionSecret: string) {
+  return createHash("sha256").update(`blasterr-admin-recovery\0${sessionSecret}`).digest();
+}
+
+export function createRecoveryTicket(hashedToken: string, now = Date.now()): string {
+  const { sessionSecret } = serviceConfig();
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", recoveryKey(sessionSecret), iv);
+  const payload = Buffer.from(JSON.stringify({ hashedToken, expiresAt: now + 15 * 60_000 }));
+  const encrypted = Buffer.concat([cipher.update(payload), cipher.final()]);
+  return Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64url");
+}
+
+export function readRecoveryTicket(ticket: string, now = Date.now()): string | null {
+  try {
+    const { sessionSecret } = serviceConfig();
+    const value = Buffer.from(ticket, "base64url");
+    if (value.length < 29) return null;
+    const decipher = createDecipheriv("aes-256-gcm", recoveryKey(sessionSecret), value.subarray(0, 12));
+    decipher.setAuthTag(value.subarray(12, 28));
+    const parsed = JSON.parse(Buffer.concat([decipher.update(value.subarray(28)), decipher.final()]).toString("utf8")) as {
+      hashedToken?: unknown;
+      expiresAt?: unknown;
+    };
+    return typeof parsed.hashedToken === "string"
+      && typeof parsed.expiresAt === "number"
+      && parsed.expiresAt >= now
+      ? parsed.hashedToken
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function exchangeRecoveryToken(hashedToken: string): Promise<TokenResponse | null> {
+  const response = await supabaseAuthRequest("/verify", {
+    method: "POST",
+    body: JSON.stringify({ type: "recovery", token_hash: hashedToken }),
+  });
+  if (!response.ok) return null;
+  const token = await response.json() as TokenResponse;
+  return token.user && isAllowedAdminEmail(token.user.email) ? token : null;
 }
