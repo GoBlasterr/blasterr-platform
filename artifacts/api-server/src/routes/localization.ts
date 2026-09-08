@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Router, type IRouter, type Request } from "express";
 import { GetViewerLocaleResponse, TranslateTextBody, TranslateTextResponse } from "@workspace/api-zod";
 import {
@@ -13,9 +14,20 @@ const router: IRouter = Router();
 const cache = new Map<string, unknown>();
 const rate = new Map<string, { count: number; resetAt: number }>();
 const MAX_CACHE = 2_000;
+const MAX_RATE_KEYS = 10_000;
+
+function anonymousClientKey(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
 
 function rateLimited(key: string): boolean {
   const now = Date.now();
+  if (rate.size >= MAX_RATE_KEYS) {
+    for (const [candidate, value] of rate) {
+      if (value.resetAt <= now) rate.delete(candidate);
+    }
+    if (rate.size >= MAX_RATE_KEYS) rate.delete(rate.keys().next().value!);
+  }
   const current = rate.get(key);
   if (!current || current.resetAt <= now) {
     rate.set(key, { count: 1, resetAt: now + 60_000 });
@@ -139,7 +151,7 @@ router.post("/localization/translate", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid translation request." });
     return;
   }
-  const client = req.ip || req.socket.remoteAddress || "unknown";
+  const client = anonymousClientKey(req.ip || req.socket.remoteAddress || "unknown");
   if (rateLimited(client)) {
     res.set("Retry-After", "60");
     res.status(429).json({ error: "Translation limit reached. Try again shortly." });
