@@ -89,7 +89,7 @@ export function TranslatedText({
 
   return (
     <>
-      <span className={className} style={{ whiteSpace: "pre-wrap" }}>
+      <span className={className} style={{ whiteSpace: "pre-wrap" }} data-no-ui-translation>
         {isShowingTranslation ? translatedText : text}
       </span>
       {isTranslatable && (

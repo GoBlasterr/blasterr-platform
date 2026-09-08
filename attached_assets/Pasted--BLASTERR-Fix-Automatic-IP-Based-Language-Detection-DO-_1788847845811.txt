@@ -1,0 +1,120 @@
+# BLASTERR – Fix Automatic IP-Based Language Detection (DO NOT BREAK ANYTHING)
+
+## CRITICAL SAFETY INSTRUCTION (READ FIRST)
+
+This is a **bug fix**, not a redesign or rebuild.
+
+**DO NOT break, modify, delete, rename, replace, or redesign ANY existing BLASTERR pages or features.**
+
+The entire website must remain exactly as it is visually and functionally.
+
+Do not change:
+
+* Homepage.
+* Landing pages.
+* Marketplace.
+* Client Dashboard.
+* Worker Dashboard.
+* Admin Dashboard.
+* Messaging.
+* Authentication (Clerk/Supabase).
+* User profiles.
+* Wallet, Stripe, payments, boosts, reviews, notifications, SEO, routing, or database structure.
+
+Only fix the automatic language detection system.
+
+---
+
+## THE BUG
+
+Automatic language detection is **not working for any country**.
+
+Changing the visitor's IP address to different countries does not change the website language. The website always stays in the default language.
+
+---
+
+## WHAT I NEED
+
+Implement or repair the existing **IP → Country → Language** detection so it works for **all visitors**.
+
+### Required flow
+
+Visitor opens **goblasterr.com**
+
+↓
+
+Detect the visitor's **real public IP address**.
+
+↓
+
+Resolve the IP to the visitor's **country**.
+
+↓
+
+Map the country to the correct language.
+
+↓
+
+Render the existing BLASTERR interface in that language automatically.
+
+No popup.
+
+No language selection screen.
+
+No manual switching required.
+
+---
+
+## COUNTRY → LANGUAGE BEHAVIOR
+
+The website must automatically change language based on the visitor's country.
+
+Examples:
+
+* English-speaking countries → English.
+* France → French.
+* Spain → Spanish.
+* Germany → German.
+* Italy → Italian.
+* Portugal & Brazil → Portuguese.
+* Netherlands → Dutch.
+* Turkey → Turkish.
+* Russia → Russian.
+* China → Simplified Chinese.
+* Japan → Japanese.
+* South Korea → Korean.
+* Arabic-speaking countries → Arabic (with RTL support).
+
+If a country is not mapped, automatically fall back to English.
+
+---
+
+## IMPORTANT IMPLEMENTATION RULES
+
+* Detect location using the visitor's **public IP address**, not a hardcoded value.
+* Do not rely only on browser language, timezone, cookies, or account country.
+* Perform detection before the page renders where possible so users see the correct language immediately.
+* Cache the detected language safely without preventing updates when a visitor's IP location changes.
+
+---
+
+## VERIFY THE SYSTEM
+
+Check that automatic language detection works for multiple countries, not just one.
+
+Verify that changing the visitor's IP location results in the correct language being displayed.
+
+Verify English fallback works when country detection fails.
+
+---
+
+## FINAL REPORT
+
+After fixing, provide:
+
+1. What was preventing IP-based language detection from working.
+2. How visitor IP is detected in production.
+3. How country-to-language mapping works.
+4. Which files were changed (only language-related files).
+5. Confirmation that **no existing BLASTERR pages, UI, database, authentication, payments, dashboards, messaging, SEO, or other functionality were changed or broken**.
+6. Confirmation that automatic language switching now works for visitors from all supported countries.
