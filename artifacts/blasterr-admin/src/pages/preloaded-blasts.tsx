@@ -47,7 +47,7 @@ async function uploadTargetImage(file: File, purpose: "target-image" | "banner" 
   });
   const details = await prepared.json() as { uploadURL?: string; objectPath?: string; assetId?: string; error?: string };
   if (!prepared.ok || !details.uploadURL || !details.objectPath || !details.assetId) throw new Error(details.error || "Could not prepare the image upload.");
-  const uploaded = await fetch(details.uploadURL, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+  const uploaded = await fetch(`/api/storage/uploads/${details.assetId}/content`, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
   if (!uploaded.ok) throw new Error("Could not upload the image.");
   const completed = await fetch(`/api/storage/uploads/${details.assetId}/complete`, { method: "POST" });
   if (!completed.ok) throw new Error("The uploaded image could not be verified.");
