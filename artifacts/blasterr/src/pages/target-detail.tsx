@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { useGetTarget } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
@@ -5,6 +6,45 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Target as TargetIcon, MapPin, Activity, ThumbsUp, ThumbsDown, PenSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Seo, absoluteUrl, canonicalUrl } from "@/components/seo";
+
+type DetectedFace = { boundingBox: { x: number; y: number; width: number; height: number } };
+type FaceDetectorConstructor = new (options?: { fastMode?: boolean; maxDetectedFaces?: number }) => {
+  detect: (image: HTMLImageElement) => Promise<DetectedFace[]>;
+};
+
+function TargetBannerImage({ src, alt, isPerson }: { src: string; alt: string; isPerson: boolean }) {
+  const [objectPosition, setObjectPosition] = useState(isPerson ? "50% 24%" : "50% 50%");
+
+  const detectFace = async (image: HTMLImageElement) => {
+    if (!isPerson || !image.naturalWidth || !image.naturalHeight) return;
+    const FaceDetector = (window as typeof window & { FaceDetector?: FaceDetectorConstructor }).FaceDetector;
+    if (!FaceDetector) return;
+
+    try {
+      const faces = await new FaceDetector({ fastMode: true, maxDetectedFaces: 3 }).detect(image);
+      const face = faces.sort((left, right) =>
+        right.boundingBox.width * right.boundingBox.height - left.boundingBox.width * left.boundingBox.height
+      )[0];
+      if (!face) return;
+
+      const horizontal = ((face.boundingBox.x + face.boundingBox.width / 2) / image.naturalWidth) * 100;
+      const vertical = ((face.boundingBox.y + face.boundingBox.height / 2) / image.naturalHeight) * 100;
+      setObjectPosition(`${Math.min(85, Math.max(15, horizontal))}% ${Math.min(55, Math.max(10, vertical))}%`);
+    } catch {
+      // The upper-center fallback remains active when detection is unsupported for this image.
+    }
+  };
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="h-full w-full object-cover opacity-75 transition-[object-position] duration-300"
+      style={{ objectPosition }}
+      onLoad={(event) => void detectFace(event.currentTarget)}
+    />
+  );
+}
 
 export default function TargetDetail() {
   const [, setLocation] = useLocation();
@@ -92,16 +132,16 @@ export default function TargetDetail() {
 
         {/* Cover Image / Gradient */}
         <div className="h-48 md:h-64 w-full bg-gradient-to-br from-card to-background relative overflow-hidden">
-          {target.imageUrl && <img src={target.imageUrl} alt={target.name} className="h-full w-full object-cover opacity-85" />}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
+          {target.imageUrl && <TargetBannerImage key={target.imageUrl} src={target.imageUrl} alt={target.name} isPerson={target.type === "person"} />}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent"></div>
         </div>
 
         {/* Target Info */}
         <div className="px-6 relative -mt-16 sm:-mt-20 z-10 pb-6 border-b border-white/10">
-          <div className="flex justify-between items-end mb-4">
-            <div className="flex h-24 w-36 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-2xl sm:h-32 sm:w-48">
+           <div className="mb-4 flex items-end justify-between gap-4">
+            <div className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-2xl ${target.type === "sports" ? "h-28 w-48 sm:h-36 sm:w-64" : "h-24 w-36 sm:h-32 sm:w-48"}`}>
                {target.imageUrl ? (
-                 <img src={target.imageUrl} alt={target.name} className="h-full w-full object-contain p-2" />
+                 <img src={target.imageUrl} alt={target.name} className={`h-full w-full object-contain ${target.type === "sports" ? "p-4" : "p-2"}`} />
                ) : (
                  <TargetIcon className="w-12 h-12 text-muted-foreground" />
                )}
