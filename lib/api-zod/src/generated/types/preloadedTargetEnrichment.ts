@@ -32,5 +32,7 @@ export interface PreloadedTargetEnrichment {
   /** @maxLength 500 */
   imageUrl: string;
   /** @maxLength 500 */
+  bannerImageUrl: string;
+  /** @maxLength 500 */
   sourcePageUrl: string;
 }

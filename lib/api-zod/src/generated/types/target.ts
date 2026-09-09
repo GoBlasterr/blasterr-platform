@@ -17,6 +17,7 @@ export interface Target {
   location: string;
   blastCount: number;
   imageUrl: string;
+  bannerImageUrl: string;
   description: string;
   isCanonical?: boolean;
   isPreloaded?: boolean;

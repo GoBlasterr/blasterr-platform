@@ -31,8 +31,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Archive, CheckCircle2, Eye, FileUp, MoreHorizontal, Pencil, Plus, Search, Star, Upload, XCircle } from "lucide-react";
 
 const TYPES = Object.values(PreloadedTargetInputType);
-type FormState = { name: string; slug: string; type: typeof TYPES[number]; category: string; aliases: string; description: string; imageUrl: string; status: "active" | "disabled"; featured: boolean; verified: boolean };
-const blankForm = (): FormState => ({ name: "", slug: "", type: "person", category: "", aliases: "", description: "", imageUrl: "", status: "active", featured: false, verified: false });
+type FormState = { name: string; slug: string; type: typeof TYPES[number]; category: string; aliases: string; description: string; imageUrl: string; bannerImageUrl: string; status: "active" | "disabled"; featured: boolean; verified: boolean };
+const blankForm = (): FormState => ({ name: "", slug: "", type: "person", category: "", aliases: "", description: "", imageUrl: "", bannerImageUrl: "", status: "active", featured: false, verified: false });
 const messageFor = (error: unknown) => error instanceof Error ? error.message : "The request could not be completed. Please try again.";
 const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
@@ -142,13 +142,13 @@ function TargetFormDialog({ target, open, onOpenChange }: { target: Target | nul
   useEffect(() => {
     if (!open) return;
     lastAutomaticName.current = "";
-    setForm(target ? { name: target.name, slug: target.slug, type: target.type, category: target.preloadCategory ?? "", aliases: (target.aliases ?? []).join("\n"), description: target.description ?? "", imageUrl: target.imageUrl ?? "", status: target.preloadStatus === "disabled" ? "disabled" : "active", featured: !!target.featured, verified: !!target.verified } : blankForm());
+    setForm(target ? { name: target.name, slug: target.slug, type: target.type, category: target.preloadCategory ?? "", aliases: (target.aliases ?? []).join("\n"), description: target.description ?? "", imageUrl: target.imageUrl ?? "", bannerImageUrl: target.bannerImageUrl ?? "", status: target.preloadStatus === "disabled" ? "disabled" : "active", featured: !!target.featured, verified: !!target.verified } : blankForm());
   }, [open, target?.id]);
   const begin = (value: boolean) => {
     onOpenChange(value);
   };
   const save = () => {
-    const data = { name: form.name.trim(), slug: form.slug.trim(), type: form.type, category: form.category.trim(), aliases: form.aliases.split(/\n|,/).map((v) => v.trim()).filter(Boolean), description: form.description.trim() || undefined, imageUrl: form.imageUrl.trim() || undefined, status: form.status, featured: form.featured, verified: form.verified };
+    const data = { name: form.name.trim(), slug: form.slug.trim(), type: form.type, category: form.category.trim(), aliases: form.aliases.split(/\n|,/).map((v) => v.trim()).filter(Boolean), description: form.description.trim() || undefined, imageUrl: form.imageUrl.trim() || undefined, bannerImageUrl: form.bannerImageUrl.trim() || undefined, status: form.status, featured: form.featured, verified: form.verified };
     if (!data.name || !data.slug || !data.category) {
       toast({ title: "Required fields missing", description: "Name, slug, and category are required.", variant: "destructive" }); return;
     }
@@ -171,6 +171,7 @@ function TargetFormDialog({ target, open, onOpenChange }: { target: Target | nul
           aliases: proposal.aliases.join("\n"),
           description: proposal.description,
           imageUrl: proposal.imageUrl,
+          bannerImageUrl: proposal.bannerImageUrl,
         }));
         toast({ title: "Profile fields populated", description: "Review the information and image, then save when ready." });
       },

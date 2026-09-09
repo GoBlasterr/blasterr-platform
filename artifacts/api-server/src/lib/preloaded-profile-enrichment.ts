@@ -104,6 +104,131 @@ async function commonsProfileImage(name: string, preferLogo = false) {
     ?? candidates.find(candidate => candidate.mime && imageTypes.has(candidate.mime) && candidate.url)?.url;
 }
 
+async function commonsBannerImages(name: string, type: SocialTarget["type"]) {
+  const exactCategoryResults = await wikidataCommonsCategoryBannerImages(name);
+  if (exactCategoryResults.length) return exactCategoryResults;
+  const hints = type === "sports"
+    ? ["team game", "arena", "players"]
+    : type === "place"
+      ? ["skyline panorama", "cityscape", "landscape"]
+      : ["event photograph", "performance", "speaking"];
+  const results: string[] = [];
+  for (const hint of hints) {
+    const query = new URLSearchParams({
+      action: "query",
+      generator: "search",
+      gsrsearch: `${name} ${hint}`,
+      gsrnamespace: "6",
+      gsrlimit: "50",
+      prop: "imageinfo",
+      iiprop: "url|mime|size",
+      iiurlwidth: "1600",
+      format: "json",
+      origin: "*",
+    });
+    const response = await fetch(`https://commons.wikimedia.org/w/api.php?${query}`, {
+      signal: AbortSignal.timeout(12_000),
+      headers: { "User-Agent": "BLASTERR/1.0 banner enrichment" },
+    });
+    if (!response.ok) continue;
+    const body = await response.json() as { query?: { pages?: Record<string, { imageinfo?: Array<{ mime?: string; thumburl?: string; url?: string; width?: number; height?: number }> }> } };
+    for (const candidate of Object.values(body.query?.pages ?? {}).flatMap(page => page.imageinfo ?? [])) {
+      if (
+        candidate.mime && imageTypes.has(candidate.mime) &&
+        (candidate.width ?? 0) >= 1000 &&
+        (candidate.height ?? 0) > 0 &&
+        (candidate.width ?? 0) / (candidate.height ?? 1) >= 1.45
+      ) {
+        const url = candidate.thumburl ?? candidate.url;
+        if (url && !results.includes(url)) results.push(url);
+      }
+    }
+    if (results.length >= 3) break;
+  }
+  return results;
+}
+
+async function wikidataCommonsCategoryBannerImages(name: string) {
+  const pageQuery = new URLSearchParams({
+    action: "query",
+    titles: name,
+    redirects: "1",
+    prop: "pageprops",
+    ppprop: "wikibase_item",
+    format: "json",
+    origin: "*",
+  });
+  const pageResponse = await fetch(`https://en.wikipedia.org/w/api.php?${pageQuery}`, {
+    signal: AbortSignal.timeout(12_000),
+    headers: { "User-Agent": "BLASTERR/1.0 banner enrichment" },
+  });
+  if (!pageResponse.ok) return [];
+  const pageBody = await pageResponse.json() as { query?: { pages?: Record<string, { pageprops?: { wikibase_item?: string } }> } };
+  const itemId = Object.values(pageBody.query?.pages ?? {})[0]?.pageprops?.wikibase_item;
+  if (!itemId) return [];
+  const entityQuery = new URLSearchParams({ action: "wbgetentities", ids: itemId, props: "claims", format: "json", origin: "*" });
+  const entityResponse = await fetch(`https://www.wikidata.org/w/api.php?${entityQuery}`, {
+    signal: AbortSignal.timeout(12_000),
+    headers: { "User-Agent": "BLASTERR/1.0 banner enrichment" },
+  });
+  if (!entityResponse.ok) return [];
+  const entityBody = await entityResponse.json() as { entities?: Record<string, { claims?: { P373?: Array<{ mainsnak?: { datavalue?: { value?: unknown } } }> } }> };
+  const category = entityBody.entities?.[itemId]?.claims?.P373?.[0]?.mainsnak?.datavalue?.value;
+  if (typeof category !== "string" || !category.trim()) return [];
+  const titles: string[] = [];
+  let continuation: string | undefined;
+  do {
+    const membersQuery = new URLSearchParams({
+      action: "query",
+      list: "categorymembers",
+      cmtitle: `Category:${category}`,
+      cmtype: "file",
+      cmlimit: "100",
+      format: "json",
+      origin: "*",
+      ...(continuation ? { cmcontinue: continuation } : {}),
+    });
+    const membersResponse = await fetch(`https://commons.wikimedia.org/w/api.php?${membersQuery}`, {
+      signal: AbortSignal.timeout(12_000),
+      headers: { "User-Agent": "BLASTERR/1.0 banner enrichment" },
+    });
+    if (!membersResponse.ok) break;
+    const membersBody = await membersResponse.json() as { continue?: { cmcontinue?: string }; query?: { categorymembers?: Array<{ title?: string }> } };
+    titles.push(...(membersBody.query?.categorymembers ?? []).map(member => member.title).filter((title): title is string => !!title));
+    continuation = membersBody.continue?.cmcontinue;
+  } while (continuation && titles.length < 500);
+  if (!titles.length) return [];
+  const candidates: Array<{ mime?: string; thumburl?: string; url?: string; width?: number; height?: number }> = [];
+  for (let index = 0; index < Math.min(titles.length, 500); index += 50) {
+    const imagesQuery = new URLSearchParams({
+      action: "query",
+      titles: titles.slice(index, index + 50).join("|"),
+      prop: "imageinfo",
+      iiprop: "url|mime|size",
+      iiurlwidth: "1600",
+      format: "json",
+      origin: "*",
+    });
+    const imagesResponse = await fetch(`https://commons.wikimedia.org/w/api.php?${imagesQuery}`, {
+      signal: AbortSignal.timeout(12_000),
+      headers: { "User-Agent": "BLASTERR/1.0 banner enrichment" },
+    });
+    if (!imagesResponse.ok) continue;
+    const imagesBody = await imagesResponse.json() as { query?: { pages?: Record<string, { imageinfo?: Array<{ mime?: string; thumburl?: string; url?: string; width?: number; height?: number }> }> } };
+    candidates.push(...Object.values(imagesBody.query?.pages ?? {}).flatMap(page => page.imageinfo ?? []));
+  }
+  return candidates
+    .filter(candidate =>
+      !!candidate.mime && imageTypes.has(candidate.mime) &&
+      (candidate.width ?? 0) >= 1000 &&
+      (candidate.height ?? 0) > 0 &&
+      (candidate.width ?? 0) / (candidate.height ?? 1) >= 1.3
+    )
+    .map(candidate => candidate.thumburl ?? candidate.url)
+    .filter((url): url is string => !!url)
+    .slice(0, 5);
+}
+
 async function structuredFields(name: string, title: string, extract: string) {
   const baseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL?.replace(/\/$/, "");
   const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
@@ -160,6 +285,17 @@ async function importWikimediaImage(imageUrl: string | undefined, ownerId: strin
   return `/api/storage${objectPathForKey(objectKey)}`;
 }
 
+async function importFirstWikimediaImage(imageUrls: string[], ownerId: string, resourceId?: string) {
+  for (const imageUrl of imageUrls) {
+    try {
+      return await importWikimediaImage(imageUrl, ownerId, resourceId);
+    } catch {
+      // Wikimedia occasionally serves a stale thumbnail URL; try the next qualified result.
+    }
+  }
+  return "";
+}
+
 export async function enrichPreloadedProfile(name: string, ownerId: string, resourceId?: string) {
   const profile = await wikipediaProfile(name.trim());
   const fields = await structuredFields(name.trim(), profile.title, profile.extract);
@@ -168,5 +304,10 @@ export async function enrichPreloadedProfile(name: string, ownerId: string, reso
     ? await wikipediaLogoImage(profile.title) ?? await commonsProfileImage(profile.title, true) ?? profile.imageUrl
     : profile.imageUrl ?? await commonsProfileImage(profile.title);
   const imageUrl = await importWikimediaImage(imageSource, ownerId, resourceId);
-  return { ...fields, imageUrl, sourcePageUrl: profile.pageUrl };
+  const bannerImageUrl = await importFirstWikimediaImage(await commonsBannerImages(profile.title, fields.type), ownerId, resourceId);
+  return { ...fields, imageUrl, bannerImageUrl, sourcePageUrl: profile.pageUrl };
+}
+
+export async function enrichPreloadedBanner(name: string, type: SocialTarget["type"], ownerId: string, resourceId?: string) {
+  return importFirstWikimediaImage(await commonsBannerImages(name.trim(), type), ownerId, resourceId);
 }

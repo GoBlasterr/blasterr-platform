@@ -197,6 +197,7 @@ export const GetFeedResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -274,6 +275,7 @@ export const GetTrendingResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -312,6 +314,7 @@ export const GetTrendingResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -391,6 +394,7 @@ export const SearchResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -429,6 +433,7 @@ export const SearchResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -465,6 +470,7 @@ export const ListTargetsResponseItem = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -491,6 +497,8 @@ export const createTargetBodyDescriptionMax = 500;
 
 export const createTargetBodyImageUrlMax = 500;
 
+export const createTargetBodyBannerImageUrlMax = 500;
+
 export const createTargetBodyConfirmDistinctDefault = false;
 
 export const CreateTargetBody = zod.object({
@@ -499,6 +507,7 @@ export const CreateTargetBody = zod.object({
   "location": zod.string().max(createTargetBodyLocationMax),
   "description": zod.string().max(createTargetBodyDescriptionMax),
   "imageUrl": zod.string().max(createTargetBodyImageUrlMax).optional(),
+  "bannerImageUrl": zod.string().max(createTargetBodyBannerImageUrlMax).optional(),
   "confirmDistinct": zod.boolean().default(createTargetBodyConfirmDistinctDefault).describe('Confirm that ambiguous candidates represent a different entity; definitive duplicates remain blocked.')
 })
 
@@ -515,6 +524,7 @@ export const CreateTargetResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -553,6 +563,7 @@ export const GetTargetResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -593,6 +604,7 @@ export const GetTargetResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -692,6 +704,7 @@ export const GetUserProfileResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -750,6 +763,7 @@ export const GetUserProfileResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -844,6 +858,7 @@ export const CreateBlastResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -925,6 +940,7 @@ export const UpdateBlastResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -1024,6 +1040,7 @@ export const GetMyClipsResponseItem = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -1157,6 +1174,7 @@ export const CreateClipResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -1269,6 +1287,7 @@ export const GetClipResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -1401,6 +1420,7 @@ export const UpdateClipResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -1523,6 +1543,7 @@ export const RetryClipResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -1706,6 +1727,7 @@ export const CreateBlastBackResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -1815,6 +1837,7 @@ export const GetBookmarksResponseItem = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -1929,6 +1952,7 @@ export const ListAdminPreloadedTargetsResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -1964,6 +1988,8 @@ export const createAdminPreloadedTargetBodyDescriptionMax = 500;
 
 export const createAdminPreloadedTargetBodyImageUrlMax = 500;
 
+export const createAdminPreloadedTargetBodyBannerImageUrlMax = 500;
+
 
 
 export const CreateAdminPreloadedTargetBody = zod.object({
@@ -1974,6 +2000,7 @@ export const CreateAdminPreloadedTargetBody = zod.object({
   "aliases": zod.array(zod.string().min(1).max(createAdminPreloadedTargetBodyAliasesItemMax)).max(createAdminPreloadedTargetBodyAliasesMax).optional(),
   "description": zod.string().max(createAdminPreloadedTargetBodyDescriptionMax).optional(),
   "imageUrl": zod.string().max(createAdminPreloadedTargetBodyImageUrlMax).optional(),
+  "bannerImageUrl": zod.string().max(createAdminPreloadedTargetBodyBannerImageUrlMax).optional(),
   "featured": zod.boolean().optional(),
   "verified": zod.boolean().optional(),
   "status": zod.enum(['active', 'disabled']).optional()
@@ -1992,6 +2019,7 @@ export const CreateAdminPreloadedTargetResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -2031,6 +2059,8 @@ export const enrichAdminPreloadedTargetResponseDescriptionMax = 500;
 
 export const enrichAdminPreloadedTargetResponseImageUrlMax = 500;
 
+export const enrichAdminPreloadedTargetResponseBannerImageUrlMax = 500;
+
 export const enrichAdminPreloadedTargetResponseSourcePageUrlMax = 500;
 
 
@@ -2043,6 +2073,7 @@ export const EnrichAdminPreloadedTargetResponse = zod.object({
   "aliases": zod.array(zod.string().min(1).max(enrichAdminPreloadedTargetResponseAliasesItemMax)).max(enrichAdminPreloadedTargetResponseAliasesMax),
   "description": zod.string().max(enrichAdminPreloadedTargetResponseDescriptionMax),
   "imageUrl": zod.string().max(enrichAdminPreloadedTargetResponseImageUrlMax),
+  "bannerImageUrl": zod.string().max(enrichAdminPreloadedTargetResponseBannerImageUrlMax),
   "sourcePageUrl": zod.string().max(enrichAdminPreloadedTargetResponseSourcePageUrlMax)
 })
 
@@ -2067,6 +2098,8 @@ export const updateAdminPreloadedTargetBodyDescriptionMax = 500;
 
 export const updateAdminPreloadedTargetBodyImageUrlMax = 500;
 
+export const updateAdminPreloadedTargetBodyBannerImageUrlMax = 500;
+
 
 
 export const UpdateAdminPreloadedTargetBody = zod.object({
@@ -2077,6 +2110,7 @@ export const UpdateAdminPreloadedTargetBody = zod.object({
   "aliases": zod.array(zod.string().min(1).max(updateAdminPreloadedTargetBodyAliasesItemMax)).max(updateAdminPreloadedTargetBodyAliasesMax).optional(),
   "description": zod.string().max(updateAdminPreloadedTargetBodyDescriptionMax).optional(),
   "imageUrl": zod.string().max(updateAdminPreloadedTargetBodyImageUrlMax).optional(),
+  "bannerImageUrl": zod.string().max(updateAdminPreloadedTargetBodyBannerImageUrlMax).optional(),
   "featured": zod.boolean().optional(),
   "verified": zod.boolean().optional(),
   "status": zod.enum(['active', 'disabled']).optional(),
@@ -2096,6 +2130,7 @@ export const UpdateAdminPreloadedTargetResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -2147,6 +2182,8 @@ export const adoptAdminPreloadedTargetBodyDescriptionMax = 500;
 
 export const adoptAdminPreloadedTargetBodyImageUrlMax = 500;
 
+export const adoptAdminPreloadedTargetBodyBannerImageUrlMax = 500;
+
 
 
 export const AdoptAdminPreloadedTargetBody = zod.object({
@@ -2157,6 +2194,7 @@ export const AdoptAdminPreloadedTargetBody = zod.object({
   "aliases": zod.array(zod.string().min(1).max(adoptAdminPreloadedTargetBodyAliasesItemMax)).max(adoptAdminPreloadedTargetBodyAliasesMax).optional(),
   "description": zod.string().max(adoptAdminPreloadedTargetBodyDescriptionMax).optional(),
   "imageUrl": zod.string().max(adoptAdminPreloadedTargetBodyImageUrlMax).optional(),
+  "bannerImageUrl": zod.string().max(adoptAdminPreloadedTargetBodyBannerImageUrlMax).optional(),
   "featured": zod.boolean().optional(),
   "verified": zod.boolean().optional(),
   "status": zod.enum(['active', 'disabled']).optional()
@@ -2175,6 +2213,7 @@ export const AdoptAdminPreloadedTargetResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -2295,6 +2334,7 @@ export const GetAdminClipsResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -2470,6 +2510,7 @@ export const GetAdminContentResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),
@@ -2551,6 +2592,7 @@ export const UpdateAdminContentResponse = zod.object({
   "location": zod.string(),
   "blastCount": zod.number(),
   "imageUrl": zod.string(),
+  "bannerImageUrl": zod.string(),
   "description": zod.string(),
   "isCanonical": zod.boolean().optional(),
   "isPreloaded": zod.boolean().optional(),

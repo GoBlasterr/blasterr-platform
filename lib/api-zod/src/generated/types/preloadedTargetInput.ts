@@ -32,6 +32,8 @@ export interface PreloadedTargetInput {
   description?: string;
   /** @maxLength 500 */
   imageUrl?: string;
+  /** @maxLength 500 */
+  bannerImageUrl?: string;
   featured?: boolean;
   verified?: boolean;
   status?: PreloadedTargetInputStatus;

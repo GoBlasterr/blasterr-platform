@@ -1,0 +1,1 @@
+ALTER TABLE "targets" ADD COLUMN "banner_image_url" text DEFAULT '' NOT NULL;

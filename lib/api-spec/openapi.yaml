@@ -1681,7 +1681,7 @@ components:
               items: { $ref: "#/components/schemas/Blast" }
     Target:
       type: object
-      required: [id, name, slug, type, location, blastCount, imageUrl, description]
+      required: [id, name, slug, type, location, blastCount, imageUrl, bannerImageUrl, description]
       properties:
         id: { type: string }
         name: { type: string }
@@ -1692,6 +1692,7 @@ components:
         location: { type: string }
         blastCount: { type: number }
         imageUrl: { type: string }
+        bannerImageUrl: { type: string }
         description: { type: string }
         isCanonical: { type: boolean }
         isPreloaded: { type: boolean }
@@ -1716,6 +1717,7 @@ components:
         location: { type: string, maxLength: 120 }
         description: { type: string, maxLength: 500 }
         imageUrl: { type: string, maxLength: 500 }
+        bannerImageUrl: { type: string, maxLength: 500 }
         confirmDistinct:
           type: boolean
           default: false
@@ -1743,6 +1745,7 @@ components:
         aliases: { type: array, maxItems: 50, items: { type: string, minLength: 1, maxLength: 120 } }
         description: { type: string, maxLength: 500 }
         imageUrl: { type: string, maxLength: 500 }
+        bannerImageUrl: { type: string, maxLength: 500 }
         featured: { type: boolean }
         verified: { type: boolean }
         status: { type: string, enum: [active, disabled] }
@@ -1756,6 +1759,7 @@ components:
         aliases: { type: array, maxItems: 50, items: { type: string, minLength: 1, maxLength: 120 } }
         description: { type: string, maxLength: 500 }
         imageUrl: { type: string, maxLength: 500 }
+        bannerImageUrl: { type: string, maxLength: 500 }
         featured: { type: boolean }
         verified: { type: boolean }
         status: { type: string, enum: [active, disabled] }
@@ -1767,7 +1771,7 @@ components:
         name: { type: string, minLength: 2, maxLength: 120 }
     PreloadedTargetEnrichment:
       type: object
-      required: [name, slug, type, category, aliases, description, imageUrl, sourcePageUrl]
+      required: [name, slug, type, category, aliases, description, imageUrl, bannerImageUrl, sourcePageUrl]
       properties:
         name: { type: string, minLength: 1, maxLength: 120 }
         slug: { type: string, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
@@ -1776,6 +1780,7 @@ components:
         aliases: { type: array, maxItems: 50, items: { type: string, minLength: 1, maxLength: 120 } }
         description: { type: string, maxLength: 500 }
         imageUrl: { type: string, maxLength: 500 }
+        bannerImageUrl: { type: string, maxLength: 500 }
         sourcePageUrl: { type: string, maxLength: 500 }
     PreloadedTargetPage:
       type: object

@@ -57,6 +57,13 @@
       "when": 1788755572022,
       "tag": "0007_adorable_slayback",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788928348351,
+      "tag": "0008_boring_doomsday",
+      "breakpoints": true
     }
   ]
 }

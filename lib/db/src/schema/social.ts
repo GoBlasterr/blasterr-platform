@@ -53,6 +53,7 @@ export const targetsTable = pgTable(
     type: text("type").notNull(),
     description: text("description").notNull().default(""),
     imageUrl: text("image_url").notNull().default(""),
+    bannerImageUrl: text("banner_image_url").notNull().default(""),
     location: text("location").notNull().default(""),
     normalizedName: text("normalized_name").notNull().default(""),
     normalizedLocation: text("normalized_location").notNull().default(""),

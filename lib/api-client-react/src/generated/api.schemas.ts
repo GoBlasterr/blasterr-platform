@@ -221,6 +221,7 @@ export interface Target {
   location: string;
   blastCount: number;
   imageUrl: string;
+  bannerImageUrl: string;
   description: string;
   isCanonical?: boolean;
   isPreloaded?: boolean;
@@ -327,6 +328,8 @@ export interface TargetInput {
   description: string;
   /** @maxLength 500 */
   imageUrl?: string;
+  /** @maxLength 500 */
+  bannerImageUrl?: string;
   /** Confirm that ambiguous candidates represent a different entity; definitive duplicates remain blocked. */
   confirmDistinct?: boolean;
 }
@@ -391,6 +394,8 @@ export interface PreloadedTargetInput {
   description?: string;
   /** @maxLength 500 */
   imageUrl?: string;
+  /** @maxLength 500 */
+  bannerImageUrl?: string;
   featured?: boolean;
   verified?: boolean;
   status?: PreloadedTargetInputStatus;
@@ -442,6 +447,8 @@ export interface PreloadedTargetUpdate {
   description?: string;
   /** @maxLength 500 */
   imageUrl?: string;
+  /** @maxLength 500 */
+  bannerImageUrl?: string;
   featured?: boolean;
   verified?: boolean;
   status?: PreloadedTargetUpdateStatus;
@@ -494,6 +501,8 @@ export interface PreloadedTargetEnrichment {
   description: string;
   /** @maxLength 500 */
   imageUrl: string;
+  /** @maxLength 500 */
+  bannerImageUrl: string;
   /** @maxLength 500 */
   sourcePageUrl: string;
 }

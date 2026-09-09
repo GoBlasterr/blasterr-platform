@@ -6,15 +6,6 @@ import { ArrowLeft, Target as TargetIcon, MapPin, Activity, ThumbsUp, ThumbsDown
 import { Skeleton } from "@/components/ui/skeleton";
 import { Seo, absoluteUrl, canonicalUrl } from "@/components/seo";
 
-function TargetBannerImage({ src, alt }: { src: string; alt: string }) {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      <img src={src} alt="" aria-hidden="true" className="h-full w-full scale-110 object-cover opacity-25 blur-md" />
-      <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-contain p-2 opacity-80 md:p-4" />
-    </div>
-  );
-}
-
 export default function TargetDetail() {
   const [, setLocation] = useLocation();
   const params = useParams();
@@ -101,7 +92,7 @@ export default function TargetDetail() {
 
         {/* Cover Image / Gradient */}
         <div className="h-48 md:h-64 w-full bg-gradient-to-br from-card to-background relative overflow-hidden">
-          {target.imageUrl && <TargetBannerImage src={target.imageUrl} alt={target.name} />}
+          {(target.bannerImageUrl || target.imageUrl) && <img src={target.bannerImageUrl || target.imageUrl} alt={target.name} className="h-full w-full object-cover opacity-75" />}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent"></div>
         </div>
 

@@ -10,7 +10,7 @@ import { readableProfileMedia } from "./profile-media";
 
 export type Reaction = "blast" | "facts" | "cap" | "funny" | "watching";
 export type SocialUser = { id: string; username: string; displayName: string; avatarUrl: string; coverUrl: string; bio: string; location: string; city: string; state: string; followers: number; following: number; blastCount: number; joinedAt: string; isFollowing?: boolean; zipCode?: string };
-export type SocialTarget = { id: string; name: string; slug: string; type: "person" | "business" | "place" | "product" | "entertainment" | "sports" | "gaming" | "other"; location: string; blastCount: number; imageUrl: string; description: string; isCanonical: boolean; isPreloaded: boolean; preloadCategory: string | null; preloadStatus: "active" | "disabled" | "archived"; featured: boolean; verified: boolean; canonicalKey: string | null; aliases: string[] };
+export type SocialTarget = { id: string; name: string; slug: string; type: "person" | "business" | "place" | "product" | "entertainment" | "sports" | "gaming" | "other"; location: string; blastCount: number; imageUrl: string; bannerImageUrl: string; description: string; isCanonical: boolean; isPreloaded: boolean; preloadCategory: string | null; preloadStatus: "active" | "disabled" | "archived"; featured: boolean; verified: boolean; canonicalKey: string | null; aliases: string[] };
 export class DuplicateAccountEmailError extends Error {
   constructor() {
     super("An account with this email already exists.");
@@ -187,7 +187,7 @@ export async function createTarget(input: Pick<SocialTarget, "id" | "name" | "sl
   });
 }
 
-export type PreloadedSubjectInput = { name: string; slug: string; type: SocialTarget["type"]; category: string; aliases?: string[]; description?: string; imageUrl?: string; featured?: boolean; verified?: boolean; status?: "active" | "disabled" };
+export type PreloadedSubjectInput = { name: string; slug: string; type: SocialTarget["type"]; category: string; aliases?: string[]; description?: string; imageUrl?: string; bannerImageUrl?: string; featured?: boolean; verified?: boolean; status?: "active" | "disabled" };
 export class PreloadedTargetCollisionError extends Error {
   constructor(readonly conflicts: { targetIds: string[]; aliases: string[] }) {
     super("A canonical key, slug, name, or alias already belongs to another Target.");
@@ -216,7 +216,7 @@ export async function createPreloadedTargetInTransaction(tx: any, input: Preload
     if (collisions.targetIds.length) throw new PreloadedTargetCollisionError(collisions);
     const [target] = await tx.insert(targetsTable).values({
       id: `target-${randomUUID()}`, name: input.name.trim(), slug: input.slug.trim(), type: input.type,
-      description: input.description?.trim() ?? "", imageUrl: input.imageUrl?.trim() ?? "", location: "",
+      description: input.description?.trim() ?? "", imageUrl: input.imageUrl?.trim() ?? "", bannerImageUrl: input.bannerImageUrl?.trim() ?? "", location: "",
       normalizedName: normalizeTargetText(input.name), normalizedLocation: "", isCanonical: true, isPreloaded: true,
       preloadCategory: input.category, preloadStatus: input.status ?? "active", featured: input.featured ?? false,
       verified: input.verified ?? true, canonicalKey, provenance, createdByAdminId: actorId,
@@ -242,6 +242,7 @@ export async function updatePreloadedTarget(id: string, input: Partial<Preloaded
     ...(input.slug !== undefined ? { slug: input.slug.trim(), canonicalKey: normalizeTargetText(input.slug).replace(/\s/g, "-") } : {}),
     ...(input.type !== undefined ? { type: input.type } : {}), ...(input.category !== undefined ? { preloadCategory: input.category } : {}),
     ...(input.description !== undefined ? { description: input.description } : {}), ...(input.imageUrl !== undefined ? { imageUrl: input.imageUrl } : {}),
+    ...(input.bannerImageUrl !== undefined ? { bannerImageUrl: input.bannerImageUrl } : {}),
     ...(input.featured !== undefined ? { featured: input.featured } : {}), ...(input.verified !== undefined ? { verified: input.verified } : {}),
     ...(input.status !== undefined ? { preloadStatus: input.status } : {}), ...(input.archive ? { preloadStatus: "archived", archivedAt: new Date() } : {}),
     updatedAt: new Date(),
