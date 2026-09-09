@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { useGetTarget } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
@@ -7,42 +6,12 @@ import { ArrowLeft, Target as TargetIcon, MapPin, Activity, ThumbsUp, ThumbsDown
 import { Skeleton } from "@/components/ui/skeleton";
 import { Seo, absoluteUrl, canonicalUrl } from "@/components/seo";
 
-type DetectedFace = { boundingBox: { x: number; y: number; width: number; height: number } };
-type FaceDetectorConstructor = new (options?: { fastMode?: boolean; maxDetectedFaces?: number }) => {
-  detect: (image: HTMLImageElement) => Promise<DetectedFace[]>;
-};
-
-function TargetBannerImage({ src, alt, isPerson }: { src: string; alt: string; isPerson: boolean }) {
-  const [objectPosition, setObjectPosition] = useState(isPerson ? "50% 24%" : "50% 50%");
-
-  const detectFace = async (image: HTMLImageElement) => {
-    if (!isPerson || !image.naturalWidth || !image.naturalHeight) return;
-    const FaceDetector = (window as typeof window & { FaceDetector?: FaceDetectorConstructor }).FaceDetector;
-    if (!FaceDetector) return;
-
-    try {
-      const faces = await new FaceDetector({ fastMode: true, maxDetectedFaces: 3 }).detect(image);
-      const face = faces.sort((left, right) =>
-        right.boundingBox.width * right.boundingBox.height - left.boundingBox.width * left.boundingBox.height
-      )[0];
-      if (!face) return;
-
-      const horizontal = ((face.boundingBox.x + face.boundingBox.width / 2) / image.naturalWidth) * 100;
-      const vertical = ((face.boundingBox.y + face.boundingBox.height / 2) / image.naturalHeight) * 100;
-      setObjectPosition(`${Math.min(85, Math.max(15, horizontal))}% ${Math.min(55, Math.max(10, vertical))}%`);
-    } catch {
-      // The upper-center fallback remains active when detection is unsupported for this image.
-    }
-  };
-
+function TargetBannerImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <img
-      src={src}
-      alt={alt}
-      className="h-full w-full object-cover opacity-75 transition-[object-position] duration-300"
-      style={{ objectPosition }}
-      onLoad={(event) => void detectFace(event.currentTarget)}
-    />
+    <div className="absolute inset-0 overflow-hidden">
+      <img src={src} alt="" aria-hidden="true" className="h-full w-full scale-110 object-cover opacity-25 blur-md" />
+      <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-contain p-2 opacity-80 md:p-4" />
+    </div>
   );
 }
 
@@ -132,7 +101,7 @@ export default function TargetDetail() {
 
         {/* Cover Image / Gradient */}
         <div className="h-48 md:h-64 w-full bg-gradient-to-br from-card to-background relative overflow-hidden">
-          {target.imageUrl && <TargetBannerImage key={target.imageUrl} src={target.imageUrl} alt={target.name} isPerson={target.type === "person"} />}
+          {target.imageUrl && <TargetBannerImage src={target.imageUrl} alt={target.name} />}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent"></div>
         </div>
 
