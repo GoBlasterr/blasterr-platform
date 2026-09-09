@@ -122,7 +122,8 @@ router.get("/preloaded-targets", async (req, res): Promise<void> => {
   const query = parsed.data.q?.trim().toLowerCase();
   const items = (await social.targets()).filter(target => target.isPreloaded)
     .filter(target => parsed.data.status === "all" || target.preloadStatus === parsed.data.status)
-    .filter(target => !query || `${target.name} ${target.aliases.join(" ")} ${target.preloadCategory ?? ""}`.toLowerCase().includes(query));
+    .filter(target => !query || `${target.name} ${target.aliases.join(" ")} ${target.preloadCategory ?? ""}`.toLowerCase().includes(query))
+    .sort((left, right) => left.name.localeCompare(right.name, "en", { sensitivity: "base" }));
   const start = (parsed.data.page - 1) * parsed.data.limit;
   res.json(ListAdminPreloadedTargetsResponse.parse({ items: items.slice(start, start + parsed.data.limit), page: parsed.data.page, limit: parsed.data.limit, total: items.length, hasMore: start + parsed.data.limit < items.length }));
 });
