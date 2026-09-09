@@ -1657,7 +1657,7 @@ components:
       type: object
       properties:
         displayName: { type: string, minLength: 1, maxLength: 80 }
-        username: { type: string, pattern: "^[a-zA-Z0-9_]{3,30}$" }
+        username: { type: string, pattern: "^[a-zA-Z0-9_]{1,30}$" }
         bio: { type: string, maxLength: 280 }
         location: { type: string, maxLength: 120 }
         city: { type: string, minLength: 1, maxLength: 100 }

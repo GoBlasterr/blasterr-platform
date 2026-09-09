@@ -139,8 +139,8 @@ export default function Settings() {
       toast({ title: "Display name is required.", variant: "destructive" });
       return;
     }
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(profile.username.trim())) {
-      toast({ title: "Username must be 3–30 letters, numbers, or underscores.", variant: "destructive" });
+    if (!/^[a-zA-Z0-9_]{1,30}$/.test(profile.username.trim())) {
+      toast({ title: "Username must be 1–30 letters, numbers, or underscores.", variant: "destructive" });
       return;
     }
     if (!profile.city.trim()) {

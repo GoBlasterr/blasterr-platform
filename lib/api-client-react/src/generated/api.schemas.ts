@@ -155,7 +155,7 @@ export interface UserUpdate {
      * @maxLength 80
      */
   displayName?: string;
-  /** @pattern ^[a-zA-Z0-9_]{3,30}$ */
+  /** @pattern ^[a-zA-Z0-9_]{1,30}$ */
   username?: string;
   /** @maxLength 280 */
   bio?: string;

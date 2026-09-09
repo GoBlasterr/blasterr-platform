@@ -66,7 +66,7 @@ export default function SettingsScreen() {
   const save = async () => {
     setMessage(null);
     if (!form.displayName.trim()) { setMessage({ text: 'Display name is required.', error: true }); return; }
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(form.username.trim())) { setMessage({ text: 'Username must be 3–30 letters, numbers, or underscores.', error: true }); return; }
+    if (!/^[a-zA-Z0-9_]{1,30}$/.test(form.username.trim())) { setMessage({ text: 'Username must be 1–30 letters, numbers, or underscores.', error: true }); return; }
     if (!form.city.trim() || !form.state.trim()) { setMessage({ text: 'City and state are required.', error: true }); return; }
     if (form.zipCode.trim() && !/^\d{5}(?:-\d{4})?$/.test(form.zipCode.trim())) { setMessage({ text: 'Enter a valid 5-digit ZIP Code or ZIP+4.', error: true }); return; }
     setSaving(true);

@@ -88,7 +88,7 @@ export const GetCurrentUserResponse = zod.object({
  */
 export const updateCurrentUserBodyDisplayNameMax = 80;
 
-export const updateCurrentUserBodyUsernameRegExp = new RegExp('^[a-zA-Z0-9_]{3,30}$');
+export const updateCurrentUserBodyUsernameRegExp = new RegExp('^[a-zA-Z0-9_]{1,30}$');
 export const updateCurrentUserBodyBioMax = 280;
 
 export const updateCurrentUserBodyLocationMax = 120;
