@@ -99,9 +99,9 @@ export default function TargetDetail() {
         {/* Target Info */}
         <div className="px-6 relative -mt-16 sm:-mt-20 z-10 pb-6 border-b border-white/10">
           <div className="flex justify-between items-end mb-4">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-card border-4 border-background flex items-center justify-center overflow-hidden shadow-2xl">
+            <div className="flex h-24 w-36 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-2xl sm:h-32 sm:w-48">
                {target.imageUrl ? (
-                 <img src={target.imageUrl} alt={target.name} className="w-full h-full object-cover" />
+                 <img src={target.imageUrl} alt={target.name} className="h-full w-full object-contain p-2" />
                ) : (
                  <TargetIcon className="w-12 h-12 text-muted-foreground" />
                )}
