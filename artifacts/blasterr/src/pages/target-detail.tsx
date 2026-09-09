@@ -81,14 +81,14 @@ export default function TargetDetail() {
       {/* Header / Cover */}
       <div className="relative">
         {/* Back Button */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <button
+          type="button"
+          aria-label="Go back"
           onClick={() => window.history.back()} 
-          className="absolute top-4 left-4 z-10 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-md"
+          className="absolute left-4 top-4 z-20 flex h-10 w-10 shrink-0 items-center justify-center overflow-visible rounded-full border border-white/10 bg-black/60 text-white backdrop-blur-md transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
+          <ArrowLeft aria-hidden="true" className="h-5 w-5 shrink-0 overflow-visible" strokeWidth={2.25} />
+        </button>
 
         {/* Cover Image / Gradient */}
         <div className="h-48 md:h-64 w-full bg-gradient-to-br from-card to-background relative overflow-hidden">
