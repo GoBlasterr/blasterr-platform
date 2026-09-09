@@ -92,7 +92,7 @@ export default function TargetDetail() {
 
         {/* Cover Image / Gradient */}
         <div className="h-48 md:h-64 w-full bg-gradient-to-br from-card to-background relative overflow-hidden">
-          {(target.bannerImageUrl || target.imageUrl) && <img src={target.bannerImageUrl || target.imageUrl} alt={target.name} className="h-full w-full object-cover opacity-75" />}
+          {(target.bannerImageUrl || target.imageUrl) && <img src={target.bannerImageUrl || target.imageUrl} alt={target.name} className={`h-full w-full object-cover opacity-75 ${target.type === "person" ? "object-[center_25%]" : "object-center"}`} />}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent"></div>
         </div>
 

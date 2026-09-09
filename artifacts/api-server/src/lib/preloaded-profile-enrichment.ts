@@ -105,7 +105,7 @@ async function commonsProfileImage(name: string, preferLogo = false) {
 }
 
 async function commonsBannerImages(name: string, type: SocialTarget["type"]) {
-  const exactCategoryResults = await wikidataCommonsCategoryBannerImages(name);
+  const exactCategoryResults = await wikidataCommonsCategoryBannerImages(name, type);
   if (exactCategoryResults.length) return exactCategoryResults;
   const hints = type === "sports"
     ? ["team game", "arena", "players"]
@@ -121,7 +121,7 @@ async function commonsBannerImages(name: string, type: SocialTarget["type"]) {
       gsrnamespace: "6",
       gsrlimit: "50",
       prop: "imageinfo",
-      iiprop: "url|mime|size",
+      iiprop: "url|mime|size|extmetadata",
       iiurlwidth: "1600",
       format: "json",
       origin: "*",
@@ -131,13 +131,20 @@ async function commonsBannerImages(name: string, type: SocialTarget["type"]) {
       headers: { "User-Agent": "BLASTERR/1.0 banner enrichment" },
     });
     if (!response.ok) continue;
-    const body = await response.json() as { query?: { pages?: Record<string, { imageinfo?: Array<{ mime?: string; thumburl?: string; url?: string; width?: number; height?: number }> }> } };
-    for (const candidate of Object.values(body.query?.pages ?? {}).flatMap(page => page.imageinfo ?? [])) {
+    const body = await response.json() as { query?: { pages?: Record<string, { title?: string; imageinfo?: Array<{ mime?: string; thumburl?: string; url?: string; width?: number; height?: number; extmetadata?: Record<string, { value?: string }> }> }> } };
+    const candidates = Object.values(body.query?.pages ?? {}).flatMap(page => (page.imageinfo ?? []).map(image => ({ ...image, title: page.title ?? "" })));
+    candidates.sort((left, right) => bannerCandidateScore(right, name) - bannerCandidateScore(left, name));
+    for (const candidate of candidates) {
       if (
         candidate.mime && imageTypes.has(candidate.mime) &&
         (candidate.width ?? 0) >= 1000 &&
         (candidate.height ?? 0) > 0 &&
-        (candidate.width ?? 0) / (candidate.height ?? 1) >= 1.45
+        (candidate.width ?? 0) / (candidate.height ?? 1) >= 1.45 &&
+        (type !== "person" || (
+          name.toLowerCase().replace(/\([^)]*\)/g, "").split(/[^a-z0-9]+/).filter(token => token.length >= 3)
+            .some(token => candidate.title?.toLowerCase().includes(token)) &&
+          !isNonSubjectScene(candidate.title ?? "")
+        ))
       ) {
         const url = candidate.thumburl ?? candidate.url;
         if (url && !results.includes(url)) results.push(url);
@@ -148,7 +155,20 @@ async function commonsBannerImages(name: string, type: SocialTarget["type"]) {
   return results;
 }
 
-async function wikidataCommonsCategoryBannerImages(name: string) {
+function bannerCandidateScore(candidate: { title?: string; extmetadata?: Record<string, { value?: string }> }, name: string) {
+  const title = candidate.title?.toLowerCase() ?? "";
+  const tokens = name.toLowerCase().replace(/\([^)]*\)/g, "").split(/[^a-z0-9]+/).filter(token => token.length >= 3);
+  const identityMatches = tokens.filter(token => title.includes(token)).length;
+  const dateText = `${candidate.title ?? ""} ${candidate.extmetadata?.DateTimeOriginal?.value ?? ""} ${candidate.extmetadata?.DateTime?.value ?? ""}`;
+  const years = [...dateText.matchAll(/\b(19\d{2}|20\d{2})\b/g)].map(match => Number(match[1])).filter(year => year <= new Date().getFullYear());
+  return identityMatches * 100_000 + (years.length ? Math.max(...years) : 0);
+}
+
+function isNonSubjectScene(title: string) {
+  return /\b(library|building|mural|memorial|tribute|exhibit|opening day|cupcakes?|statue|wax figure|projection system)\b/i.test(title);
+}
+
+async function wikidataCommonsCategoryBannerImages(name: string, type: SocialTarget["type"]) {
   const pageQuery = new URLSearchParams({
     action: "query",
     titles: name,
@@ -198,13 +218,13 @@ async function wikidataCommonsCategoryBannerImages(name: string) {
     continuation = membersBody.continue?.cmcontinue;
   } while (continuation && titles.length < 500);
   if (!titles.length) return [];
-  const candidates: Array<{ mime?: string; thumburl?: string; url?: string; width?: number; height?: number }> = [];
+  const candidates: Array<{ title?: string; mime?: string; thumburl?: string; url?: string; width?: number; height?: number; extmetadata?: Record<string, { value?: string }> }> = [];
   for (let index = 0; index < Math.min(titles.length, 500); index += 50) {
     const imagesQuery = new URLSearchParams({
       action: "query",
       titles: titles.slice(index, index + 50).join("|"),
       prop: "imageinfo",
-      iiprop: "url|mime|size",
+      iiprop: "url|mime|size|extmetadata",
       iiurlwidth: "1600",
       format: "json",
       origin: "*",
@@ -214,16 +234,23 @@ async function wikidataCommonsCategoryBannerImages(name: string) {
       headers: { "User-Agent": "BLASTERR/1.0 banner enrichment" },
     });
     if (!imagesResponse.ok) continue;
-    const imagesBody = await imagesResponse.json() as { query?: { pages?: Record<string, { imageinfo?: Array<{ mime?: string; thumburl?: string; url?: string; width?: number; height?: number }> }> } };
-    candidates.push(...Object.values(imagesBody.query?.pages ?? {}).flatMap(page => page.imageinfo ?? []));
+    const imagesBody = await imagesResponse.json() as { query?: { pages?: Record<string, { title?: string; imageinfo?: Array<{ mime?: string; thumburl?: string; url?: string; width?: number; height?: number; extmetadata?: Record<string, { value?: string }> }> }> } };
+    candidates.push(...Object.values(imagesBody.query?.pages ?? {}).flatMap(page => (page.imageinfo ?? []).map(image => ({ ...image, title: page.title ?? "" }))));
   }
-  return candidates
+  const tokens = name.toLowerCase().replace(/\([^)]*\)/g, "").split(/[^a-z0-9]+/).filter(token => token.length >= 3);
+  const qualified = candidates
     .filter(candidate =>
       !!candidate.mime && imageTypes.has(candidate.mime) &&
       (candidate.width ?? 0) >= 1000 &&
       (candidate.height ?? 0) > 0 &&
-      (candidate.width ?? 0) / (candidate.height ?? 1) >= 1.3
+      (candidate.width ?? 0) / (candidate.height ?? 1) >= 1.3 &&
+      (type !== "person" || (
+        tokens.some(token => candidate.title?.toLowerCase().includes(token)) &&
+        !isNonSubjectScene(candidate.title ?? "")
+      ))
     )
+    .sort((left, right) => bannerCandidateScore(right, name) - bannerCandidateScore(left, name));
+  return qualified
     .map(candidate => candidate.thumburl ?? candidate.url)
     .filter((url): url is string => !!url)
     .slice(0, 5);
@@ -304,10 +331,16 @@ export async function enrichPreloadedProfile(name: string, ownerId: string, reso
     ? await wikipediaLogoImage(profile.title) ?? await commonsProfileImage(profile.title, true) ?? profile.imageUrl
     : profile.imageUrl ?? await commonsProfileImage(profile.title);
   const imageUrl = await importWikimediaImage(imageSource, ownerId, resourceId);
-  const bannerImageUrl = await importFirstWikimediaImage(await commonsBannerImages(profile.title, fields.type), ownerId, resourceId);
+  const bannerImageUrl = fields.type === "person"
+    ? imageUrl
+    : await importFirstWikimediaImage(await commonsBannerImages(profile.title, fields.type), ownerId, resourceId);
   return { ...fields, imageUrl, bannerImageUrl, sourcePageUrl: profile.pageUrl };
 }
 
 export async function enrichPreloadedBanner(name: string, type: SocialTarget["type"], ownerId: string, resourceId?: string) {
+  if (type === "person") {
+    const profile = await wikipediaProfile(name.trim());
+    return importWikimediaImage(profile.imageUrl, ownerId, resourceId);
+  }
   return importFirstWikimediaImage(await commonsBannerImages(name.trim(), type), ownerId, resourceId);
 }

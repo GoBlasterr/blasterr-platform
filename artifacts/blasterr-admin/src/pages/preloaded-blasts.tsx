@@ -36,14 +36,14 @@ const blankForm = (): FormState => ({ name: "", slug: "", type: "person", catego
 const messageFor = (error: unknown) => error instanceof Error ? error.message : "The request could not be completed. Please try again.";
 const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-async function uploadTargetImage(file: File): Promise<string> {
+async function uploadTargetImage(file: File, purpose: "target-image" | "banner" = "target-image"): Promise<string> {
   const allowed = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
   if (!allowed.has(file.type)) throw new Error("Choose a JPG, PNG, WebP, or GIF image.");
   if (file.size <= 0 || file.size > 10 * 1024 * 1024) throw new Error("Images must be 10 MB or smaller.");
   const prepared = await fetch("/api/storage/uploads/request-url", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, purpose: "target-image" }),
+    body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, purpose }),
   });
   const details = await prepared.json() as { uploadURL?: string; objectPath?: string; assetId?: string; error?: string };
   if (!prepared.ok || !details.uploadURL || !details.objectPath || !details.assetId) throw new Error(details.error || "Could not prepare the image upload.");
@@ -52,6 +52,35 @@ async function uploadTargetImage(file: File): Promise<string> {
   const completed = await fetch(`/api/storage/uploads/${details.assetId}/complete`, { method: "POST" });
   if (!completed.ok) throw new Error("The uploaded image could not be verified.");
   return `/api/storage${details.objectPath}`;
+}
+
+function TargetBannerUpload({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const [uploading, setUploading] = useState(false);
+  const choose = async (file?: File) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      onChange(await uploadTargetImage(file, "banner"));
+      toast({ title: "Banner uploaded", description: "Save the subject to publish this banner." });
+    } catch (error) {
+      toast({ title: "Banner upload failed", description: messageFor(error), variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+  return <div className="space-y-2 sm:col-span-2">
+    <div className="text-sm font-medium">Profile banner</div>
+    <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => void choose(event.target.files?.[0])} data-testid="input-preloaded-banner-upload" />
+    {value ? <div className="aspect-[3/1] w-full overflow-hidden rounded-sm border bg-muted/30"><img src={value} alt="Banner preview" className="h-full w-full object-cover object-[center_25%]" /></div> : <div className="flex aspect-[3/1] w-full items-center justify-center rounded-sm border bg-muted text-xs text-muted-foreground">No banner</div>}
+    <div className="flex flex-wrap gap-2">
+      <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} disabled={uploading} data-testid="button-upload-preloaded-banner"><Upload className="mr-2 h-4 w-4" />{uploading ? "Uploading…" : "Upload banner"}</Button>
+      {value && <Button type="button" variant="ghost" onClick={() => onChange("")} disabled={uploading}>Remove</Button>}
+    </div>
+    <p className="text-xs text-muted-foreground">Use a recent, wide image with the subject’s face near the upper center. Maximum 10 MB.</p>
+  </div>;
 }
 
 function TargetImageUpload({ value, onChange }: { value: string; onChange: (value: string) => void }) {
@@ -201,6 +230,7 @@ function TargetFormDialog({ target, open, onOpenChange }: { target: Target | nul
       <label className="space-y-1 text-sm font-medium sm:col-span-2">Aliases <span className="font-normal text-muted-foreground">(one per line or comma-separated)</span><Textarea value={form.aliases} onChange={(e) => set("aliases", e.target.value)} data-testid="input-preloaded-aliases" /></label>
       <label className="space-y-1 text-sm font-medium sm:col-span-2">Description<Textarea value={form.description} onChange={(e) => set("description", e.target.value)} data-testid="input-preloaded-description" /></label>
       <TargetImageUpload value={form.imageUrl} onChange={(value) => set("imageUrl", value)} />
+      <TargetBannerUpload value={form.bannerImageUrl} onChange={(value) => set("bannerImageUrl", value)} />
       <label className="space-y-1 text-sm font-medium">Status<Select value={form.status} onValueChange={(value) => set("status", value as FormState["status"])}><SelectTrigger data-testid="select-preloaded-status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="disabled">Disabled</SelectItem></SelectContent></Select></label>
       <div className="flex items-end gap-5 pb-2 text-sm"><label className="flex items-center gap-2"><input type="checkbox" checked={form.featured} onChange={(e) => set("featured", e.target.checked)} data-testid="checkbox-preloaded-featured" /> Featured</label><label className="flex items-center gap-2"><input type="checkbox" checked={form.verified} onChange={(e) => set("verified", e.target.checked)} data-testid="checkbox-preloaded-verified" /> Verified</label></div>
     </div>
