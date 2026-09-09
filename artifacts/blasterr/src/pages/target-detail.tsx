@@ -92,8 +92,8 @@ export default function TargetDetail() {
 
         {/* Cover Image / Gradient */}
         <div className="h-48 md:h-64 w-full bg-gradient-to-br from-card to-background relative overflow-hidden">
-          {target.imageUrl && <img src={target.imageUrl} alt={target.name} className="w-full h-full object-cover opacity-60 mix-blend-overlay" />}
-          <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent"></div>
+          {target.imageUrl && <img src={target.imageUrl} alt={target.name} className="h-full w-full object-cover opacity-85" />}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
         </div>
 
         {/* Target Info */}
