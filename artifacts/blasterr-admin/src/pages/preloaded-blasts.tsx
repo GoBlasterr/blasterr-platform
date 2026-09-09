@@ -74,12 +74,14 @@ function TargetImageUpload({ value, onChange }: { value: string; onChange: (valu
   return <div className="space-y-2 sm:col-span-2">
     <div className="text-sm font-medium">Profile image</div>
     <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => void choose(event.target.files?.[0])} data-testid="input-preloaded-image-upload" />
-    <div className="flex items-center gap-3">
-      {value ? <img src={value} alt="Profile preview" className="h-16 w-16 rounded-sm border object-cover" /> : <div className="flex h-16 w-16 items-center justify-center rounded-sm border bg-muted text-xs text-muted-foreground">No image</div>}
-      <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} disabled={uploading} data-testid="button-upload-preloaded-image"><Upload className="mr-2 h-4 w-4" />{uploading ? "Uploading…" : "Upload image"}</Button>
-      {value && <Button type="button" variant="ghost" onClick={() => onChange("")} disabled={uploading}>Remove</Button>}
+    <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+      {value ? <div className="flex h-40 w-40 shrink-0 items-center justify-center overflow-hidden rounded-sm border bg-muted/30 p-1"><img src={value} alt="Full profile preview" className="max-h-full max-w-full object-contain" /></div> : <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-sm border bg-muted text-xs text-muted-foreground">No image</div>}
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} disabled={uploading} data-testid="button-upload-preloaded-image"><Upload className="mr-2 h-4 w-4" />{uploading ? "Uploading…" : "Upload image"}</Button>
+        {value && <Button type="button" variant="ghost" onClick={() => onChange("")} disabled={uploading}>Remove</Button>}
+      </div>
     </div>
-    <p className="text-xs text-muted-foreground">JPG, PNG, WebP, or GIF. Maximum 10 MB.</p>
+    <p className="text-xs text-muted-foreground">The full image is shown without cropping. JPG, PNG, WebP, or GIF. Maximum 10 MB.</p>
   </div>;
 }
 
