@@ -64,6 +64,13 @@
       "when": 1788928348351,
       "tag": "0008_boring_doomsday",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789000000000,
+      "tag": "0009_business_ecosystem",
+      "breakpoints": true
     }
   ]
 }

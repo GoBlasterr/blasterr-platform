@@ -12,7 +12,8 @@ import {
   Users,
   LogOut,
   LogIn,
-  Film
+  Film,
+  Briefcase
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useClerk } from "@clerk/react";
@@ -36,6 +37,7 @@ export function Shell({ children }: ShellProps) {
   const navItems = [
     { icon: Home, label: "Home", href: "/home" },
     { icon: Compass, label: "Trending", href: "/trending" },
+    { icon: Briefcase, label: "Business", href: "/business" },
     { icon: MapPin, label: "Nearby", href: "/nearby" },
     { icon: Search, label: "Search", href: "/search" },
   ];
@@ -173,9 +175,9 @@ export function Shell({ children }: ShellProps) {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-white/10 z-50 px-6 py-3 flex justify-between items-center safe-area-bottom">
-        {(user ? [navItems[0], navItems[1], followingNavItem, ...navItems.slice(2)] : navItems).slice(0, 5).map((item) => (
-          <Link key={item.href} href={item.href} className={`flex flex-col items-center p-2 rounded-lg ${location === item.href ? 'text-primary' : 'text-muted-foreground'}`}>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-white/10 z-50 px-4 py-3 flex justify-between items-center safe-area-bottom overflow-x-auto gap-2 no-scrollbar">
+        {(user ? [navItems[0], navItems[1], followingNavItem, ...navItems.slice(2)] : navItems).map((item) => (
+          <Link key={item.href} href={item.href} className={`flex flex-col items-center p-2 rounded-lg shrink-0 ${location === item.href || (item.href === '/business' && location.startsWith('/business')) ? 'text-primary' : 'text-muted-foreground'}`}>
             <item.icon className="w-6 h-6" />
           </Link>
         ))}

@@ -1496,6 +1496,112 @@ paths:
       tags: [advertising]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AdEventInput" } } } }
       responses: { "201": { description: Event recorded, content: { application/json: { schema: { type: object, required: [recorded], properties: { recorded: { type: boolean } } } } } } }
+  /business:
+    get:
+      operationId: listBusinesses
+      parameters:
+        - { name: page, in: query, schema: { type: number, minimum: 1, default: 1 } }
+        - { name: limit, in: query, schema: { type: number, minimum: 1, maximum: 50, default: 20 } }
+        - { name: q, in: query, schema: { type: string } }
+        - { name: city, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: featured, in: query, schema: { type: boolean } }
+      responses:
+        "200": { description: Business discovery results, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessPage" } } } }
+  /business/{slug}:
+    get:
+      operationId: getBusiness
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Business Target, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessDetail" } } } }
+        "404": { description: Not found }
+  /business/{targetId}/follow:
+    post:
+      operationId: toggleBusinessFollow
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Follow state, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessFollowResult" } } } }
+  /business/{targetId}/claims:
+    post:
+      operationId: submitBusinessClaim
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/BusinessClaimInput" } }
+      responses:
+        "201": { description: Claim submitted, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessClaim" } } } }
+  /business/{targetId}/center:
+    get:
+      operationId: getBusinessCenter
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Business Center overview, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessCenter" } } } }
+  /business/{targetId}/center/analytics:
+    get:
+      operationId: getBusinessAnalytics
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Business analytics, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessAnalytics" } } } }
+  /admin/business:
+    get:
+      operationId: listAdminBusinesses
+      parameters:
+        - { name: page, in: query, schema: { type: number, minimum: 1, default: 1 } }
+        - { name: limit, in: query, schema: { type: number, minimum: 1, maximum: 100, default: 25 } }
+        - { name: q, in: query, schema: { type: string } }
+        - { name: city, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        "200": { description: Admin business targets, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessPage" } } } }
+    post:
+      operationId: createAdminBusiness
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/AdminBusinessInput" } }
+      responses:
+        "201": { description: Created Business Target, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessDetail" } } } }
+  /admin/business/{targetId}:
+    patch:
+      operationId: updateAdminBusiness
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/AdminBusinessUpdate" } }
+      responses:
+        "200": { description: Updated Business Target, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessDetail" } } } }
+  /admin/business/claims:
+    get:
+      operationId: listAdminBusinessClaims
+      parameters:
+        - { name: page, in: query, schema: { type: number, minimum: 1, default: 1 } }
+        - { name: limit, in: query, schema: { type: number, minimum: 1, maximum: 100, default: 25 } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        "200": { description: Claim requests, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessClaimPage" } } } }
+  /admin/business/claims/{claimId}:
+    patch:
+      operationId: reviewAdminBusinessClaim
+      parameters:
+        - { name: claimId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/BusinessClaimReview" } }
+      responses:
+        "200": { description: Reviewed claim, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessClaim" } } } }
+
 components:
   securitySchemes:
     clerkSession:
@@ -2868,3 +2974,148 @@ components:
         limit: { type: number }
         total: { type: number }
         hasMore: { type: boolean }
+    BusinessSummary:
+      type: object
+      required: [id, name, slug, location, category, blastCount, viewCount, commentCount, reactionCount, followerCount, featured, verified, status, verificationStatus, claimStatus, ownerCount]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        location: { type: string }
+        category: { type: string }
+        description: { type: string }
+        imageUrl: { type: string }
+        bannerImageUrl: { type: string }
+        blastCount: { type: number }
+        viewCount: { type: number }
+        commentCount: { type: number }
+        reactionCount: { type: number }
+        followerCount: { type: number }
+        featured: { type: boolean }
+        verified: { type: boolean }
+        status: { type: string, enum: [active, hidden, locked] }
+        verificationStatus: { type: string, enum: [unverified, pending, verified] }
+        claimStatus: { type: string, enum: [unclaimed, pending, approved, rejected, more_info] }
+        ownerCount: { type: number }
+    BusinessPage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/BusinessSummary" } }
+        page: { type: number }
+        limit: { type: number }
+        total: { type: number }
+        hasMore: { type: boolean }
+    BusinessDetail:
+      allOf:
+        - $ref: "#/components/schemas/BusinessSummary"
+        - type: object
+          required: [category, subcategory, address, city, state, postalCode, phone, website, email, verificationStatus, blasts]
+          properties:
+            subcategory: { type: string }
+            address: { type: string }
+            city: { type: string }
+            state: { type: string }
+            postalCode: { type: string }
+            phone: { type: string }
+            website: { type: string }
+            email: { type: string }
+            verificationStatus: { type: string }
+            blasts: { type: array, items: { type: object, additionalProperties: true } }
+    BusinessFollowResult:
+      type: object
+      required: [following, followerCount]
+      properties:
+        following: { type: boolean }
+        followerCount: { type: number }
+    BusinessClaimInput:
+      type: object
+      required: [verificationMethod]
+      properties:
+        verificationMethod: { type: string, enum: [business_email, website, documentation, admin_review] }
+        evidence: { type: string, maxLength: 2000 }
+    BusinessClaim:
+      type: object
+      required: [id, targetId, applicantId, verificationMethod, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        targetId: { type: string }
+        applicantId: { type: string }
+        verificationMethod: { type: string }
+        evidence: { type: string }
+        status: { type: string, enum: [pending, approved, rejected, more_info] }
+        reviewNote: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    BusinessClaimPage:
+      type: object
+      required: [items, page, limit, total, hasMore]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/BusinessClaim" } }
+        page: { type: number }
+        limit: { type: number }
+        total: { type: number }
+        hasMore: { type: boolean }
+    BusinessCenter:
+      allOf:
+        - $ref: "#/components/schemas/BusinessDetail"
+        - type: object
+          required: [membershipRole]
+          properties:
+            membershipRole: { type: string }
+    BusinessAnalytics:
+      type: object
+      required: [blastCount, viewCount, commentCount, reactionCount, followerCount, engagementRate]
+      properties:
+        blastCount: { type: number }
+        viewCount: { type: number }
+        commentCount: { type: number }
+        reactionCount: { type: number }
+        followerCount: { type: number }
+        engagementRate: { type: number }
+    AdminBusinessInput:
+      type: object
+      required: [name, location]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        location: { type: string, minLength: 1, maxLength: 160 }
+        category: { type: string, maxLength: 80 }
+        subcategory: { type: string, maxLength: 80 }
+        description: { type: string, maxLength: 1000 }
+        city: { type: string, maxLength: 100 }
+        state: { type: string, maxLength: 50 }
+        postalCode: { type: string, maxLength: 20 }
+        address: { type: string, maxLength: 200 }
+        phone: { type: string, maxLength: 40 }
+        website: { type: string, maxLength: 500 }
+        email: { type: string, maxLength: 320 }
+        imageUrl: { type: string, maxLength: 500 }
+        bannerImageUrl: { type: string, maxLength: 500 }
+        featured: { type: boolean }
+        verified: { type: boolean }
+    AdminBusinessUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        location: { type: string, minLength: 1, maxLength: 160 }
+        category: { type: string, maxLength: 80 }
+        subcategory: { type: string, maxLength: 80 }
+        description: { type: string, maxLength: 1000 }
+        city: { type: string, maxLength: 100 }
+        state: { type: string, maxLength: 50 }
+        postalCode: { type: string, maxLength: 20 }
+        address: { type: string, maxLength: 200 }
+        phone: { type: string, maxLength: 40 }
+        website: { type: string, maxLength: 500 }
+        email: { type: string, maxLength: 320 }
+        imageUrl: { type: string, maxLength: 500 }
+        bannerImageUrl: { type: string, maxLength: 500 }
+        featured: { type: boolean }
+        verified: { type: boolean }
+        status: { type: string, enum: [active, hidden, locked] }
+    BusinessClaimReview:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [approved, rejected, more_info] }
+        reviewNote: { type: string, maxLength: 2000 }

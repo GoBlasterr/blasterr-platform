@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
 import { getGetFeedQueryKey, getListTargetsQueryKey, useCreateBlast, useListTargets } from '@workspace/api-client-react';
@@ -30,11 +30,12 @@ async function uploadMedia(media: SelectedMedia): Promise<string> {
 }
 
 export default function CreateScreen() {
+  const params = useLocalSearchParams<{ targetId?: string; targetName?: string; targetType?: string }>();
   const colors = useColors();
   const queryClient = useQueryClient();
   const [content, setContent] = useState('');
-  const [targetQuery, setTargetQuery] = useState('');
-  const [selected, setSelected] = useState<Target | null>(null);
+  const [targetQuery, setTargetQuery] = useState(params.targetName || '');
+  const [selected, setSelected] = useState<Target | null>(params.targetId ? { id: params.targetId, name: params.targetName || '', type: (params.targetType as any) || 'business', slug: '', location: '', blastCount: 0, imageUrl: '', bannerImageUrl: '', description: '' } : null);
   const [media, setMedia] = useState<SelectedMedia | null>(null);
   const [uploading, setUploading] = useState(false);
   const targetParams = { q: targetQuery };

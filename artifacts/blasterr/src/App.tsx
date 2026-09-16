@@ -32,6 +32,10 @@ import ClipsLibrary from '@/pages/clips/index';
 import CreateClip from '@/pages/clips/create';
 import { PrivacyPolicy, TermsAndConditions } from '@/pages/legal';
 import CmsCollectionPage from '@/pages/cms-collection';
+import BusinessList from '@/pages/business/index';
+import BusinessDetail from '@/pages/business/detail';
+import BusinessClaim from '@/pages/business/claim';
+import BusinessCenter from '@/pages/business/center';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +75,18 @@ function Router() {
           </Route>
           <Route path="/trending" component={Trending} />
           <Route path="/trending/targets" component={Trending} />
+          <Route path="/business" component={BusinessList} />
+          <Route path="/business/:slug" component={BusinessDetail} />
+          <Route path="/business/:slug/claim">
+            <SignedInOnly>
+              <BusinessClaim />
+            </SignedInOnly>
+          </Route>
+          <Route path="/business/:targetId/center">
+            <SignedInOnly>
+              <BusinessCenter />
+            </SignedInOnly>
+          </Route>
           <Route path="/nearby" component={Nearby} />
           <Route path="/search" component={Search} />
           <Route path="/target/:slug" component={TargetDetail} />

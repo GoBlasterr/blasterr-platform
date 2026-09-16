@@ -144,6 +144,48 @@ const defaultFeatures = [
     description: "Allow the community to suggest new Targets.",
     enabled: true,
   },
+  {
+    key: "business_section_enabled",
+    label: "Business section",
+    description: "Enable public Business discovery and Business Targets.",
+    enabled: true,
+  },
+  {
+    key: "business_targets_enabled",
+    label: "Business Targets",
+    description: "Enable canonical business Target discovery.",
+    enabled: true,
+  },
+  {
+    key: "business_claim_enabled",
+    label: "Business claims",
+    description: "Allow authenticated users to submit Business Target claims.",
+    enabled: true,
+  },
+  {
+    key: "business_verification_enabled",
+    label: "Business verification",
+    description: "Allow administrators to review and verify business claims.",
+    enabled: true,
+  },
+  {
+    key: "business_center_enabled",
+    label: "Business Center",
+    description: "Allow approved business owners to access Business Center.",
+    enabled: true,
+  },
+  {
+    key: "business_promote_enabled",
+    label: "Business promotion",
+    description: "Future Business promotion foundation; payments remain disabled.",
+    enabled: false,
+  },
+  {
+    key: "business_subscriptions_enabled",
+    label: "Business subscriptions",
+    description: "Future Business subscription foundation; billing remains disabled.",
+    enabled: false,
+  },
 ] as const;
 
 const developmentAnnouncements = [

@@ -10,14 +10,18 @@ import announcementsRouter from "./announcements";
 import cmsRouter from "./cms";
 import appealsRouter from "./appeals";
 import localizationRouter from "./localization";
+import businessRouter from "./business";
+import businessAdminRouter from "./business-admin";
 
 const router: IRouter = Router();
 router.use("/admin-auth", adminAuthRouter);
 
 router.use(healthRouter);
 router.use(localizationRouter);
+router.use(businessRouter);
 router.use(announcementsRouter);
 router.use("/admin", adminRouter);
+router.use("/admin", businessAdminRouter);
 router.use(appealsRouter);
 router.use(socialRouter);
 router.use(storageRouter);

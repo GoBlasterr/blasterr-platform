@@ -42,7 +42,9 @@ const NAVIGATION_GROUPS = [
       { label: "Website CMS", href: "/cms", icon: Globe2 },
       { label: "Users", href: "/users", icon: Users },
       { label: "Content", href: "/content", icon: MessageSquare },
-       { label: "Preloaded Blasts", href: "/preloaded-blasts", icon: Flame },
+      { label: "Preloaded Blasts", href: "/preloaded-blasts", icon: Flame },
+      { label: "Business Targets", href: "/business-targets", icon: Briefcase },
+      { label: "Claim Requests", href: "/business-claims", icon: FileText },
       { label: "Reports", href: "/reports", icon: Flag },
       { label: "Moderation", href: "/moderation", icon: ShieldAlert },
     ]

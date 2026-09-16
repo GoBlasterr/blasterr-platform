@@ -22,6 +22,7 @@ function NativeTabLayout() {
       <NativeTabs.Trigger name="explore"><Icon sf={{ default: 'safari', selected: 'safari.fill' }} /><Label>Trending</Label></NativeTabs.Trigger>
       <NativeTabs.Trigger name="nearby"><Icon sf={{ default: 'map', selected: 'map.fill' }} /><Label>Nearby</Label></NativeTabs.Trigger>
       <NativeTabs.Trigger name="search" role="search"><Icon sf="magnifyingglass" /><Label>Search</Label></NativeTabs.Trigger>
+      <NativeTabs.Trigger name="businesses"><Icon sf={{ default: 'briefcase', selected: 'briefcase.fill' }} /><Label>Business</Label></NativeTabs.Trigger>
       <NativeTabs.Trigger name="notifications"><Icon sf={{ default: 'bell', selected: 'bell.fill' }} /><Label>Notifications</Label></NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -81,6 +82,7 @@ function ClassicTabLayout() {
       <Tabs.Screen name="explore" options={{ title: 'Trending', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="safari" tintColor={color} size={24} /> : <Feather name="compass" size={22} color={color} /> }} />
       <Tabs.Screen name="nearby" options={{ title: 'Nearby', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="map" tintColor={color} size={24} /> : <Feather name="map" size={22} color={color} /> }} />
       <Tabs.Screen name="search" options={{ title: 'Search', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="magnifyingglass" tintColor={color} size={24} /> : <Feather name="search" size={22} color={color} /> }} />
+      <Tabs.Screen name="businesses" options={{ title: 'Business', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="briefcase" tintColor={color} size={24} /> : <Feather name="briefcase" size={22} color={color} /> }} />
       <Tabs.Screen name="notifications" options={{ title: 'Notifications', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="bell" tintColor={color} size={24} /> : <Feather name="bell" size={22} color={color} /> }} />
     </Tabs>
   );

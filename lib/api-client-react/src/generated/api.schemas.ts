@@ -2531,6 +2531,247 @@ export interface BoostRequestPage {
   hasMore: boolean;
 }
 
+export type BusinessSummaryStatus = typeof BusinessSummaryStatus[keyof typeof BusinessSummaryStatus];
+
+
+export const BusinessSummaryStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  locked: 'locked',
+} as const;
+
+export type BusinessSummaryVerificationStatus = typeof BusinessSummaryVerificationStatus[keyof typeof BusinessSummaryVerificationStatus];
+
+
+export const BusinessSummaryVerificationStatus = {
+  unverified: 'unverified',
+  pending: 'pending',
+  verified: 'verified',
+} as const;
+
+export type BusinessSummaryClaimStatus = typeof BusinessSummaryClaimStatus[keyof typeof BusinessSummaryClaimStatus];
+
+
+export const BusinessSummaryClaimStatus = {
+  unclaimed: 'unclaimed',
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  more_info: 'more_info',
+} as const;
+
+export interface BusinessSummary {
+  id: string;
+  name: string;
+  slug: string;
+  location: string;
+  category: string;
+  description?: string;
+  imageUrl?: string;
+  bannerImageUrl?: string;
+  blastCount: number;
+  viewCount: number;
+  commentCount: number;
+  reactionCount: number;
+  followerCount: number;
+  featured: boolean;
+  verified: boolean;
+  status: BusinessSummaryStatus;
+  verificationStatus: BusinessSummaryVerificationStatus;
+  claimStatus: BusinessSummaryClaimStatus;
+  ownerCount: number;
+}
+
+export interface BusinessPage {
+  items: BusinessSummary[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export type BusinessDetailBlastsItem = { [key: string]: unknown };
+
+export type BusinessDetail = BusinessSummary & {
+  subcategory: string;
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  phone: string;
+  website: string;
+  email: string;
+  verificationStatus: string;
+  blasts: BusinessDetailBlastsItem[];
+};
+
+export interface BusinessFollowResult {
+  following: boolean;
+  followerCount: number;
+}
+
+export type BusinessClaimInputVerificationMethod = typeof BusinessClaimInputVerificationMethod[keyof typeof BusinessClaimInputVerificationMethod];
+
+
+export const BusinessClaimInputVerificationMethod = {
+  business_email: 'business_email',
+  website: 'website',
+  documentation: 'documentation',
+  admin_review: 'admin_review',
+} as const;
+
+export interface BusinessClaimInput {
+  verificationMethod: BusinessClaimInputVerificationMethod;
+  /** @maxLength 2000 */
+  evidence?: string;
+}
+
+export type BusinessClaimStatus = typeof BusinessClaimStatus[keyof typeof BusinessClaimStatus];
+
+
+export const BusinessClaimStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  more_info: 'more_info',
+} as const;
+
+export interface BusinessClaim {
+  id: string;
+  targetId: string;
+  applicantId: string;
+  verificationMethod: string;
+  evidence?: string;
+  status: BusinessClaimStatus;
+  reviewNote?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BusinessClaimPage {
+  items: BusinessClaim[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export type BusinessCenter = BusinessDetail & {
+  membershipRole: string;
+};
+
+export interface BusinessAnalytics {
+  blastCount: number;
+  viewCount: number;
+  commentCount: number;
+  reactionCount: number;
+  followerCount: number;
+  engagementRate: number;
+}
+
+export interface AdminBusinessInput {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  location: string;
+  /** @maxLength 80 */
+  category?: string;
+  /** @maxLength 80 */
+  subcategory?: string;
+  /** @maxLength 1000 */
+  description?: string;
+  /** @maxLength 100 */
+  city?: string;
+  /** @maxLength 50 */
+  state?: string;
+  /** @maxLength 20 */
+  postalCode?: string;
+  /** @maxLength 200 */
+  address?: string;
+  /** @maxLength 40 */
+  phone?: string;
+  /** @maxLength 500 */
+  website?: string;
+  /** @maxLength 320 */
+  email?: string;
+  /** @maxLength 500 */
+  imageUrl?: string;
+  /** @maxLength 500 */
+  bannerImageUrl?: string;
+  featured?: boolean;
+  verified?: boolean;
+}
+
+export type AdminBusinessUpdateStatus = typeof AdminBusinessUpdateStatus[keyof typeof AdminBusinessUpdateStatus];
+
+
+export const AdminBusinessUpdateStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  locked: 'locked',
+} as const;
+
+export interface AdminBusinessUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name?: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  location?: string;
+  /** @maxLength 80 */
+  category?: string;
+  /** @maxLength 80 */
+  subcategory?: string;
+  /** @maxLength 1000 */
+  description?: string;
+  /** @maxLength 100 */
+  city?: string;
+  /** @maxLength 50 */
+  state?: string;
+  /** @maxLength 20 */
+  postalCode?: string;
+  /** @maxLength 200 */
+  address?: string;
+  /** @maxLength 40 */
+  phone?: string;
+  /** @maxLength 500 */
+  website?: string;
+  /** @maxLength 320 */
+  email?: string;
+  /** @maxLength 500 */
+  imageUrl?: string;
+  /** @maxLength 500 */
+  bannerImageUrl?: string;
+  featured?: boolean;
+  verified?: boolean;
+  status?: AdminBusinessUpdateStatus;
+}
+
+export type BusinessClaimReviewStatus = typeof BusinessClaimReviewStatus[keyof typeof BusinessClaimReviewStatus];
+
+
+export const BusinessClaimReviewStatus = {
+  approved: 'approved',
+  rejected: 'rejected',
+  more_info: 'more_info',
+} as const;
+
+export interface BusinessClaimReview {
+  status: BusinessClaimReviewStatus;
+  /** @maxLength 2000 */
+  reviewNote?: string;
+}
+
 export type PageParameter = number;
 
 export type FeedTabParameter = typeof FeedTabParameter[keyof typeof FeedTabParameter];
@@ -3001,5 +3242,52 @@ export type GetAdPlacement200 = {
 
 export type RecordAdEvent201 = {
   recorded: boolean;
+};
+
+export type ListBusinessesParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+q?: string;
+city?: string;
+state?: string;
+category?: string;
+featured?: boolean;
+};
+
+export type ListAdminBusinessesParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+q?: string;
+city?: string;
+state?: string;
+category?: string;
+status?: string;
+};
+
+export type ListAdminBusinessClaimsParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+status?: string;
 };
 
