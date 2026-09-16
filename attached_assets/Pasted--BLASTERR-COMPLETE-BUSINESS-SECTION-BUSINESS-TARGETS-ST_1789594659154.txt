@@ -1,0 +1,2126 @@
+# BLASTERR — COMPLETE BUSINESS SECTION + BUSINESS TARGETS
+
+## STRICT ADDITIVE IMPLEMENTATION PROMPT FOR REPLIT AGENT
+
+You are working on an **ALREADY BUILT AND FUNCTIONING BLASTERR PLATFORM**.
+
+Your task is to add a complete **BUSINESS ecosystem** to BLASTERR, including:
+
+1. A new **BUSINESS** section in user navigation
+2. A complete **Business Discovery** experience
+3. **Business Targets**
+4. Business Target public pages
+5. Business Blasts integration
+6. Business Trending / Most Blasted / Rising Businesses
+7. Business Target claiming
+8. Business verification
+9. Business Center
+10. Business alerts
+11. Business analytics
+12. Business promotion / Boost foundation
+13. Business subscription architecture
+14. Business Target creation and management inside the existing **ADMIN DASHBOARD**
+
+## 🚨 ABSOLUTE RULE — DO NOT BREAK EXISTING BLASTERR
+
+BLASTERR is already built.
+
+**DO NOT:**
+
+* rebuild BLASTERR
+* redesign BLASTERR
+* replace existing features
+* remove existing features
+* rewrite existing systems unnecessarily
+* change existing navigation styling
+* change existing Blast creation
+* change existing user profiles
+* change existing classifications
+* change existing feed behavior
+* change existing search behavior
+* change existing comments
+* change existing reactions
+* change existing notifications
+* change existing authentication
+* change existing media infrastructure
+* change Cloudflare R2 configuration
+* change Supabase configuration unnecessarily
+* change BLASTR Clips
+* replace existing UI components
+* refactor unrelated code
+* change existing database structures unless absolutely required for integration
+
+This is an **ADDITIVE FEATURE IMPLEMENTATION**.
+
+Before writing code, inspect the existing codebase and understand:
+
+* existing routing
+* existing navigation
+* existing Blast model/schema
+* existing classifications
+* existing user model
+* existing search
+* existing feed
+* existing comment/reply system
+* existing notifications
+* existing analytics
+* existing admin dashboard
+* existing authentication/authorization
+* existing database structure
+* existing UI component system
+* existing design tokens/theme
+
+Reuse existing architecture wherever possible.
+
+If something already exists that can accomplish part of this functionality, **extend it rather than creating a duplicate system.**
+
+---
+
+# 1. CORE BUSINESS CONCEPT
+
+Create a new first-class BLASTERR ecosystem called:
+
+# BUSINESS
+
+The BUSINESS section is for discovering businesses and seeing what people are saying about them on BLASTERR.
+
+A Business Target is the permanent public identity/page for a business.
+
+Example:
+
+JOE'S BURGERS
+
+🎯 BUSINESS TARGET
+
+✓ VERIFIED BUSINESS
+
+Los Angeles, CA
+
+2,481 BLASTS
+824K VIEWS
+18,492 COMMENTS
+
+[ FOLLOW ] [ BLAST ]
+
+CLAIMED ✓
+
+The Business Target is NOT a separate social network.
+
+The existing BLASTERR Blast system remains the source of content.
+
+Business Targets simply organize and aggregate existing Blasts associated with that business.
+
+---
+
+# 2. ADD BUSINESS TO USER NAVIGATION
+
+Add a new primary navigation item:
+
+🏢 BUSINESS
+
+Do not redesign the existing navigation.
+
+Use the current navigation component, styling, responsive behavior, icons, spacing, theme, and mobile navigation architecture.
+
+Business should be accessible from:
+
+* desktop navigation
+* mobile navigation
+* appropriate Explore/discovery areas
+
+If the existing navigation has a limited number of primary items, integrate BUSINESS using the existing navigation pattern without disturbing other items.
+
+Business should route to a dedicated Business discovery page.
+
+Suggested route:
+
+/business
+
+Use the project's existing routing conventions if different.
+
+---
+
+# 3. BUSINESS DISCOVERY HOMEPAGE
+
+Create a dedicated:
+
+# 🏢 BUSINESS
+
+page.
+
+Headline:
+
+BUSINESS
+
+Subheading:
+
+"Discover what's happening with businesses on BLASTERR."
+
+The page should contain:
+
+## 🔥 TRENDING BUSINESSES
+
+Businesses with significant recent Blast activity.
+
+Show Business Target cards.
+
+Example:
+
+JOE'S BURGERS
+Los Angeles, CA
+
+🔥 2,481 Blasts
+👁 824K Views
+
+[VIEW TARGET]
+
+---
+
+## 📍 BUSINESSES NEAR YOU
+
+Use existing location functionality if BLASTERR already has it.
+
+If location is unavailable, allow city/location selection.
+
+Show businesses based on geographic relevance.
+
+Do NOT require a new location system if one already exists.
+
+---
+
+## 🔥 MOST BLASTED
+
+Show businesses receiving the most Blast activity.
+
+Important:
+
+This means conversation activity, NOT a "best business" ranking.
+
+Possible metrics:
+
+* Blast count
+* recent Blast activity
+* views
+* comments
+* reactions
+
+Clearly label the metric being used.
+
+---
+
+## 📈 RISING BUSINESSES
+
+Show businesses whose activity is increasing rapidly.
+
+Use real data.
+
+Examples of possible calculations:
+
+* increase in Blast volume
+* increase in views
+* increase in comments
+* recent engagement growth
+
+Do not hardcode results.
+
+---
+
+# 4. BUSINESS CATEGORIES
+
+Create Business discovery categories using the existing category infrastructure if possible.
+
+Examples:
+
+🍔 Restaurants
+💈 Beauty & Barbers
+🚗 Auto
+🏠 Home Services
+🛍️ Shopping
+🎵 Entertainment
+🏨 Hotels & Travel
+💼 Professional Services
+🏋️ Fitness
+🎓 Education
+🩺 Healthcare
+💻 Technology
+🎨 Other
+
+Do not create unnecessary duplicate category systems.
+
+If BLASTERR already has categories, create the Business category layer using the existing architecture.
+
+---
+
+# 5. BUSINESS SEARCH
+
+Users should be able to search for businesses.
+
+Example:
+
+Search:
+
+Joe's Burgers
+
+Result:
+
+🍔 JOE'S BURGERS
+Restaurant
+Los Angeles, CA
+
+2,481 Blasts
+
+[VIEW]
+
+Business search should be additive to existing search.
+
+Do not break or redesign existing global search.
+
+If existing search architecture supports entity types, add BUSINESS TARGET as an entity type.
+
+---
+
+# 6. BUSINESS TARGET
+
+Create a new Business Target entity.
+
+Suggested database structure:
+
+business_targets
+
+Suggested fields:
+
+* id
+* business_name
+* normalized_name
+* slug
+* description
+* category_id
+* subcategory
+* logo_url
+* cover_image_url
+* phone
+* website
+* email
+* address
+* city
+* state
+* postal_code
+* latitude
+* longitude
+* claimed
+* claimed_by_user_id
+* verification_status
+* verified_at
+* created_at
+* updated_at
+* status
+* featured
+* hidden
+* locked
+* blast_count
+* view_count
+* comment_count
+* follower_count
+
+Adapt names/types to the existing database conventions.
+
+Do not duplicate information that already exists in an appropriate existing entity.
+
+---
+
+# 7. BUSINESS TARGET STATUS
+
+Business Targets should support:
+
+UNCLAIMED
+
+CLAIM PENDING
+
+CLAIMED
+
+VERIFICATION PENDING
+
+VERIFIED
+
+SUSPENDED
+
+HIDDEN
+
+Do not expose internal statuses unnecessarily to normal users.
+
+---
+
+# 8. ADMIN CREATES BUSINESS TARGETS
+
+THIS IS A REQUIRED FEATURE.
+
+Add a new:
+
+# BUSINESS TARGETS
+
+section inside the existing BLASTERR ADMIN DASHBOARD.
+
+Do NOT create a separate Admin application.
+
+Use the existing Admin Dashboard.
+
+Do not redesign the Admin Dashboard.
+
+Add a new navigation item using the existing admin navigation pattern:
+
+🎯 BUSINESS TARGETS
+
+---
+
+# 9. ADMIN BUSINESS TARGET DASHBOARD
+
+Admin should see:
+
+BUSINESS TARGETS
+
+Stats:
+
+* Total Targets
+* Claimed
+* Unclaimed
+* Verified
+* Pending Verification
+* Featured
+* Hidden
+* Businesses with Recent Activity
+
+Use real database values.
+
+---
+
+# 10. ADMIN CREATE BUSINESS TARGET
+
+Admin must be able to manually create a Business Target.
+
+Button:
+
+* CREATE BUSINESS TARGET
+
+Form:
+
+Business Name
+Category
+Subcategory
+Description
+Logo
+Cover Image
+Website
+Phone
+Email
+Address
+City
+State
+ZIP
+Latitude
+Longitude
+
+Status:
+
+Unclaimed
+Claimed
+Verified
+Hidden
+
+Featured:
+
+Yes / No
+
+Admin should be able to save the Target.
+
+The Business Target immediately becomes available on the public BUSINESS section if status allows.
+
+---
+
+# 11. ADMIN BUSINESS TARGET MANAGEMENT
+
+Admin must be able to:
+
+* Create Business Target
+* Edit Business Target
+* Search Business Targets
+* Filter Business Targets
+* View Business Target
+* View associated Blasts
+* Feature Target
+* Unfeature Target
+* Hide Target
+* Unhide Target
+* Lock Target
+* Unlock Target
+* Mark Verified
+* Remove verification
+* Approve claim
+* Reject claim
+* Assign owner
+* Remove owner
+* Review verification requests
+* View activity
+* View analytics
+* View claim history
+* View audit history
+
+Use confirmation dialogs for destructive or sensitive actions.
+
+---
+
+# 12. ADMIN BUSINESS TARGET TABLE
+
+Create a management table using the existing Admin UI patterns.
+
+Columns:
+
+Business
+
+Category
+
+Location
+
+Blasts
+
+Views
+
+Followers
+
+Claim Status
+
+Verification
+
+Featured
+
+Created
+
+Actions
+
+Example:
+
+JOE'S BURGERS
+Restaurant
+Los Angeles, CA
+2,481 Blasts
+824K Views
+Claimed
+✓ Verified
+
+Actions:
+
+VIEW
+EDIT
+FEATURE
+MANAGE
+MORE
+
+---
+
+# 13. ADMIN BUSINESS TARGET DETAIL
+
+When Admin opens a Business Target, show:
+
+# JOE'S BURGERS
+
+✓ VERIFIED BUSINESS
+
+Los Angeles, CA
+
+Business information
+
+Claim information
+
+Owner information
+
+Verification history
+
+Blast activity
+
+Views
+
+Comments
+
+Followers
+
+Recent Blasts
+
+Analytics
+
+Administrative controls
+
+Audit log
+
+---
+
+# 14. PRELOADED BUSINESS TARGETS
+
+Admin should be able to create Business Targets proactively.
+
+This is extremely important.
+
+BLASTERR should NOT have to wait for a user to create a Blast before a business exists.
+
+Admin can create:
+
+JOE'S BURGERS
+
+LOS ANGELES LAKERS
+
+WALMART
+
+TARGET
+
+LOCAL RESTAURANT
+
+LOCAL BARBER
+
+LOCAL AUTO SHOP
+
+etc.
+
+These are examples only.
+
+Do not hardcode these businesses.
+
+Business Targets should be dynamically created through Admin.
+
+---
+
+# 15. UNCLAIMED BUSINESS STRATEGY
+
+An unclaimed Business Target should still have a public page.
+
+Example:
+
+JOE'S BURGERS
+
+🎯 BUSINESS TARGET
+
+Los Angeles, CA
+
+🔥 47 BLASTS
+👁 12,482 VIEWS
+
+🔒 UNCLAIMED BUSINESS
+
+"Is this your business?"
+
+[ CLAIM THIS BUSINESS ]
+
+This is one of the core BLASTERR business acquisition mechanisms.
+
+---
+
+# 16. PUBLIC BUSINESS TARGET PAGE
+
+Create:
+
+/business/[slug]
+
+or use existing routing conventions.
+
+Page layout:
+
+JOE'S BURGERS
+
+🎯 BUSINESS TARGET
+
+✓ VERIFIED BUSINESS
+
+Los Angeles, CA
+
+2,481 BLASTS
+824K VIEWS
+18,492 COMMENTS
+7,218 FOLLOWERS
+
+[ FOLLOW ]
+[ BLAST ]
+
+If unclaimed:
+
+[ CLAIM THIS BUSINESS ]
+
+If claimed:
+
+✓ VERIFIED BUSINESS
+
+[ MANAGE BUSINESS ]
+
+---
+
+# 17. BUSINESS TARGET HERO
+
+The hero should visually stand out while still matching the existing BLASTERR design.
+
+Use:
+
+* existing BLASTERR space/futuristic theme
+* existing logo/colors
+* existing typography
+* existing cards
+* existing buttons
+* existing animations
+* existing responsive behavior
+
+Do NOT create a completely different visual language.
+
+Business Targets should feel like a natural BLASTERR feature.
+
+---
+
+# 18. BUSINESS TARGET CONTENT
+
+Main section:
+
+# 🔥 WHAT PEOPLE ARE SAYING
+
+Display existing BLASTERR Blast cards associated with this Business Target.
+
+DO NOT create a new business-post system.
+
+DO NOT create a second Blast database.
+
+Use:
+
+existing Blast model
+existing Blast cards
+existing comments
+existing reactions
+existing Reblast
+existing media
+existing engagement
+existing visibility rules
+
+Business Target relationship:
+
+Blast
+→ business_target_id
+→ Business Target
+
+If existing architecture supports a more appropriate relationship model, use it.
+
+---
+
+# 19. BUSINESS BLASTS
+
+A Business Blast is simply an existing BLASTERR Blast associated with a Business Target.
+
+Example:
+
+User creates:
+
+"Joe's Burgers has the best wings in LA."
+
+Classification:
+
+BUSINESS
+
+Business Target:
+
+JOE'S BURGERS
+
+The existing Blast is published normally.
+
+It should appear:
+
+* in the user's normal feeds according to existing rules
+* on the Business Target page
+* in Business Target activity
+* in relevant Business discovery sections
+
+Do not create a separate business feed that duplicates content.
+
+---
+
+# 20. BUSINESS CLASSIFICATION IN EXISTING BLAST FLOW
+
+The existing BLASTERR classification system must remain unchanged.
+
+When the user selects:
+
+BUSINESS
+
+only then introduce:
+
+🎯 SELECT BUSINESS TARGET
+
+Example:
+
+Search business:
+
+Joe's Burgers
+
+Results:
+
+JOE'S BURGERS
+Restaurant
+Los Angeles, CA
+
+[SELECT]
+
+After selection:
+
+Business Target = Joe's Burgers
+
+Then continue the EXISTING Blast creation flow exactly as it already works.
+
+Do not modify the existing classification appearance or workflow unnecessarily.
+
+---
+
+# 21. BUSINESS TARGET FOLLOW
+
+Users should be able to:
+
+FOLLOW BUSINESS TARGET
+
+This should use existing follow architecture if possible.
+
+If existing follows only support users, create a clean additive entity-follow relationship rather than modifying existing user follow behavior.
+
+Business Target followers should receive relevant notifications using existing notification infrastructure.
+
+---
+
+# 22. BUSINESS ACTIVITY
+
+Business Target pages should show:
+
+🔥 Recent Blasts
+
+📈 Activity
+
+💬 Recent conversation
+
+👁 Views
+
+Followers
+
+Trending topics
+
+Use real data.
+
+---
+
+# 23. BUSINESS ALERTS
+
+Once a business claims its Target, create:
+
+# 🔔 BUSINESS ACTIVITY
+
+Example:
+
+New Blast about your business
+
+14 people talking about your business
+
+Your business is trending
+
+New response needed
+
+Your Blast received 10,000 views
+
+Activity increased 38%
+
+Use the existing BLASTERR notification infrastructure.
+
+Do not create a duplicate notification system.
+
+---
+
+# 24. CLAIM BUSINESS
+
+Create:
+
+[ CLAIM THIS BUSINESS ]
+
+Flow:
+
+STEP 1
+Confirm Business
+
+STEP 2
+Verify Ownership
+
+STEP 3
+Complete Business Target
+
+STEP 4
+Enter Business Center
+
+Keep the flow simple.
+
+The goal should be completion within a few minutes.
+
+---
+
+# 25. BUSINESS VERIFICATION
+
+Create an additive verification architecture.
+
+Possible methods:
+
+* business email
+* website verification
+* documentation
+* admin review
+* other appropriate verification methods
+
+Do not imply verification has occurred until actually approved.
+
+Verification should produce:
+
+✓ VERIFIED BUSINESS
+
+Use existing security and authorization architecture.
+
+---
+
+# 26. BUSINESS CENTER
+
+After successful claim:
+
+[ ✓ MANAGE BUSINESS ]
+
+Open:
+
+# BLASTERR BUSINESS CENTER
+
+This is INSIDE BLASTERR.
+
+Do NOT create another website.
+
+Do NOT create another application.
+
+Do NOT create another login.
+
+---
+
+# 27. BUSINESS CENTER NAVIGATION
+
+V1 should have exactly:
+
+📊 OVERVIEW
+
+🔥 BLASTS
+
+💬 RESPOND
+
+📈 ANALYTICS
+
+📢 PROMOTE
+
+Use existing BLASTERR styling and navigation patterns.
+
+---
+
+# 28. BUSINESS CENTER OVERVIEW
+
+Example:
+
+JOE'S BURGERS
+✓ VERIFIED BUSINESS
+
+2,481 TOTAL BLASTS
+824,000 TOTAL VIEWS
+18,492 COMMENTS
+7,218 FOLLOWERS
+
+ACTIVITY
+
+Blast Activity +24%
+Views +38%
+Engagement +17%
+
+TRENDING TOPICS
+
+BURGERS ↑
+SERVICE ↑
+PRICES ↓
+NEW MENU ↑
+
+All numbers must come from real database data.
+
+NO HARDCODED DEMO NUMBERS.
+
+---
+
+# 29. BUSINESS CENTER — BLASTS
+
+Show existing Blasts about the business.
+
+Filters:
+
+All
+Recent
+Trending
+Most Viewed
+Most Commented
+
+Use the existing Blast card component.
+
+---
+
+# 30. BUSINESS CENTER — RESPOND
+
+Show:
+
+# NEEDS YOUR ATTENTION
+
+Example:
+
+"Joe's Burgers has gone downhill."
+
+[ RESPOND ]
+
+The business can respond using the existing BLASTERR comment/reply infrastructure.
+
+Business responses should display:
+
+✓ Joe's Burgers
+Verified Business
+
+Do NOT create a separate comment system.
+
+---
+
+# 31. BUSINESS CENTER — ANALYTICS
+
+Use real existing data where available.
+
+Show:
+
+* Blast count
+* views
+* comments
+* reactions
+* followers
+* engagement
+* activity trends
+* top Blasts
+* recent activity
+* trending topics
+* geographic activity if available
+
+Use charts/components consistent with the existing dashboard system.
+
+---
+
+# 32. BUSINESS CENTER — PROMOTE
+
+Create the foundation for monetization.
+
+Show:
+
+# 🚀 PROMOTE YOUR BUSINESS
+
+Options:
+
+### BOOST A BLAST
+
+Allow a business to select an existing Blast and choose:
+
+$10
+$25
+$50
+$100
+CUSTOM
+
+Audience:
+
+5 miles
+10 miles
+25 miles
+
+Future-ready fields may include:
+
+Location
+Interests
+Demographics
+
+Do not pretend payments or advertising delivery are operational unless existing payment/ad infrastructure supports them.
+
+If payment infrastructure does not exist, build the UI/data architecture as clearly marked foundation.
+
+---
+
+# 33. BUSINESS CREATED BLASTS
+
+Allow claimed businesses to eventually create business-focused Blasts using the existing Blast creation system.
+
+Example:
+
+CREATE BUSINESS BLAST
+
+"New Nashville Hot Chicken Sandwich 🔥 Available this weekend."
+
+CTA:
+
+ORDER NOW
+GET DIRECTIONS
+VISIT WEBSITE
+
+Important:
+
+This must still use the existing Blast infrastructure.
+
+Do not create a second content model.
+
+---
+
+# 34. BUSINESS CTA SYSTEM
+
+Business Targets should support optional CTA buttons:
+
+ORDER NOW
+
+GET DIRECTIONS
+
+CALL
+
+VISIT WEBSITE
+
+BOOK NOW
+
+LEARN MORE
+
+Use existing business data and routes where available.
+
+Do not break existing external-link behavior.
+
+---
+
+# 35. BUSINESS PRICING ARCHITECTURE
+
+Build the subscription architecture so it is ready for future activation.
+
+## CLAIMED — FREE
+
+* Business Target
+* Business information
+* Logo/photos
+* Verification
+* Respond to Blasts
+* Basic notifications
+* Basic analytics
+
+## BUSINESS PRO — $49/month
+
+* Advanced analytics
+* Blast monitoring
+* Keyword alerts
+* Advanced responses
+* Business CTA
+* Enhanced Target
+* Pin a response
+
+## BUSINESS GROWTH — $149/month
+
+* Boost Blasts
+* Promote business
+* Campaigns
+* Audience targeting
+* Lead generation
+* Advanced analytics
+* Team members
+
+## ENTERPRISE — $499+/month
+
+* Multiple locations
+* Franchise support
+* Multiple users
+* Centralized analytics
+* Campaign management
+* Advanced business monitoring
+
+Do not activate billing unless a payment system already exists.
+
+Create the data model and feature gating architecture so billing can be connected later.
+
+---
+
+# 36. BUSINESS FEATURE FLAGS
+
+Use existing feature-flag architecture if available.
+
+Potential flags:
+
+business_section_enabled
+
+business_targets_enabled
+
+business_claim_enabled
+
+business_verification_enabled
+
+business_center_enabled
+
+business_promote_enabled
+
+business_subscriptions_enabled
+
+Do not create a new feature flag system if one already exists.
+
+---
+
+# 37. BUSINESS ADMIN CONTROLS
+
+Inside Admin:
+
+BUSINESS TARGETS
+
+Admin should be able to:
+
+CREATE
+
+EDIT
+
+VIEW
+
+SEARCH
+
+FILTER
+
+FEATURE
+
+HIDE
+
+LOCK
+
+VERIFY
+
+UNVERIFY
+
+APPROVE CLAIM
+
+REJECT CLAIM
+
+ASSIGN OWNER
+
+REMOVE OWNER
+
+VIEW BLASTS
+
+VIEW ANALYTICS
+
+VIEW AUDIT LOG
+
+---
+
+# 38. ADMIN CLAIM REVIEW
+
+Create:
+
+# CLAIM REQUESTS
+
+Show:
+
+Business Target
+
+Applicant
+
+Submitted Date
+
+Verification Method
+
+Status
+
+Actions
+
+[ REVIEW ]
+
+Admin can:
+
+APPROVE
+
+REJECT
+
+REQUEST MORE INFORMATION
+
+Every action should create an audit log.
+
+---
+
+# 39. BUSINESS TARGET FEATURED SYSTEM
+
+Admin can mark businesses:
+
+⭐ FEATURED BUSINESS
+
+Featured Businesses can appear in:
+
+Business homepage
+Trending sections
+Discovery modules
+
+Do not artificially inflate Blast metrics.
+
+"Featured" is an administrative placement designation, not a fabricated popularity score.
+
+---
+
+# 40. BUSINESS TARGET SEO
+
+Business Target pages should have clean URLs.
+
+Example:
+
+/business/joes-burgers-los-angeles
+
+Create appropriate:
+
+* page title
+* meta description
+* Open Graph metadata
+* structured business information where appropriate
+* canonical URL
+
+Use actual Business Target data.
+
+Do not create duplicate SEO pages for every possible variation.
+
+---
+
+# 41. BUSINESS TARGET DATA INTEGRITY
+
+Prevent duplicate Businesses when possible.
+
+Use normalized business names plus location and other appropriate identifiers.
+
+Example:
+
+Joe's Burgers
+Joe’s Burgers
+JOES BURGERS
+
+should not automatically become three separate Targets if they clearly refer to the same business.
+
+Admin must be able to merge duplicates if required.
+
+If merge functionality is added, preserve existing Blast relationships and redirect the old Target appropriately.
+
+---
+
+# 42. DATABASE RELATIONSHIP
+
+Preferred architecture:
+
+Existing BLASTERR Blast
+
+↓
+
+business_target_id
+
+↓
+
+Business Target
+
+Do not duplicate Blast content into another table.
+
+If the current Blast architecture requires a join table for multiple targets, use a join table instead.
+
+Choose the architecture that best fits the existing database.
+
+---
+
+# 43. PERFORMANCE
+
+Add appropriate database indexes.
+
+At minimum consider:
+
+business_target_id
+
+claimed
+
+verification_status
+
+category
+
+city/state
+
+created_at
+
+featured
+
+status
+
+Use pagination for Blast lists.
+
+Do not load thousands of Blasts at once.
+
+Use caching where appropriate if existing infrastructure supports it.
+
+---
+
+# 44. SECURITY
+
+Business Center access must be server-authorized.
+
+A user must NOT be able to access another business's private Business Center by changing a URL.
+
+Use:
+
+* authenticated session
+* ownership checks
+* server-side authorization
+* Supabase RLS where appropriate
+* role checks
+* verification status
+
+Never trust client-side ownership values.
+
+---
+
+# 45. RESPONSIVE DESIGN
+
+Business functionality must work on:
+
+Desktop
+
+Tablet
+
+Mobile
+
+Use the existing BLASTERR responsive system.
+
+Do not create a separate mobile design language.
+
+---
+
+# 46. BLASTERR VISUAL DESIGN
+
+Business must look like BLASTERR.
+
+Use:
+
+* existing BLASTERR logo
+* existing brand colors
+* dark/space aesthetic
+* futuristic interface
+* existing typography
+* existing cards
+* existing buttons
+* existing icons
+* existing animations
+
+Business pages should feel premium and highly visual.
+
+Do NOT make it look like Yelp.
+
+Do NOT make it look like Google Business Profile.
+
+Do NOT make it look like a generic SaaS dashboard.
+
+It should feel like:
+
+# BLASTERR
+
+with a powerful business layer.
+
+---
+
+# 47. IMPORTANT POSITIONING
+
+The Business section should communicate:
+
+"Businesses aren't just listed on BLASTERR."
+
+They are:
+
+# BEING TALKED ABOUT.
+
+The consumer-facing language should emphasize:
+
+🔥 WHAT PEOPLE ARE SAYING
+
+🔥 MOST BLASTED
+
+📈 RISING BUSINESSES
+
+📍 BUSINESSES NEAR YOU
+
+rather than:
+
+"Reviews"
+
+"Ratings"
+
+"Directory"
+
+BLASTERR is not simply a business directory.
+
+The Business Target is a living conversation hub powered by existing Blasts.
+
+---
+
+# 48. BUSINESS ACQUISITION LOOP
+
+Build the product so this naturally happens:
+
+BLASTERR creates Business Target
+
+↓
+
+Users discover business
+
+↓
+
+Users create Blasts
+
+↓
+
+Business Target gains activity
+
+↓
+
+Business receives/gets visibility into activity
+
+↓
+
+Business discovers its Target
+
+↓
+
+Business claims Target
+
+↓
+
+Business verifies ownership
+
+↓
+
+Business enters Business Center
+
+↓
+
+Business responds
+
+↓
+
+Business sees analytics
+
+↓
+
+Business wants more visibility
+
+↓
+
+Business uses Promote
+
+↓
+
+Potential paid subscription / advertising
+
+This is the intended business-growth loop.
+
+---
+
+# 49. "IS THIS YOUR BUSINESS?" COMPONENT
+
+For unclaimed Targets, prominently display:
+
+🔒 IS THIS YOUR BUSINESS?
+
+"Claim your free BLASTERR Business Target."
+
+[ CLAIM THIS BUSINESS ]
+
+This component should appear:
+
+* on Business Target page
+* potentially in search results
+* potentially in Business discovery cards
+
+Do not overuse it in a way that damages the consumer experience.
+
+---
+
+# 50. BUSINESS TARGET OWNER EXPERIENCE
+
+Once claimed, replace:
+
+CLAIM THIS BUSINESS
+
+with:
+
+✓ MANAGE BUSINESS
+
+Clicking it opens the Business Center.
+
+Do not expose administrative controls to unauthorized users.
+
+---
+
+# 51. BUSINESS DISCOVERY CARD
+
+Create a reusable Business Target card.
+
+Example:
+
+┌─────────────────────────────┐
+
+🍔 JOE'S BURGERS
+
+✓ VERIFIED BUSINESS
+
+Los Angeles, CA
+
+🔥 2,481 Blasts
+👁 824K Views
+
+[VIEW TARGET]
+
+└─────────────────────────────┘
+
+For unclaimed:
+
+🔒 UNCLAIMED
+
+[CLAIM THIS BUSINESS]
+
+Use existing BLASTERR card styling.
+
+---
+
+# 52. BUSINESS TRENDING LOGIC
+
+Do not simply sort by lifetime Blast count.
+
+Create useful ranking logic based on real activity.
+
+Possible signals:
+
+Recent Blast volume
+
+Recent views
+
+Recent comments
+
+Recent reactions
+
+Follower growth
+
+Engagement growth
+
+The exact formula should be documented in code.
+
+Do not fabricate activity.
+
+---
+
+# 53. ADMIN BUSINESS IMPORT FOUNDATION
+
+If practical within the existing architecture, create a future-ready foundation for bulk Business Target creation.
+
+Potential future functionality:
+
+CSV import
+
+Bulk creation
+
+Bulk category assignment
+
+Bulk location assignment
+
+Bulk verification
+
+Do not spend excessive time building an external data-import system unless the architecture makes it straightforward.
+
+A simple admin data model/API foundation is sufficient for V1.
+
+---
+
+# 54. BUSINESS AUDIT LOG
+
+Track important administrative actions:
+
+Target created
+
+Target edited
+
+Target hidden
+
+Target featured
+
+Claim submitted
+
+Claim approved
+
+Claim rejected
+
+Verification approved
+
+Verification removed
+
+Owner changed
+
+Target merged
+
+Target deleted
+
+Promotion status changed
+
+Use existing Admin audit-log infrastructure if available.
+
+Do not create a duplicate audit system.
+
+---
+
+# 55. NOTIFICATION EXAMPLES
+
+For business owners:
+
+🔔 NEW BLAST
+
+"Someone just put your business on Blast."
+
+🔔 BUSINESS ACTIVITY
+
+"People are talking about Joe's Burgers."
+
+🔔 TRENDING
+
+"Joe's Burgers is getting more attention on BLASTERR."
+
+🔔 RESPONSE
+
+"Someone responded to your business."
+
+🔔 CLAIM
+
+"Your Business Target has been claimed."
+
+Use existing notification infrastructure.
+
+---
+
+# 56. BUSINESS TARGET ADMIN SEARCH
+
+Admin should be able to search by:
+
+Business name
+
+City
+
+State
+
+Category
+
+Claim status
+
+Verification status
+
+Featured status
+
+Owner
+
+Use server-side search/pagination where appropriate.
+
+---
+
+# 57. BUSINESS TARGET MERGE
+
+If duplicate Targets exist:
+
+JOE'S BURGERS
+
+Joe's Burgers LA
+
+Joe’s Burgers
+
+Admin should be able to merge them.
+
+When merging:
+
+* preserve associated Blasts
+* preserve valid followers where possible
+* preserve analytics where appropriate
+* designate canonical Target
+* redirect old Target URL
+* preserve audit history
+
+Do not lose Blast content.
+
+---
+
+# 58. BUSINESS TARGET DELETION
+
+Avoid hard deletion whenever possible.
+
+Prefer:
+
+hidden
+
+archived
+
+removed
+
+or another existing soft-delete convention.
+
+Do not destroy associated Blast history unless absolutely required.
+
+---
+
+# 59. ZERO-REGRESSION REQUIREMENT
+
+After implementation, verify that all existing functionality continues to work:
+
+✓ Signup
+
+✓ Login
+
+✓ User profiles
+
+✓ Profile creation
+
+✓ Existing classifications
+
+✓ Normal Blast creation
+
+✓ Business Blast creation
+
+✓ Feed
+
+✓ Following
+
+✓ Trending
+
+✓ Local
+
+✓ Explore
+
+✓ Search
+
+✓ Comments
+
+✓ Replies
+
+✓ Reactions
+
+✓ Reblast
+
+✓ Notifications
+
+✓ Media uploads
+
+✓ Cloudflare R2
+
+✓ BLASTR Clips
+
+✓ Existing Admin
+
+✓ Existing Admin permissions
+
+✓ Mobile experience
+
+✓ Existing URLs/routes
+
+Nothing unrelated to Business should regress.
+
+---
+
+# 60. IMPLEMENTATION ORDER
+
+Implement in this order:
+
+### PHASE 1
+
+Inspect existing architecture.
+
+### PHASE 2
+
+Create Business Target database/module.
+
+### PHASE 3
+
+Create Admin → Business Targets.
+
+### PHASE 4
+
+Create Business Target creation/editing/admin controls.
+
+### PHASE 5
+
+Add BUSINESS to user navigation.
+
+### PHASE 6
+
+Create Business discovery homepage.
+
+### PHASE 7
+
+Create Business Target public pages.
+
+### PHASE 8
+
+Connect existing Blasts to Business Targets.
+
+### PHASE 9
+
+Add Business Target selection after existing BUSINESS classification.
+
+### PHASE 10
+
+Add Business Target follow.
+
+### PHASE 11
+
+Add Claim Business flow.
+
+### PHASE 12
+
+Add verification architecture.
+
+### PHASE 13
+
+Create Business Center.
+
+### PHASE 14
+
+Create Respond functionality using existing comments/replies.
+
+### PHASE 15
+
+Create Business Analytics.
+
+### PHASE 16
+
+Create Promote/Boost foundation.
+
+### PHASE 17
+
+Add subscription/feature-gating architecture.
+
+### PHASE 18
+
+Add notifications.
+
+### PHASE 19
+
+SEO and sharing.
+
+### PHASE 20
+
+Security, performance, responsive testing and regression testing.
+
+---
+
+# 61. DEVELOPMENT RULE
+
+Before changing an existing file:
+
+1. Inspect it.
+2. Determine whether an additive integration is possible.
+3. Prefer new components/routes/services/tables.
+4. Only modify existing code where absolutely necessary.
+5. Preserve existing behavior.
+6. Do not refactor unrelated code.
+
+If a proposed implementation requires a major change to an existing BLASTERR system, STOP and reassess the architecture before proceeding.
+
+---
+
+# 62. DO NOT USE MOCK DATA IN PRODUCTION
+
+All:
+
+* Blast counts
+* Views
+* Comments
+* Followers
+* Trending businesses
+* Rising businesses
+* Analytics
+* Business activity
+
+must be based on real data.
+
+Seed/demo data may be used only in a development environment and must be clearly separated from production.
+
+---
+
+# 63. FINAL PRODUCT EXPERIENCE
+
+The final BLASTERR experience should work like this:
+
+USER OPENS BLASTERR
+
+↓
+
+Sees:
+
+HOME
+EXPLORE
+BUSINESS
+TRENDING
+LOCAL
+CLIPS
+
+↓
+
+USER SELECTS BUSINESS
+
+↓
+
+Sees:
+
+🔥 TRENDING BUSINESSES
+
+📍 NEAR YOU
+
+🔥 MOST BLASTED
+
+📈 RISING BUSINESSES
+
+CATEGORIES
+
+↓
+
+USER SELECTS:
+
+JOE'S BURGERS
+
+↓
+
+Business Target opens:
+
+JOE'S BURGERS
+
+🎯 BUSINESS TARGET
+
+✓ VERIFIED BUSINESS
+
+Los Angeles, CA
+
+2,481 BLASTS
+824K VIEWS
+
+[ FOLLOW ]
+[ BLAST ]
+
+↓
+
+🔥 WHAT PEOPLE ARE SAYING
+
+Existing BLASTERR Blasts appear.
+
+↓
+
+OWNER SEES:
+
+"Is this your business?"
+
+[ CLAIM THIS BUSINESS ]
+
+↓
+
+OWNER CLAIMS
+
+↓
+
+VERIFICATION
+
+↓
+
+BUSINESS CENTER
+
+↓
+
+📊 OVERVIEW
+🔥 BLASTS
+💬 RESPOND
+📈 ANALYTICS
+📢 PROMOTE
+
+↓
+
+OWNER SEES:
+
+People are talking about the business.
+
+↓
+
+OWNER RESPONDS.
+
+↓
+
+OWNER SEES ANALYTICS.
+
+↓
+
+OWNER CAN EVENTUALLY:
+
+BOOST
+
+PROMOTE
+
+CREATE CAMPAIGNS
+
+UPGRADE
+
+---
+
+# 64. SUCCESS CRITERIA
+
+The implementation is successful only if:
+
+1. BUSINESS exists as a first-class BLASTERR discovery section.
+2. Business Targets can exist before a business owner joins.
+3. Admin can create and manage Business Targets.
+4. Users can discover Businesses.
+5. Users can view Business Targets.
+6. Existing Blasts can be associated with Business Targets.
+7. Existing Blast infrastructure remains the content engine.
+8. Businesses can claim Targets.
+9. Businesses can verify ownership.
+10. Claimed businesses receive a Business Center.
+11. Businesses can respond using the existing reply architecture.
+12. Business analytics use real data.
+13. Promote/Boost has a future-ready foundation.
+14. Free vs paid Business functionality is structurally supported.
+15. Business Targets can generate a natural business acquisition funnel.
+16. Existing BLASTERR functionality remains intact.
+
+---
+
+# FINAL INSTRUCTION TO REPLIT AGENT
+
+**DO NOT START BY REBUILDING ANYTHING.**
+
+First inspect the current BLASTERR codebase and database.
+
+Then implement this Business ecosystem as an **isolated, additive feature layer**.
+
+The most important architectural principle is:
+
+# BUSINESS TARGETS ARE A LAYER ON TOP OF THE EXISTING BLAST SYSTEM — NOT A SECOND CONTENT SYSTEM.
+
+The goal is to make BLASTERR actively create and surface business presence rather than waiting for users to create a Blast first.
+
+Businesses should be able to discover:
+
+**"My business is already on BLASTERR."**
+
+Then:
+
+**"People are already talking about my business."**
+
+Then:
+
+**"I can claim this for free."**
+
+Then:
+
+**"I can manage the conversation."**
+
+Then:
+
+**"I can see my analytics."**
+
+Then eventually:
+
+**"I can pay BLASTERR to reach more people."**
+
+Build the entire experience around that progression while preserving everything that already works.
