@@ -32,7 +32,9 @@ import type {
   AdminAnnouncementUpdate,
   AdminAnnouncementsResponse,
   AdminAuditResponse,
+  AdminBusinessDetail,
   AdminBusinessInput,
+  AdminBusinessStats,
   AdminBusinessUpdate,
   AdminClipsOverview,
   AdminContentItem,
@@ -103,6 +105,8 @@ import type {
   BusinessClaimReview,
   BusinessDetail,
   BusinessFollowResult,
+  BusinessOwner,
+  BusinessOwnerInput,
   BusinessPage,
   Campaign,
   CampaignInput,
@@ -9015,6 +9019,148 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateAdminBusinessMutationOptions(options));
     }
 
+export const getGetAdminBusinessStatsUrl = () => {
+
+
+
+
+  return `/api/admin/business/stats`
+}
+
+export const getAdminBusinessStats = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdminBusinessStats> => {
+
+  return customFetch<AdminBusinessStats>(getGetAdminBusinessStatsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminBusinessStatsQueryKey = () => {
+    return [
+    `/api/admin/business/stats`
+    ] as const;
+    }
+
+
+export const getGetAdminBusinessStatsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminBusinessStats>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminBusinessStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminBusinessStatsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminBusinessStats>>> = ({ signal }) => getAdminBusinessStats({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminBusinessStats>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminBusinessStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminBusinessStats>>>
+export type GetAdminBusinessStatsQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdminBusinessStats<TData = Awaited<ReturnType<typeof getAdminBusinessStats>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminBusinessStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminBusinessStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAdminBusinessUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/admin/business/${targetId}`
+}
+
+export const getAdminBusiness = async (targetId: string, options?: Parameters<typeof customFetch>[1]): Promise<AdminBusinessDetail> => {
+
+  return customFetch<AdminBusinessDetail>(getGetAdminBusinessUrl(targetId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminBusinessQueryKey = (targetId: string,) => {
+    return [
+    `/api/admin/business/${targetId}`
+    ] as const;
+    }
+
+
+export const getGetAdminBusinessQueryOptions = <TData = Awaited<ReturnType<typeof getAdminBusiness>>, TError = ErrorType<void>>(targetId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminBusiness>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminBusinessQueryKey(targetId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminBusiness>>> = ({ signal }) => getAdminBusiness(targetId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: targetId !== null && targetId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminBusiness>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminBusinessQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminBusiness>>>
+export type GetAdminBusinessQueryError = ErrorType<void>
+
+
+
+export function useGetAdminBusiness<TData = Awaited<ReturnType<typeof getAdminBusiness>>, TError = ErrorType<void>>(
+ targetId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminBusiness>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminBusinessQueryOptions(targetId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getUpdateAdminBusinessUrl = (targetId: string,) => {
 
 
@@ -9079,6 +9225,138 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateAdminBusinessMutationOptions(options));
+    }
+
+export const getAssignAdminBusinessOwnerUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/admin/business/${targetId}/owners`
+}
+
+export const assignAdminBusinessOwner = async (targetId: string,
+    businessOwnerInput: BusinessOwnerInput, options?: Parameters<typeof customFetch>[1]): Promise<BusinessOwner> => {
+
+  return customFetch<BusinessOwner>(getAssignAdminBusinessOwnerUrl(targetId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(businessOwnerInput)
+  }
+);}
+
+
+
+
+
+export const getAssignAdminBusinessOwnerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignAdminBusinessOwner>>, TError,{targetId: string;data: BodyType<BusinessOwnerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof assignAdminBusinessOwner>>, TError,{targetId: string;data: BodyType<BusinessOwnerInput>}, TContext> => {
+
+const mutationKey = ['assignAdminBusinessOwner'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignAdminBusinessOwner>>, {targetId: string;data: BodyType<BusinessOwnerInput>}> = (props) => {
+          const {targetId,data} = props ?? {};
+
+          return  assignAdminBusinessOwner(targetId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AssignAdminBusinessOwnerMutationResult = NonNullable<Awaited<ReturnType<typeof assignAdminBusinessOwner>>>
+    export type AssignAdminBusinessOwnerMutationBody = BodyType<BusinessOwnerInput>
+    export type AssignAdminBusinessOwnerMutationError = ErrorType<unknown>
+
+    export const useAssignAdminBusinessOwner = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignAdminBusinessOwner>>, TError,{targetId: string;data: BodyType<BusinessOwnerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof assignAdminBusinessOwner>>,
+        TError,
+        {targetId: string;data: BodyType<BusinessOwnerInput>},
+        TContext
+      > => {
+      return useMutation(getAssignAdminBusinessOwnerMutationOptions(options));
+    }
+
+export const getRemoveAdminBusinessOwnerUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/admin/business/${targetId}/owners`
+}
+
+export const removeAdminBusinessOwner = async (targetId: string,
+    businessOwnerInput: BusinessOwnerInput, options?: Parameters<typeof customFetch>[1]): Promise<BusinessOwner> => {
+
+  return customFetch<BusinessOwner>(getRemoveAdminBusinessOwnerUrl(targetId),
+  {
+    ...options,
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(businessOwnerInput)
+  }
+);}
+
+
+
+
+
+export const getRemoveAdminBusinessOwnerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeAdminBusinessOwner>>, TError,{targetId: string;data: BodyType<BusinessOwnerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeAdminBusinessOwner>>, TError,{targetId: string;data: BodyType<BusinessOwnerInput>}, TContext> => {
+
+const mutationKey = ['removeAdminBusinessOwner'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeAdminBusinessOwner>>, {targetId: string;data: BodyType<BusinessOwnerInput>}> = (props) => {
+          const {targetId,data} = props ?? {};
+
+          return  removeAdminBusinessOwner(targetId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveAdminBusinessOwnerMutationResult = NonNullable<Awaited<ReturnType<typeof removeAdminBusinessOwner>>>
+    export type RemoveAdminBusinessOwnerMutationBody = BodyType<BusinessOwnerInput>
+    export type RemoveAdminBusinessOwnerMutationError = ErrorType<unknown>
+
+    export const useRemoveAdminBusinessOwner = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeAdminBusinessOwner>>, TError,{targetId: string;data: BodyType<BusinessOwnerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeAdminBusinessOwner>>,
+        TError,
+        {targetId: string;data: BodyType<BusinessOwnerInput>},
+        TContext
+      > => {
+      return useMutation(getRemoveAdminBusinessOwnerMutationOptions(options));
     }
 
 export const getListAdminBusinessClaimsUrl = (params?: ListAdminBusinessClaimsParams,) => {

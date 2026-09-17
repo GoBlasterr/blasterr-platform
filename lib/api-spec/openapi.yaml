@@ -1570,7 +1570,19 @@ paths:
           application/json: { schema: { $ref: "#/components/schemas/AdminBusinessInput" } }
       responses:
         "201": { description: Created Business Target, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessDetail" } } } }
+  /admin/business/stats:
+    get:
+      operationId: getAdminBusinessStats
+      responses:
+        "200": { description: Business Target dashboard statistics, content: { application/json: { schema: { $ref: "#/components/schemas/AdminBusinessStats" } } } }
   /admin/business/{targetId}:
+    get:
+      operationId: getAdminBusiness
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Admin Business Target detail, content: { application/json: { schema: { $ref: "#/components/schemas/AdminBusinessDetail" } } } }
+        "404": { description: Not found }
     patch:
       operationId: updateAdminBusiness
       parameters:
@@ -1581,6 +1593,27 @@ paths:
           application/json: { schema: { $ref: "#/components/schemas/AdminBusinessUpdate" } }
       responses:
         "200": { description: Updated Business Target, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessDetail" } } } }
+  /admin/business/{targetId}/owners:
+    post:
+      operationId: assignAdminBusinessOwner
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/BusinessOwnerInput" } }
+      responses:
+        "200": { description: Assigned owner, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessOwner" } } } }
+    delete:
+      operationId: removeAdminBusinessOwner
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/BusinessOwnerInput" } }
+      responses:
+        "200": { description: Removed owner, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessOwner" } } } }
   /admin/business/claims:
     get:
       operationId: listAdminBusinessClaims
@@ -2976,7 +3009,7 @@ components:
         hasMore: { type: boolean }
     BusinessSummary:
       type: object
-      required: [id, name, slug, location, category, blastCount, viewCount, commentCount, reactionCount, followerCount, featured, verified, status, verificationStatus, claimStatus, ownerCount]
+      required: [id, name, slug, location, category, blastCount, viewCount, commentCount, reactionCount, followerCount, featured, verified, status, verificationStatus, claimStatus, ownerCount, latitude, longitude, createdAt]
       properties:
         id: { type: string }
         name: { type: string }
@@ -2997,6 +3030,9 @@ components:
         verificationStatus: { type: string, enum: [unverified, pending, verified] }
         claimStatus: { type: string, enum: [unclaimed, pending, approved, rejected, more_info] }
         ownerCount: { type: number }
+        latitude: { type: ["number", "null"] }
+        longitude: { type: ["number", "null"] }
+        createdAt: { type: string }
     BusinessPage:
       type: object
       required: [items, page, limit, total, hasMore]
@@ -3022,6 +3058,8 @@ components:
             email: { type: string }
             verificationStatus: { type: string }
             blasts: { type: array, items: { type: object, additionalProperties: true } }
+            latitude: { type: ["number", "null"] }
+            longitude: { type: ["number", "null"] }
     BusinessFollowResult:
       type: object
       required: [following, followerCount]
@@ -3093,6 +3131,9 @@ components:
         bannerImageUrl: { type: string, maxLength: 500 }
         featured: { type: boolean }
         verified: { type: boolean }
+        status: { type: string, enum: [active, hidden, locked] }
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
     AdminBusinessUpdate:
       type: object
       properties:
@@ -3113,6 +3154,47 @@ components:
         featured: { type: boolean }
         verified: { type: boolean }
         status: { type: string, enum: [active, hidden, locked] }
+        latitude: { type: ["number", "null"], minimum: -90, maximum: 90 }
+        longitude: { type: ["number", "null"], minimum: -180, maximum: 180 }
+    BusinessOwnerInput:
+      type: object
+      properties:
+        userId: { type: string }
+        email: { type: string, maxLength: 320 }
+      anyOf:
+        - required: [userId]
+        - required: [email]
+    BusinessOwner:
+      type: object
+      required: [userId, role, status, displayName, email]
+      properties:
+        userId: { type: string }
+        role: { type: string }
+        status: { type: string, enum: [active, revoked] }
+        displayName: { type: string }
+        email: { type: string }
+    AdminBusinessStats:
+      type: object
+      required: [totalTargets, claimed, unclaimed, verified, pendingVerification, featured, hidden, recentActivity]
+      properties:
+        totalTargets: { type: number }
+        claimed: { type: number }
+        unclaimed: { type: number }
+        verified: { type: number }
+        pendingVerification: { type: number }
+        featured: { type: number }
+        hidden: { type: number }
+        recentActivity: { type: number }
+    AdminBusinessDetail:
+      allOf:
+        - $ref: "#/components/schemas/BusinessDetail"
+        - type: object
+          required: [owners, claims, auditHistory, analytics]
+          properties:
+            owners: { type: array, items: { $ref: "#/components/schemas/BusinessOwner" } }
+            claims: { type: array, items: { $ref: "#/components/schemas/BusinessClaim" } }
+            auditHistory: { type: array, items: { type: object, additionalProperties: true } }
+            analytics: { $ref: "#/components/schemas/BusinessAnalytics" }
     BusinessClaimReview:
       type: object
       required: [status]

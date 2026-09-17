@@ -8,7 +8,7 @@
 import type { BusinessDetailBlastsItem } from './businessDetailBlastsItem';
 import type { BusinessSummary } from './businessSummary';
 
-export type BusinessDetail = BusinessSummary & {
+export type BusinessDetail = BusinessSummary & ({
   subcategory: string;
   address: string;
   city: string;
@@ -19,4 +19,8 @@ export type BusinessDetail = BusinessSummary & {
   email: string;
   verificationStatus: string;
   blasts: BusinessDetailBlastsItem[];
-};
+  /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
+});

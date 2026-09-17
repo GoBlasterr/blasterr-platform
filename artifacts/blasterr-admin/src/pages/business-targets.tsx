@@ -5,6 +5,13 @@ import {
   useListAdminBusinesses,
   useCreateAdminBusiness,
   useUpdateAdminBusiness,
+  useGetAdminBusinessStats,
+  useGetAdminBusiness,
+  getGetAdminBusinessQueryKey,
+  getGetAdminBusinessStatsQueryKey,
+  useAssignAdminBusinessOwner,
+  useRemoveAdminBusinessOwner,
+  type BusinessOwnerInput,
   AdminBusinessInput,
   AdminBusinessUpdate,
   type BusinessSummary,
@@ -21,11 +28,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Archive, Lock, CheckCircle2, Eye, EyeOff, MoreHorizontal, Pencil, Plus, Search, Star, Upload } from "lucide-react";
+import { Lock, CheckCircle2, Eye, EyeOff, MoreHorizontal, Pencil, Plus, Search, Star, Upload, UserPlus, UserMinus, ExternalLink } from "lucide-react";
 
 type FormState = AdminBusinessInput & { id?: string; status: "active" | "hidden" | "locked" };
 const blankForm = (): FormState => ({
-  name: "", location: "", category: "", subcategory: "", description: "", city: "", state: "", postalCode: "", address: "", phone: "", website: "", email: "", imageUrl: "", bannerImageUrl: "", featured: false, verified: false, status: "active"
+  name: "", location: "", category: "", subcategory: "", description: "", city: "", state: "", postalCode: "", address: "", phone: "", website: "", email: "", imageUrl: "", bannerImageUrl: "", featured: false, verified: false, latitude: undefined, longitude: undefined, status: "active"
 });
 
 const messageFor = (error: unknown) => error instanceof Error ? error.message : "The request could not be completed. Please try again.";
@@ -136,7 +143,9 @@ function BusinessFormDialog({ target, open, onOpenChange }: { target: BusinessSu
       bannerImageUrl: target.bannerImageUrl || "", 
       status: (target as any).status || "active", 
       featured: !!target.featured, 
-      verified: !!target.verified 
+       verified: !!target.verified,
+       latitude: target.latitude ?? undefined,
+       longitude: target.longitude ?? undefined
     } : blankForm());
   }, [open, target?.id]);
   
@@ -158,7 +167,9 @@ function BusinessFormDialog({ target, open, onOpenChange }: { target: BusinessSu
       bannerImageUrl: form.bannerImageUrl?.trim() || undefined, 
       status: form.status as "active" | "hidden" | "locked", 
       featured: form.featured, 
-      verified: form.verified 
+      verified: form.verified,
+      latitude: form.latitude === undefined ? undefined : Number(form.latitude),
+      longitude: form.longitude === undefined ? undefined : Number(form.longitude)
     };
     
     if (!data.name || !data.location) {
@@ -167,7 +178,8 @@ function BusinessFormDialog({ target, open, onOpenChange }: { target: BusinessSu
     
     const callbacks = { 
       onSuccess: () => { 
-        queryClient.invalidateQueries({ queryKey: getListAdminBusinessesQueryKey() }); 
+         queryClient.invalidateQueries({ queryKey: getListAdminBusinessesQueryKey() });
+         queryClient.invalidateQueries({ queryKey: getGetAdminBusinessStatsQueryKey() });
         toast({ title: isEditing ? "Business updated" : "Business created" }); 
         onOpenChange(false); 
       }, 
@@ -203,18 +215,60 @@ function BusinessFormDialog({ target, open, onOpenChange }: { target: BusinessSu
 
       <label className="space-y-1 text-sm font-medium">Phone<Input value={form.phone || ""} onChange={(e) => set("phone", e.target.value)} data-testid="input-business-phone" /></label>
       <label className="space-y-1 text-sm font-medium">Email<Input value={form.email || ""} onChange={(e) => set("email", e.target.value)} data-testid="input-business-email" /></label>
-      <label className="space-y-1 text-sm font-medium sm:col-span-2">Website URL<Input value={form.website || ""} onChange={(e) => set("website", e.target.value)} data-testid="input-business-website" /></label>
+       <label className="space-y-1 text-sm font-medium sm:col-span-2">Website URL<Input value={form.website || ""} onChange={(e) => set("website", e.target.value)} data-testid="input-business-website" /></label>
+       <label className="space-y-1 text-sm font-medium">Latitude<Input type="number" step="any" min="-90" max="90" value={form.latitude ?? ""} onChange={(e) => set("latitude", e.target.value === "" ? undefined : Number(e.target.value))} data-testid="input-business-latitude" /></label>
+       <label className="space-y-1 text-sm font-medium">Longitude<Input type="number" step="any" min="-180" max="180" value={form.longitude ?? ""} onChange={(e) => set("longitude", e.target.value === "" ? undefined : Number(e.target.value))} data-testid="input-business-longitude" /></label>
 
       <TargetImageUpload value={form.imageUrl || ""} onChange={(value) => set("imageUrl", value)} />
       <TargetBannerUpload value={form.bannerImageUrl || ""} onChange={(value) => set("bannerImageUrl", value)} />
       
-      {isEditing && <label className="space-y-1 text-sm font-medium">Status<Select value={form.status} onValueChange={(value) => set("status", value as FormState["status"])}><SelectTrigger data-testid="select-business-status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="hidden">Hidden</SelectItem><SelectItem value="locked">Locked</SelectItem></SelectContent></Select></label>}
+       <label className="space-y-1 text-sm font-medium">Status (visibility)<Select value={form.status} onValueChange={(value) => set("status", value as FormState["status"])}><SelectTrigger data-testid="select-business-status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="hidden">Hidden</SelectItem><SelectItem value="locked">Locked</SelectItem></SelectContent></Select></label>
       <div className="flex items-end gap-5 pb-2 text-sm">
         <label className="flex items-center gap-2"><input type="checkbox" checked={form.featured} onChange={(e) => set("featured", e.target.checked)} data-testid="checkbox-business-featured" /> Featured</label>
         <label className="flex items-center gap-2"><input type="checkbox" checked={form.verified} onChange={(e) => set("verified", e.target.checked)} data-testid="checkbox-business-verified" /> Verified</label>
       </div>
     </div>
-    <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel-business-form">Cancel</Button><Button onClick={save} disabled={pending} data-testid="button-save-business">{pending ? "Saving…" : isEditing ? "Save changes" : "Create Business"}</Button></DialogFooter>
+     <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel-business-form">Cancel</Button><Button onClick={save} disabled={pending} data-testid="button-save-business">{pending ? "Saving…" : "CREATE BUSINESS TARGET"}</Button></DialogFooter>
+  </DialogContent></Dialog>;
+}
+
+function BusinessDetailDialog({ targetId, open, onOpenChange }: { targetId: string | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const id = targetId || "";
+  const detail = useGetAdminBusiness(id, { query: { enabled: !!targetId && open, queryKey: getGetAdminBusinessQueryKey(id) } });
+  const assign = useAssignAdminBusinessOwner();
+  const remove = useRemoveAdminBusinessOwner();
+  const [owner, setOwner] = useState("");
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: getGetAdminBusinessQueryKey(id) });
+    queryClient.invalidateQueries({ queryKey: getListAdminBusinessesQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetAdminBusinessStatsQueryKey() });
+  };
+  const assignOwner = () => {
+    if (!owner.trim()) return;
+    const data: BusinessOwnerInput = owner.includes("@") ? { email: owner.trim() } : { userId: owner.trim() };
+    assign.mutate({ targetId: id, data }, { onSuccess: () => { refresh(); setOwner(""); toast({ title: "Owner assigned" }); }, onError: (e) => toast({ title: "Owner assignment failed", description: messageFor(e), variant: "destructive" }) });
+  };
+  const removeOwner = (userId: string) => {
+    if (!window.confirm("Remove this business owner?")) return;
+    remove.mutate({ targetId: id, data: { userId } }, { onSuccess: () => { refresh(); toast({ title: "Owner removed" }); }, onError: (e) => toast({ title: "Owner removal failed", description: messageFor(e), variant: "destructive" }) });
+  };
+  const business = detail.data;
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-4xl">
+    <DialogHeader><DialogTitle>{business?.name || "Business target"} — Admin detail</DialogTitle><DialogDescription>Identity, ownership, verification, activity, and audit surface.</DialogDescription></DialogHeader>
+    {detail.isLoading ? <Skeleton className="h-64 w-full" /> : detail.isError ? <AdminErrorState error={detail.error} /> : business && <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-4">{[
+        ["Blasts", business.analytics.blastCount], ["Views", business.analytics.viewCount], ["Comments", business.analytics.commentCount], ["Followers", business.analytics.followerCount]
+      ].map(([label, value]) => <Card key={label as string} className="rounded-sm"><CardContent className="p-3"><div className="text-xs text-muted-foreground uppercase">{label}</div><div className="text-xl font-bold" data-testid={`detail-metric-${String(label).toLowerCase()}`}>{Number(value).toLocaleString()}</div></CardContent></Card>)}</div>
+      <div className="grid gap-5 md:grid-cols-2">
+        <Card className="rounded-sm"><CardHeader><CardTitle className="text-sm uppercase">Business information</CardTitle></CardHeader><CardContent className="space-y-2 text-sm"><p>{business.description || "No description"}</p><p className="text-muted-foreground">{business.address || business.location}, {business.city} {business.state} {business.postalCode}</p><p>{business.phone || "No phone"} · {business.email || "No email"}</p><a className="text-primary underline" href={`/business/${business.slug}`} target="_blank" rel="noreferrer"><ExternalLink className="mr-1 inline h-3 w-3" />Public profile</a></CardContent></Card>
+        <Card className="rounded-sm"><CardHeader><CardTitle className="text-sm uppercase">Administrative controls</CardTitle></CardHeader><CardContent className="space-y-3 text-sm"><div className="flex flex-wrap gap-2"><Badge>{business.status}</Badge><Badge variant="outline">{business.claimStatus}</Badge><Badge variant="outline">{business.verificationStatus}</Badge>{business.featured && <Badge>Featured</Badge>}</div><p className="text-muted-foreground">Coordinates: {business.latitude ?? "—"}, {business.longitude ?? "—"}</p><div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => onOpenChange(false)}>Edit details</Button><a href={`/business/${business.slug}`} target="_blank" rel="noreferrer"><Button size="sm" variant="outline">View public</Button></a></div></CardContent></Card>
+      </div>
+      <Card className="rounded-sm"><CardHeader><CardTitle className="text-sm uppercase">Owners & claim history</CardTitle></CardHeader><CardContent className="space-y-3"><div className="flex gap-2"><Input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Owner email or user ID" data-testid="input-business-owner" /><Button onClick={assignOwner} disabled={assign.isPending}><UserPlus className="mr-2 h-4 w-4" />Assign</Button></div>{business.owners.length ? business.owners.map((item) => <div key={item.userId} className="flex items-center justify-between border-b py-2 text-sm"><span>{item.displayName} · {item.email} <Badge variant="outline" className="ml-2">{item.status}</Badge></span>{item.status === "active" && <Button size="sm" variant="ghost" onClick={() => removeOwner(item.userId)}><UserMinus className="mr-1 h-4 w-4" />Remove</Button>}</div>) : <p className="text-sm text-muted-foreground">Unclaimed — no owner assigned.</p>}{business.claims.map((claim) => <div key={claim.id} className="rounded border p-2 text-xs"><div className="flex items-center justify-between"><span><b>{claim.status}</b> · {claim.verificationMethod} · {new Date(claim.createdAt).toLocaleString()}</span><a className="text-primary underline" href="/business-claims">Review claim</a></div><div className="text-muted-foreground">{claim.reviewNote || claim.evidence || "No review notes"}</div></div>)}</CardContent></Card>
+      <div className="grid gap-5 md:grid-cols-2"><Card className="rounded-sm"><CardHeader><CardTitle className="text-sm uppercase">Recent blasts / activity</CardTitle></CardHeader><CardContent>{business.blasts.length ? business.blasts.slice(0, 8).map((blast, index) => <div key={index} className="border-b py-2 text-xs">{String(blast.createdAt || blast.text || `Blast ${index + 1}`)}</div>) : <p className="text-sm text-muted-foreground">No recent blasts.</p>}</CardContent></Card><Card className="rounded-sm"><CardHeader><CardTitle className="text-sm uppercase">Verification & audit log</CardTitle></CardHeader><CardContent>{business.auditHistory.length ? business.auditHistory.slice(0, 10).map((entry, index) => <div key={index} className="border-b py-2 text-xs">{JSON.stringify(entry)}</div>) : <p className="text-sm text-muted-foreground">No audit entries.</p>}</CardContent></Card></div>
+    </div>}
+    <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button></DialogFooter>
   </DialogContent></Dialog>;
 }
 
@@ -228,12 +282,18 @@ export default function BusinessTargetsPage() {
   const [status, setStatus] = useState<string>("all");
   const [formOpen, setFormOpen] = useState(false); 
   const [editing, setEditing] = useState<BusinessSummary | null>(null); 
+  const [detailId, setDetailId] = useState<string | null>(null);
   
   const params = { page, limit: 20, q: search || undefined, status: status === "all" ? undefined : status };
   const list = useListAdminBusinesses(params);
+  const stats = useGetAdminBusinessStats();
   const update = useUpdateAdminBusiness(); 
   
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: getListAdminBusinessesQueryKey() });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: getListAdminBusinessesQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetAdminBusinessStatsQueryKey() });
+    if (detailId) queryClient.invalidateQueries({ queryKey: getGetAdminBusinessQueryKey(detailId) });
+  };
   
   const mutate = (target: BusinessSummary, data: AdminBusinessUpdate, success: string, destructive = false) => {
     if (destructive && !window.confirm(`Are you sure you want to perform this sensitive action on ${target.name}?`)) return;
@@ -251,10 +311,18 @@ export default function BusinessTargetsPage() {
         <p className="mt-1 text-sm text-muted-foreground">Manage real business entities and location identity.</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => { setEditing(null); setFormOpen(true); }} data-testid="button-add-business"><Plus className="mr-2 h-4 w-4" />Add Business</Button>
+         <Button onClick={() => { setEditing(null); setFormOpen(true); }} data-testid="button-add-business"><Plus className="mr-2 h-4 w-4" />CREATE BUSINESS TARGET</Button>
       </div>
     </div>
     
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
+      {[
+        ["Total", stats.data?.totalTargets], ["Claimed", stats.data?.claimed], ["Unclaimed", stats.data?.unclaimed],
+        ["Verified", stats.data?.verified], ["Pending Verification", stats.data?.pendingVerification], ["Featured", stats.data?.featured],
+        ["Hidden", stats.data?.hidden], ["Recent Activity", stats.data?.recentActivity]
+      ].map(([label, value]) => <Card key={label as string} className="rounded-sm"><CardContent className="p-3"><div className="text-[10px] font-mono uppercase text-muted-foreground">{label}</div><div className="mt-1 text-2xl font-bold" data-testid={`stat-business-${String(label).toLowerCase().replaceAll(" ", "-")}`}>{value === undefined ? "—" : Number(value).toLocaleString()}</div></CardContent></Card>)}
+    </div>
+
     <Card className="rounded-sm">
       <CardHeader className="gap-3 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="font-mono text-sm uppercase tracking-wider">Directory {list.data ? `(${list.data.total})` : ""}</CardTitle>
@@ -278,14 +346,20 @@ export default function BusinessTargetsPage() {
           <TableHeader className="bg-muted/50">
             <TableRow>
               <TableHead className="w-[300px] font-mono text-xs uppercase">Business</TableHead>
-              <TableHead className="font-mono text-xs uppercase">Location & Category</TableHead>
-              <TableHead className="font-mono text-xs uppercase">Metrics</TableHead>
-              <TableHead className="font-mono text-xs uppercase">Badges</TableHead>
+               <TableHead className="font-mono text-xs uppercase">Category</TableHead>
+               <TableHead className="font-mono text-xs uppercase">Location</TableHead>
+               <TableHead className="font-mono text-xs uppercase">Blasts</TableHead>
+               <TableHead className="font-mono text-xs uppercase">Views</TableHead>
+               <TableHead className="font-mono text-xs uppercase">Followers</TableHead>
+               <TableHead className="font-mono text-xs uppercase">Claim Status</TableHead>
+               <TableHead className="font-mono text-xs uppercase">Verification</TableHead>
+               <TableHead className="font-mono text-xs uppercase">Featured</TableHead>
+               <TableHead className="font-mono text-xs uppercase">Created</TableHead>
               <TableHead className="w-[80px] font-mono text-xs uppercase text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {list.data?.items.length === 0 ? <TableRow><TableCell colSpan={5} className="py-8 text-center font-mono text-sm text-muted-foreground">NO_BUSINESSES_FOUND</TableCell></TableRow> : 
+            {list.data?.items.length === 0 ? <TableRow><TableCell colSpan={13} className="py-8 text-center font-mono text-sm text-muted-foreground">NO_BUSINESSES_FOUND</TableCell></TableRow> : 
             list.data?.items.map((target) => {
               const statusVal = (target as any).status || "active";
               return <TableRow key={target.id}>
@@ -298,32 +372,22 @@ export default function BusinessTargetsPage() {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <div className="text-xs">{target.location}</div>
-                  <div className="font-mono text-[10px] text-muted-foreground mt-0.5">{target.category || "uncategorized"}</div>
-                </TableCell>
-                <TableCell>
-                  <div className="grid grid-cols-2 gap-1 gap-x-3 text-[10px] font-mono whitespace-nowrap">
-                    <div><span className="text-muted-foreground mr-1">FL:</span>{target.followerCount.toLocaleString()}</div>
-                    <div><span className="text-muted-foreground mr-1">BL:</span>{target.blastCount.toLocaleString()}</div>
-                    <div><span className="text-muted-foreground mr-1">VW:</span>{target.viewCount.toLocaleString()}</div>
-                    <div><span className="text-muted-foreground mr-1">CM:</span>{target.commentCount.toLocaleString()}</div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {statusVal === "hidden" && <Badge variant="secondary" className="text-[9px] uppercase"><EyeOff className="h-3 w-3 mr-1" />Hidden</Badge>}
-                    {statusVal === "locked" && <Badge variant="destructive" className="text-[9px] uppercase"><Lock className="h-3 w-3 mr-1" />Locked</Badge>}
-                    {target.verified && <Badge variant="outline" className="text-[9px] uppercase text-emerald-500 border-emerald-500/30"><CheckCircle2 className="h-3 w-3 mr-1" />Verified</Badge>}
-                    {target.featured && <Badge variant="outline" className="text-[9px] uppercase text-amber-500 border-amber-500/30"><Star className="h-3 w-3 mr-1" />Featured</Badge>}
-                  </div>
-                </TableCell>
+                 <TableCell className="text-xs">{target.category || "uncategorized"}</TableCell>
+                 <TableCell className="text-xs">{target.location}</TableCell>
+                 <TableCell className="text-xs">{target.blastCount.toLocaleString()}</TableCell>
+                 <TableCell className="text-xs">{target.viewCount.toLocaleString()}</TableCell>
+                 <TableCell className="text-xs">{target.followerCount.toLocaleString()}</TableCell>
+                 <TableCell><Badge variant="outline" className="text-[9px] uppercase">{target.claimStatus}</Badge></TableCell>
+                 <TableCell><Badge variant="outline" className="text-[9px] uppercase">{target.verificationStatus}</Badge></TableCell>
+                 <TableCell>{target.featured ? <Star className="h-4 w-4 text-amber-500" /> : "—"}</TableCell>
+                 <TableCell className="whitespace-nowrap text-xs">{new Date(target.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => { setEditing(target); setFormOpen(true); }}><Pencil className="mr-2 h-4 w-4" />Edit details</DropdownMenuItem>
-                      <DropdownMenuItem asChild><a href={`/${target.slug}`} target="_blank" rel="noopener noreferrer" className="cursor-pointer"><Eye className="mr-2 h-4 w-4" />View public profile</a></DropdownMenuItem>
+                       <DropdownMenuItem onClick={() => setDetailId(target.id)}><Eye className="mr-2 h-4 w-4" />View admin detail</DropdownMenuItem>
+                       <DropdownMenuItem onClick={() => { setEditing(target); setFormOpen(true); }}><Pencil className="mr-2 h-4 w-4" />Edit details</DropdownMenuItem>
+                       <DropdownMenuItem asChild><a href={`/business/${target.slug}`} target="_blank" rel="noopener noreferrer" className="cursor-pointer"><ExternalLink className="mr-2 h-4 w-4" />View public profile</a></DropdownMenuItem>
                       <DropdownMenuSeparator />
                       {target.featured ? <DropdownMenuItem onClick={() => mutate(target, { featured: false } as any, "Removed featured badge")}><Star className="mr-2 h-4 w-4 opacity-50" />Unfeature</DropdownMenuItem> : <DropdownMenuItem onClick={() => mutate(target, { featured: true } as any, "Marked as featured")}><Star className="mr-2 h-4 w-4 text-amber-500" />Feature</DropdownMenuItem>}
                       {target.verified ? <DropdownMenuItem onClick={() => mutate(target, { verified: false } as any, "Removed verified badge")}><CheckCircle2 className="mr-2 h-4 w-4 opacity-50" />Unverify</DropdownMenuItem> : <DropdownMenuItem onClick={() => mutate(target, { verified: true } as any, "Marked as verified")}><CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" />Verify</DropdownMenuItem>}
@@ -350,6 +414,7 @@ export default function BusinessTargetsPage() {
       )}
     </Card>
     
-    <BusinessFormDialog open={formOpen} onOpenChange={setFormOpen} target={editing} />
+     <BusinessFormDialog open={formOpen} onOpenChange={setFormOpen} target={editing} />
+     <BusinessDetailDialog targetId={detailId} open={!!detailId} onOpenChange={(open) => { if (!open) setDetailId(null); }} />
   </div>;
 }

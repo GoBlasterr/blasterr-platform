@@ -4,6 +4,9 @@ import {
   CreateAdminBusinessBody, CreateAdminBusinessResponse, ListAdminBusinessClaimsQueryParams, ListAdminBusinessClaimsResponse,
   ListAdminBusinessesQueryParams, ListAdminBusinessesResponse, ReviewAdminBusinessClaimBody, ReviewAdminBusinessClaimParams,
   ReviewAdminBusinessClaimResponse, UpdateAdminBusinessBody, UpdateAdminBusinessParams, UpdateAdminBusinessResponse,
+  GetAdminBusinessParams, GetAdminBusinessResponse, AssignAdminBusinessOwnerBody, AssignAdminBusinessOwnerParams,
+  AssignAdminBusinessOwnerResponse, RemoveAdminBusinessOwnerBody, RemoveAdminBusinessOwnerParams, RemoveAdminBusinessOwnerResponse,
+  GetAdminBusinessStatsResponse,
 } from "@workspace/api-zod";
 import { businessClaimsTable, businessProfilesTable, db, targetsTable } from "@workspace/db";
 import * as business from "../lib/business-repository";
@@ -27,6 +30,10 @@ router.get("/business", async (req, res): Promise<void> => {
   res.json(ListAdminBusinessesResponse.parse(await business.listBusinesses({ ...parsed.data, includeInactive: true })));
 });
 
+router.get("/business/stats", async (_req, res): Promise<void> => {
+  res.json(GetAdminBusinessStatsResponse.parse(await business.getAdminBusinessStats()));
+});
+
 router.post("/business", async (req, res): Promise<void> => {
   const body = CreateAdminBusinessBody.safeParse(req.body);
   if (!body.success) { res.status(400).json({ error: body.error.message }); return; }
@@ -36,6 +43,7 @@ router.post("/business", async (req, res): Promise<void> => {
       name: body.data.name, slug, location: body.data.location, category: body.data.category ?? "other",
       description: body.data.description ?? "", imageUrl: body.data.imageUrl ?? "", bannerImageUrl: body.data.bannerImageUrl ?? "",
       featured: body.data.featured ?? false, verified: body.data.verified ?? false,
+       status: body.data.status ?? "active", latitude: body.data.latitude, longitude: body.data.longitude,
       profile: { subcategory: body.data.subcategory ?? "", address: body.data.address ?? "", city: body.data.city ?? "", state: body.data.state ?? "", postalCode: body.data.postalCode ?? "", phone: body.data.phone ?? "", website: body.data.website ?? "", email: body.data.email ?? "" },
     }, actor(res));
     if (created.conflict) { res.status(409).json({ error: "A canonical Business Target with this identity already exists." }); return; }
@@ -70,6 +78,7 @@ router.patch("/business/:targetId", async (req, res): Promise<void> => {
       ...(patch.description !== undefined ? { description: patch.description } : {}), ...(patch.imageUrl !== undefined ? { imageUrl: patch.imageUrl } : {}),
       ...(patch.bannerImageUrl !== undefined ? { bannerImageUrl: patch.bannerImageUrl } : {}), ...(patch.featured !== undefined ? { featured: patch.featured } : {}),
       ...(patch.verified !== undefined ? { verified: patch.verified } : {}), ...(patch.status === "hidden" ? { archivedAt: new Date() } : patch.status === "active" ? { archivedAt: null } : {}),
+       ...(patch.latitude !== undefined ? { latitude: patch.latitude } : {}), ...(patch.longitude !== undefined ? { longitude: patch.longitude } : {}),
       updatedAt: new Date(),
     }).where(eq(targetsTable.id, existing.id));
     await tx.insert(businessProfilesTable).values({
@@ -84,6 +93,26 @@ router.patch("/business/:targetId", async (req, res): Promise<void> => {
   res.json(UpdateAdminBusinessResponse.parse({ ...detail, blasts: detail?.blasts.map((blast) => ({ ...blast, createdAt: blast.createdAt.toISOString(), updatedAt: blast.updatedAt.toISOString() })) }));
 });
 
+router.post("/business/:targetId/owners", async (req, res): Promise<void> => {
+  const params = AssignAdminBusinessOwnerParams.safeParse(req.params);
+  const body = AssignAdminBusinessOwnerBody.safeParse(req.body);
+  if (!params.success || !body.success) { res.status(400).json({ error: "Provide an existing user ID or email." }); return; }
+  const owner = await business.assignBusinessOwner(params.data.targetId, body.data);
+  if (!owner) { res.status(404).json({ error: "User or Business Target not found." }); return; }
+  await recordAudit({ action: "business_owner_assigned", entityType: "business_target", entityId: params.data.targetId, actorId: actor(res), details: `Assigned ${owner.email} as Business Target owner.` });
+  res.json(AssignAdminBusinessOwnerResponse.parse(owner));
+});
+
+router.delete("/business/:targetId/owners", async (req, res): Promise<void> => {
+  const params = RemoveAdminBusinessOwnerParams.safeParse(req.params);
+  const body = RemoveAdminBusinessOwnerBody.safeParse(req.body);
+  if (!params.success || !body.success) { res.status(400).json({ error: "Provide an existing user ID or email." }); return; }
+  const owner = await business.removeBusinessOwner(params.data.targetId, body.data);
+  if (!owner) { res.status(404).json({ error: "Active owner not found." }); return; }
+  await recordAudit({ action: "business_owner_removed", entityType: "business_target", entityId: params.data.targetId, actorId: actor(res), details: `Removed ${owner.email} as Business Target owner.` });
+  res.json(RemoveAdminBusinessOwnerResponse.parse(owner));
+});
+
 router.get("/business/claims", async (req, res): Promise<void> => {
   const parsed = ListAdminBusinessClaimsQueryParams.safeParse(req.query);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
@@ -96,13 +125,12 @@ router.get("/business/claims", async (req, res): Promise<void> => {
   res.json(ListAdminBusinessClaimsResponse.parse({ items: items.map(claimPayload), page, limit, total: total[0]?.value ?? 0, hasMore: page * limit < (total[0]?.value ?? 0) }));
 });
 
-router.patch("/business/claims/:claimId", async (req, res): Promise<void> => {
-  const params = ReviewAdminBusinessClaimParams.safeParse(req.params); const body = ReviewAdminBusinessClaimBody.safeParse(req.body);
-  if (!params.success || !body.success) { res.status(400).json({ error: "Invalid claim review." }); return; }
-  const claim = await business.reviewClaim(params.data.claimId, actor(res), body.data.status, body.data.reviewNote ?? "");
-  if (!claim) { res.status(404).json({ error: "Claim request not found." }); return; }
-  await recordAudit({ action: `business_claim_${body.data.status}`, entityType: "business_claim", entityId: claim.id, actorId: actor(res), details: `Business claim marked ${body.data.status}.` });
-  res.json(ReviewAdminBusinessClaimResponse.parse(claimPayload(claim)));
+router.get("/business/:targetId", async (req, res): Promise<void> => {
+  const params = GetAdminBusinessParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid Business Target." }); return; }
+  const detail = await business.getAdminBusinessById(params.data.targetId);
+  if (!detail) { res.status(404).json({ error: "Business Target not found." }); return; }
+  res.json(GetAdminBusinessResponse.parse({ ...detail, blasts: detail.blasts.map((blast) => ({ ...blast, createdAt: blast.createdAt.toISOString(), updatedAt: blast.updatedAt.toISOString() })) }));
 });
 
 export default router;

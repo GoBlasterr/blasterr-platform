@@ -5,6 +5,7 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { AdminBusinessInputStatus } from './adminBusinessInputStatus';
 
 export interface AdminBusinessInput {
   /**
@@ -43,4 +44,15 @@ export interface AdminBusinessInput {
   bannerImageUrl?: string;
   featured?: boolean;
   verified?: boolean;
+  status?: AdminBusinessInputStatus;
+  /**
+     * @minimum -90
+     * @maximum 90
+     */
+  latitude?: number;
+  /**
+     * @minimum -180
+     * @maximum 180
+     */
+  longitude?: number;
 }

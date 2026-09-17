@@ -29,4 +29,9 @@ export interface BusinessSummary {
   verificationStatus: BusinessSummaryVerificationStatus;
   claimStatus: BusinessSummaryClaimStatus;
   ownerCount: number;
+  /** @nullable */
+  latitude: number | null;
+  /** @nullable */
+  longitude: number | null;
+  createdAt: string;
 }

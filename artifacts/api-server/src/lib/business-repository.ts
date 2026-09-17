@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
   blastsTable,
@@ -6,6 +6,8 @@ import {
   businessFollowsTable,
   businessMembershipsTable,
   businessProfilesTable,
+  adminAuditEventsTable,
+  usersTable,
   targetsTable,
   db,
 } from "@workspace/db";
@@ -42,6 +44,9 @@ function aggregateColumns() {
     commentCount: sql<number>`(select count(*)::int from comments c join blasts b on b.id = c.blast_id where b.target_id = ${targetsTable.id} and b.status = 'active' and b.visibility = 'public')`,
     reactionCount: sql<number>`(select count(*)::int from reactions r join blasts b on b.id = r.blast_id where b.target_id = ${targetsTable.id} and b.status = 'active' and b.visibility = 'public')`,
     followerCount: sql<number>`(select count(*)::int from business_follows f where f.target_id = ${targetsTable.id})`,
+    latitude: targetsTable.latitude,
+    longitude: targetsTable.longitude,
+    createdAt: sql<string>`${targetsTable.createdAt}::text`,
   };
 }
 
@@ -72,6 +77,22 @@ export async function listBusinesses(filters: BusinessFilters = {}) {
   return { items, page, limit, total, hasMore: page * limit < total };
 }
 
+export async function getAdminBusinessStats() {
+  const [stats] = await db.select({
+    totalTargets: sql<number>`count(*)::int`,
+    claimed: sql<number>`count(*) filter (where exists (select 1 from business_memberships m where m.target_id = ${targetsTable.id} and m.status = 'active'))::int`,
+    unclaimed: sql<number>`count(*) filter (where not exists (select 1 from business_memberships m where m.target_id = ${targetsTable.id} and m.status = 'active'))::int`,
+    verified: sql<number>`count(*) filter (where ${targetsTable.verified} or ${businessProfilesTable.verificationStatus} = 'verified')::int`,
+    pendingVerification: sql<number>`count(*) filter (where ${businessProfilesTable.verificationStatus} = 'pending' or exists (select 1 from business_claims c where c.target_id = ${targetsTable.id} and c.status in ('pending', 'more_info')))::int`,
+    featured: sql<number>`count(*) filter (where ${targetsTable.featured})::int`,
+    hidden: sql<number>`count(*) filter (where ${targetsTable.archivedAt} is not null or ${businessProfilesTable.status} = 'hidden')::int`,
+    recentActivity: sql<number>`count(*) filter (where exists (select 1 from blasts b where b.target_id = ${targetsTable.id} and b.created_at >= now() - interval '7 days'))::int`,
+  }).from(targetsTable)
+    .leftJoin(businessProfilesTable, eq(businessProfilesTable.targetId, targetsTable.id))
+    .where(eq(targetsTable.type, "business"));
+  return stats ?? { totalTargets: 0, claimed: 0, unclaimed: 0, verified: 0, pendingVerification: 0, featured: 0, hidden: 0, recentActivity: 0 };
+}
+
 export async function getBusinessBySlug(slug: string, includeInactive = false) {
   const rows = await db.select(aggregateColumns()).from(targetsTable)
     .leftJoin(businessProfilesTable, eq(businessProfilesTable.targetId, targetsTable.id))
@@ -81,6 +102,61 @@ export async function getBusinessBySlug(slug: string, includeInactive = false) {
   const profile = (await db.select().from(businessProfilesTable).where(eq(businessProfilesTable.targetId, target.id)))[0];
   const recentBlasts = await db.select().from(blastsTable).where(and(eq(blastsTable.targetId, target.id), eq(blastsTable.status, "active"), eq(blastsTable.visibility, "public"))).orderBy(desc(blastsTable.createdAt)).limit(20);
   return { ...target, category: profile?.category ?? target.category, subcategory: profile?.subcategory ?? "", address: profile?.address ?? "", city: profile?.city ?? "", state: profile?.state ?? "", postalCode: profile?.postalCode ?? "", phone: profile?.phone ?? "", website: profile?.website ?? "", email: profile?.email ?? "", verificationStatus: profile?.verificationStatus ?? (target.verified ? "verified" : "unverified"), status: profile?.status ?? "active", blasts: recentBlasts };
+}
+
+export async function getAdminBusinessById(targetId: string) {
+  const target = (await db.select(aggregateColumns()).from(targetsTable)
+    .leftJoin(businessProfilesTable, eq(businessProfilesTable.targetId, targetsTable.id))
+    .where(and(eq(targetsTable.id, targetId), eq(targetsTable.type, "business"))))[0];
+  if (!target) return null;
+  const detail = await getBusinessBySlug(target.slug, true);
+  if (!detail) return null;
+  const [claims, owners] = await Promise.all([
+    db.select().from(businessClaimsTable).where(eq(businessClaimsTable.targetId, targetId)).orderBy(desc(businessClaimsTable.createdAt)),
+    db.select({ userId: businessMembershipsTable.userId, role: businessMembershipsTable.role, status: businessMembershipsTable.status, displayName: usersTable.displayName, email: usersTable.email })
+      .from(businessMembershipsTable).innerJoin(usersTable, eq(usersTable.id, businessMembershipsTable.userId))
+      .where(eq(businessMembershipsTable.targetId, targetId)).orderBy(desc(businessMembershipsTable.updatedAt)),
+  ]);
+  const auditEntityIds = [targetId, ...claims.map((claim) => claim.id)];
+  const auditHistory = await db.select().from(adminAuditEventsTable)
+    .where(or(and(eq(adminAuditEventsTable.entityType, "business_target"), eq(adminAuditEventsTable.entityId, targetId)), and(eq(adminAuditEventsTable.entityType, "business_claim"), inArray(adminAuditEventsTable.entityId, auditEntityIds))))
+    .orderBy(desc(adminAuditEventsTable.createdAt));
+  return {
+    ...detail, claims: claims.map((item) => ({ ...item, createdAt: item.createdAt.toISOString(), updatedAt: item.updatedAt.toISOString() })), owners,
+    auditHistory: auditHistory.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })),
+    analytics: {
+      blastCount: detail.blastCount, viewCount: detail.viewCount, commentCount: detail.commentCount,
+      reactionCount: detail.reactionCount, followerCount: detail.followerCount,
+      engagementRate: detail.viewCount ? (detail.commentCount + detail.reactionCount) / detail.viewCount : 0,
+    },
+  };
+}
+
+export async function resolveBusinessOwner(input: { userId?: string; email?: string }) {
+  return (await db.select({ id: usersTable.id, displayName: usersTable.displayName, email: usersTable.email })
+    .from(usersTable).where(input.userId ? eq(usersTable.id, input.userId) : eq(usersTable.email, input.email ?? "")))[0] ?? null;
+}
+
+export async function assignBusinessOwner(targetId: string, input: { userId?: string; email?: string }) {
+  const [user, target] = await Promise.all([
+    resolveBusinessOwner(input),
+    db.select({ id: targetsTable.id }).from(targetsTable)
+      .where(and(eq(targetsTable.id, targetId), eq(targetsTable.type, "business")))
+      .then((rows) => rows[0]),
+  ]);
+  if (!user || !target) return null;
+  await db.insert(businessMembershipsTable).values({ targetId, userId: user.id, role: "owner", status: "active" })
+    .onConflictDoUpdate({ target: [businessMembershipsTable.targetId, businessMembershipsTable.userId], set: { role: "owner", status: "active", updatedAt: new Date() } });
+  return { userId: user.id, role: "owner", status: "active" as const, displayName: user.displayName, email: user.email };
+}
+
+export async function removeBusinessOwner(targetId: string, input: { userId?: string; email?: string }) {
+  const user = await resolveBusinessOwner(input);
+  if (!user) return null;
+  const updated = await db.update(businessMembershipsTable).set({ status: "revoked", updatedAt: new Date() })
+    .where(and(eq(businessMembershipsTable.targetId, targetId), eq(businessMembershipsTable.userId, user.id))).returning();
+  if (!updated[0]) return null;
+  return { userId: user.id, role: updated[0].role, status: "revoked" as const, displayName: user.displayName, email: user.email };
 }
 
 export async function toggleFollow(targetId: string, userId: string) {
@@ -145,13 +221,13 @@ export async function reviewClaim(claimId: string, reviewerId: string, status: "
 
 export async function createBusinessTarget(input: {
   name: string; slug: string; location: string; category: string; description: string; imageUrl: string; bannerImageUrl: string;
-  featured: boolean; verified: boolean; profile: { subcategory: string; address: string; city: string; state: string; postalCode: string; phone: string; website: string; email: string };
+  featured: boolean; verified: boolean; status: "active" | "hidden" | "locked"; latitude?: number; longitude?: number; profile: { subcategory: string; address: string; city: string; state: string; postalCode: string; phone: string; website: string; email: string };
 }, actorId: string) {
   return db.transaction(async (tx) => {
     const created = await socialCreatePreloadedTarget(tx, input, actorId);
     if (!created.created) return { conflict: true as const, target: created.target };
-    await tx.update(targetsTable).set({ location: input.location, updatedAt: new Date() }).where(eq(targetsTable.id, created.target.id));
-    await tx.insert(businessProfilesTable).values({ targetId: created.target.id, category: input.category, subcategory: input.profile.subcategory, address: input.profile.address, city: input.profile.city, state: input.profile.state, postalCode: input.profile.postalCode, phone: input.profile.phone, website: input.profile.website, email: input.profile.email, verificationStatus: input.verified ? "verified" : "unverified" });
+   await tx.update(targetsTable).set({ location: input.location, latitude: input.latitude, longitude: input.longitude, updatedAt: new Date() }).where(eq(targetsTable.id, created.target.id));
+    await tx.insert(businessProfilesTable).values({ targetId: created.target.id, category: input.category, subcategory: input.profile.subcategory, address: input.profile.address, city: input.profile.city, state: input.profile.state, postalCode: input.profile.postalCode, phone: input.profile.phone, website: input.profile.website, email: input.profile.email, verificationStatus: input.verified ? "verified" : "unverified", status: input.status });
     return { conflict: false as const, target: created.target };
   });
 }
@@ -161,7 +237,7 @@ async function socialCreatePreloadedTarget(tx: any, input: Parameters<typeof cre
   const canonicalKey = input.slug.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const existing = (await tx.select().from(targetsTable).where(sql`${targetsTable.canonicalKey} = ${canonicalKey} or (${targetsTable.type} = 'business' and ${targetsTable.normalizedName} = ${input.name.trim().toLowerCase()} and ${targetsTable.normalizedLocation} = ${input.location.trim().toLowerCase()})`))[0];
   if (existing) return { created: false, target: existing };
-  const [target] = await tx.insert(targetsTable).values({ id: `target-${randomUUID()}`, name: input.name.trim(), slug: input.slug, type: "business", description: input.description, imageUrl: input.imageUrl, bannerImageUrl: input.bannerImageUrl, location: input.location, normalizedName: input.name.trim().toLowerCase(), normalizedLocation: input.location.trim().toLowerCase(), isCanonical: true, isPreloaded: true, preloadCategory: input.category, provenance: "admin", createdByAdminId: actorId, featured: input.featured, verified: input.verified, canonicalKey }).returning();
+   const [target] = await tx.insert(targetsTable).values({ id: `target-${randomUUID()}`, name: input.name.trim(), slug: input.slug, type: "business", description: input.description, imageUrl: input.imageUrl, bannerImageUrl: input.bannerImageUrl, location: input.location, latitude: input.latitude, longitude: input.longitude, normalizedName: input.name.trim().toLowerCase(), normalizedLocation: input.location.trim().toLowerCase(), isCanonical: true, isPreloaded: true, preloadCategory: input.category, provenance: "admin", createdByAdminId: actorId, featured: input.featured, verified: input.verified, canonicalKey, archivedAt: input.status === "hidden" ? new Date() : null }).returning();
   if (!target) throw new Error("Unable to create Business Target.");
   return { created: true, target };
 }

@@ -4936,7 +4936,10 @@ export const ListBusinessesResponse = zod.object({
   "status": zod.enum(['active', 'hidden', 'locked']),
   "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
   "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
-  "ownerCount": zod.number()
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
 })),
   "page": zod.number(),
   "limit": zod.number(),
@@ -4968,7 +4971,10 @@ export const GetBusinessResponse = zod.object({
   "status": zod.enum(['active', 'hidden', 'locked']),
   "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
   "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
-  "ownerCount": zod.number()
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
 }).and(zod.object({
   "subcategory": zod.string(),
   "address": zod.string(),
@@ -4979,7 +4985,9 @@ export const GetBusinessResponse = zod.object({
   "website": zod.string(),
   "email": zod.string(),
   "verificationStatus": zod.string(),
-  "blasts": zod.array(zod.record(zod.string(), zod.unknown()))
+  "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable()
 }))
 
 
@@ -5042,7 +5050,10 @@ export const GetBusinessCenterResponse = zod.object({
   "status": zod.enum(['active', 'hidden', 'locked']),
   "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
   "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
-  "ownerCount": zod.number()
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
 }).and(zod.object({
   "subcategory": zod.string(),
   "address": zod.string(),
@@ -5053,7 +5064,9 @@ export const GetBusinessCenterResponse = zod.object({
   "website": zod.string(),
   "email": zod.string(),
   "verificationStatus": zod.string(),
-  "blasts": zod.array(zod.record(zod.string(), zod.unknown()))
+  "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable()
 })).and(zod.object({
   "membershipRole": zod.string()
 }))
@@ -5110,7 +5123,10 @@ export const ListAdminBusinessesResponse = zod.object({
   "status": zod.enum(['active', 'hidden', 'locked']),
   "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
   "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
-  "ownerCount": zod.number()
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
 })),
   "page": zod.number(),
   "limit": zod.number(),
@@ -5147,6 +5163,12 @@ export const createAdminBusinessBodyImageUrlMax = 500;
 
 export const createAdminBusinessBodyBannerImageUrlMax = 500;
 
+export const createAdminBusinessBodyLatitudeMin = -90;
+export const createAdminBusinessBodyLatitudeMax = 90;
+
+export const createAdminBusinessBodyLongitudeMin = -180;
+export const createAdminBusinessBodyLongitudeMax = 180;
+
 
 
 export const CreateAdminBusinessBody = zod.object({
@@ -5165,7 +5187,10 @@ export const CreateAdminBusinessBody = zod.object({
   "imageUrl": zod.string().max(createAdminBusinessBodyImageUrlMax).optional(),
   "bannerImageUrl": zod.string().max(createAdminBusinessBodyBannerImageUrlMax).optional(),
   "featured": zod.boolean().optional(),
-  "verified": zod.boolean().optional()
+  "verified": zod.boolean().optional(),
+  "status": zod.enum(['active', 'hidden', 'locked']).optional(),
+  "latitude": zod.number().min(createAdminBusinessBodyLatitudeMin).max(createAdminBusinessBodyLatitudeMax).optional(),
+  "longitude": zod.number().min(createAdminBusinessBodyLongitudeMin).max(createAdminBusinessBodyLongitudeMax).optional()
 })
 
 export const CreateAdminBusinessResponse = zod.object({
@@ -5187,7 +5212,10 @@ export const CreateAdminBusinessResponse = zod.object({
   "status": zod.enum(['active', 'hidden', 'locked']),
   "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
   "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
-  "ownerCount": zod.number()
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
 }).and(zod.object({
   "subcategory": zod.string(),
   "address": zod.string(),
@@ -5198,7 +5226,92 @@ export const CreateAdminBusinessResponse = zod.object({
   "website": zod.string(),
   "email": zod.string(),
   "verificationStatus": zod.string(),
-  "blasts": zod.array(zod.record(zod.string(), zod.unknown()))
+  "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable()
+}))
+
+
+export const GetAdminBusinessStatsResponse = zod.object({
+  "totalTargets": zod.number(),
+  "claimed": zod.number(),
+  "unclaimed": zod.number(),
+  "verified": zod.number(),
+  "pendingVerification": zod.number(),
+  "featured": zod.number(),
+  "hidden": zod.number(),
+  "recentActivity": zod.number()
+})
+
+
+export const GetAdminBusinessParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const GetAdminBusinessResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "location": zod.string(),
+  "category": zod.string(),
+  "description": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "bannerImageUrl": zod.string().optional(),
+  "blastCount": zod.number(),
+  "viewCount": zod.number(),
+  "commentCount": zod.number(),
+  "reactionCount": zod.number(),
+  "followerCount": zod.number(),
+  "featured": zod.boolean(),
+  "verified": zod.boolean(),
+  "status": zod.enum(['active', 'hidden', 'locked']),
+  "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
+  "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
+}).and(zod.object({
+  "subcategory": zod.string(),
+  "address": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "postalCode": zod.string(),
+  "phone": zod.string(),
+  "website": zod.string(),
+  "email": zod.string(),
+  "verificationStatus": zod.string(),
+  "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable()
+})).and(zod.object({
+  "owners": zod.array(zod.object({
+  "userId": zod.string(),
+  "role": zod.string(),
+  "status": zod.enum(['active', 'revoked']),
+  "displayName": zod.string(),
+  "email": zod.string()
+})),
+  "claims": zod.array(zod.object({
+  "id": zod.string(),
+  "targetId": zod.string(),
+  "applicantId": zod.string(),
+  "verificationMethod": zod.string(),
+  "evidence": zod.string().optional(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'more_info']),
+  "reviewNote": zod.string().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "auditHistory": zod.array(zod.record(zod.string(), zod.unknown())),
+  "analytics": zod.object({
+  "blastCount": zod.number(),
+  "viewCount": zod.number(),
+  "commentCount": zod.number(),
+  "reactionCount": zod.number(),
+  "followerCount": zod.number(),
+  "engagementRate": zod.number()
+})
 }))
 
 
@@ -5234,6 +5347,12 @@ export const updateAdminBusinessBodyImageUrlMax = 500;
 
 export const updateAdminBusinessBodyBannerImageUrlMax = 500;
 
+export const updateAdminBusinessBodyLatitudeMin = -90;
+export const updateAdminBusinessBodyLatitudeMax = 90;
+
+export const updateAdminBusinessBodyLongitudeMin = -180;
+export const updateAdminBusinessBodyLongitudeMax = 180;
+
 
 
 export const UpdateAdminBusinessBody = zod.object({
@@ -5253,7 +5372,9 @@ export const UpdateAdminBusinessBody = zod.object({
   "bannerImageUrl": zod.string().max(updateAdminBusinessBodyBannerImageUrlMax).optional(),
   "featured": zod.boolean().optional(),
   "verified": zod.boolean().optional(),
-  "status": zod.enum(['active', 'hidden', 'locked']).optional()
+  "status": zod.enum(['active', 'hidden', 'locked']).optional(),
+  "latitude": zod.number().min(updateAdminBusinessBodyLatitudeMin).max(updateAdminBusinessBodyLatitudeMax).nullish(),
+  "longitude": zod.number().min(updateAdminBusinessBodyLongitudeMin).max(updateAdminBusinessBodyLongitudeMax).nullish()
 })
 
 export const UpdateAdminBusinessResponse = zod.object({
@@ -5275,7 +5396,10 @@ export const UpdateAdminBusinessResponse = zod.object({
   "status": zod.enum(['active', 'hidden', 'locked']),
   "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
   "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
-  "ownerCount": zod.number()
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
 }).and(zod.object({
   "subcategory": zod.string(),
   "address": zod.string(),
@@ -5286,8 +5410,54 @@ export const UpdateAdminBusinessResponse = zod.object({
   "website": zod.string(),
   "email": zod.string(),
   "verificationStatus": zod.string(),
-  "blasts": zod.array(zod.record(zod.string(), zod.unknown()))
+  "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable()
 }))
+
+
+export const AssignAdminBusinessOwnerParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const assignAdminBusinessOwnerBodyThreeEmailMax = 320;
+
+
+
+export const AssignAdminBusinessOwnerBody = zod.union([zod.unknown(),zod.unknown()]).and(zod.object({
+  "userId": zod.string().optional(),
+  "email": zod.string().max(assignAdminBusinessOwnerBodyThreeEmailMax).optional()
+}))
+
+export const AssignAdminBusinessOwnerResponse = zod.object({
+  "userId": zod.string(),
+  "role": zod.string(),
+  "status": zod.enum(['active', 'revoked']),
+  "displayName": zod.string(),
+  "email": zod.string()
+})
+
+
+export const RemoveAdminBusinessOwnerParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const removeAdminBusinessOwnerBodyThreeEmailMax = 320;
+
+
+
+export const RemoveAdminBusinessOwnerBody = zod.union([zod.unknown(),zod.unknown()]).and(zod.object({
+  "userId": zod.string().optional(),
+  "email": zod.string().max(removeAdminBusinessOwnerBodyThreeEmailMax).optional()
+}))
+
+export const RemoveAdminBusinessOwnerResponse = zod.object({
+  "userId": zod.string(),
+  "role": zod.string(),
+  "status": zod.enum(['active', 'revoked']),
+  "displayName": zod.string(),
+  "email": zod.string()
+})
 
 
 export const listAdminBusinessClaimsQueryPageDefault = 1;

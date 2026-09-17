@@ -2580,6 +2580,11 @@ export interface BusinessSummary {
   verificationStatus: BusinessSummaryVerificationStatus;
   claimStatus: BusinessSummaryClaimStatus;
   ownerCount: number;
+  /** @nullable */
+  latitude: number | null;
+  /** @nullable */
+  longitude: number | null;
+  createdAt: string;
 }
 
 export interface BusinessPage {
@@ -2592,7 +2597,7 @@ export interface BusinessPage {
 
 export type BusinessDetailBlastsItem = { [key: string]: unknown };
 
-export type BusinessDetail = BusinessSummary & {
+export type BusinessDetail = BusinessSummary & ({
   subcategory: string;
   address: string;
   city: string;
@@ -2603,7 +2608,11 @@ export type BusinessDetail = BusinessSummary & {
   email: string;
   verificationStatus: string;
   blasts: BusinessDetailBlastsItem[];
-};
+  /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
+});
 
 export interface BusinessFollowResult {
   following: boolean;
@@ -2669,6 +2678,15 @@ export interface BusinessAnalytics {
   engagementRate: number;
 }
 
+export type AdminBusinessInputStatus = typeof AdminBusinessInputStatus[keyof typeof AdminBusinessInputStatus];
+
+
+export const AdminBusinessInputStatus = {
+  active: 'active',
+  hidden: 'hidden',
+  locked: 'locked',
+} as const;
+
 export interface AdminBusinessInput {
   /**
      * @minLength 1
@@ -2706,6 +2724,17 @@ export interface AdminBusinessInput {
   bannerImageUrl?: string;
   featured?: boolean;
   verified?: boolean;
+  status?: AdminBusinessInputStatus;
+  /**
+     * @minimum -90
+     * @maximum 90
+     */
+  latitude?: number;
+  /**
+     * @minimum -180
+     * @maximum 180
+     */
+  longitude?: number;
 }
 
 export type AdminBusinessUpdateStatus = typeof AdminBusinessUpdateStatus[keyof typeof AdminBusinessUpdateStatus];
@@ -2755,7 +2784,61 @@ export interface AdminBusinessUpdate {
   featured?: boolean;
   verified?: boolean;
   status?: AdminBusinessUpdateStatus;
+  /**
+     * @minimum -90
+     * @maximum 90
+     * @nullable
+     */
+  latitude?: number | null;
+  /**
+     * @minimum -180
+     * @maximum 180
+     * @nullable
+     */
+  longitude?: number | null;
 }
+
+export type BusinessOwnerInput = (unknown & {
+  userId?: string;
+  /** @maxLength 320 */
+  email?: string;
+});
+
+export type BusinessOwnerStatus = typeof BusinessOwnerStatus[keyof typeof BusinessOwnerStatus];
+
+
+export const BusinessOwnerStatus = {
+  active: 'active',
+  revoked: 'revoked',
+} as const;
+
+export interface BusinessOwner {
+  userId: string;
+  role: string;
+  status: BusinessOwnerStatus;
+  displayName: string;
+  email: string;
+}
+
+export interface AdminBusinessStats {
+  totalTargets: number;
+  claimed: number;
+  unclaimed: number;
+  verified: number;
+  pendingVerification: number;
+  featured: number;
+  hidden: number;
+  recentActivity: number;
+}
+
+export type AdminBusinessDetailAuditHistoryItem = { [key: string]: unknown };
+
+export type AdminBusinessDetail = BusinessDetail & {
+  owners: BusinessOwner[];
+  claims: BusinessClaim[];
+  auditHistory: AdminBusinessDetailAuditHistoryItem[];
+  analytics: BusinessAnalytics;
+};
 
 export type BusinessClaimReviewStatus = typeof BusinessClaimReviewStatus[keyof typeof BusinessClaimReviewStatus];
 
