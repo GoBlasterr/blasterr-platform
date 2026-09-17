@@ -1,0 +1,139 @@
+8. ADMIN CREATES BUSINESS TARGETS
+THIS IS A REQUIRED FEATURE.
+Add a new:
+BUSINESS TARGETS
+section inside the existing BLASTERR ADMIN DASHBOARD.
+Do NOT create a separate Admin application.
+Use the existing Admin Dashboard.
+Do not redesign the Admin Dashboard.
+Add a new navigation item using the existing admin navigation pattern:
+🎯 BUSINESS TARGETS
+9. ADMIN BUSINESS TARGET DASHBOARD
+Admin should see:
+BUSINESS TARGETS
+Stats:
+Total Targets
+Claimed
+Unclaimed
+Verified
+Pending Verification
+Featured
+Hidden
+Businesses with Recent Activity
+Use real database values.
+10. ADMIN CREATE BUSINESS TARGET
+Admin must be able to manually create a Business Target.
+Button:
+CREATE BUSINESS TARGET
+Form:
+Business Name
+Category
+Subcategory
+Description
+Logo
+Cover Image
+Website
+Phone
+Email
+Address
+City
+State
+ZIP
+Latitude
+Longitude
+Status:
+Unclaimed
+Claimed
+Verified
+Hidden
+Featured:
+Yes / No
+Admin should be able to save the Target.
+The Business Target immediately becomes available on the public BUSINESS section if status allows.
+11. ADMIN BUSINESS TARGET MANAGEMENT
+Admin must be able to:
+Create Business Target
+Edit Business Target
+Search Business Targets
+Filter Business Targets
+View Business Target
+View associated Blasts
+Feature Target
+Unfeature Target
+Hide Target
+Unhide Target
+Lock Target
+Unlock Target
+Mark Verified
+Remove verification
+Approve claim
+Reject claim
+Assign owner
+Remove owner
+Review verification requests
+View activity
+View analytics
+View claim history
+View audit history
+Use confirmation dialogs for destructive or sensitive actions.
+12. ADMIN BUSINESS TARGET TABLE
+Create a management table using the existing Admin UI patterns.
+Columns:
+Business
+Category
+Location
+Blasts
+Views
+Followers
+Claim Status
+Verification
+Featured
+Created
+Actions
+Example:
+JOE'S BURGERS
+Restaurant
+Los Angeles, CA
+2,481 Blasts
+824K Views
+Claimed
+✓ Verified
+Actions:
+VIEW
+EDIT
+FEATURE
+MANAGE
+MORE
+13. ADMIN BUSINESS TARGET DETAIL
+When Admin opens a Business Target, show:
+JOE'S BURGERS
+✓ VERIFIED BUSINESS
+Los Angeles, CA
+Business information
+Claim information
+Owner information
+Verification history
+Blast activity
+Views
+Comments
+Followers
+Recent Blasts
+Analytics
+Administrative controls
+Audit log
+14. PRELOADED BUSINESS TARGETS
+Admin should be able to create Business Targets proactively.
+This is extremely important.
+BLASTERR should NOT have to wait for a user to create a Blast before a business exists.
+Admin can create:
+JOE'S BURGERS
+LOS ANGELES LAKERS
+WALMART
+TARGET
+LOCAL RESTAURANT
+LOCAL BARBER
+LOCAL AUTO SHOP
+etc.
+These are examples only.
+Do not hardcode these businesses.
+Business Targets should be dynamically created through Admin.
