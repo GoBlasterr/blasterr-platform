@@ -141,17 +141,17 @@ export default function BusinessDetail() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
               {business.website && (
-                <a href={business.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-blue-400 hover:underline bg-blue-400/5 p-3 rounded-xl border border-blue-400/10">
+                <a href={business.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline bg-blue-400/5 p-3 rounded-xl border border-blue-400/10">
                   <Globe className="w-4 h-4" /> {business.website.replace(/^https?:\/\//, '')}
                 </a>
               )}
               {business.phone && (
-                <div className="flex items-center gap-2 text-sm text-green-400 bg-green-400/5 p-3 rounded-xl border border-green-400/10">
+                <div className="flex items-center gap-2 text-sm text-primary bg-green-400/5 p-3 rounded-xl border border-green-400/10">
                   <Phone className="w-4 h-4" /> {business.phone}
                 </div>
               )}
               {business.email && (
-                <a href={`mailto:${business.email}`} className="flex items-center gap-2 text-sm text-orange-400 hover:underline bg-orange-400/5 p-3 rounded-xl border border-orange-400/10">
+                <a href={`mailto:${business.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline bg-orange-400/5 p-3 rounded-xl border border-orange-400/10">
                   <Mail className="w-4 h-4" /> {business.email}
                 </a>
               )}
