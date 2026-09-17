@@ -3113,11 +3113,11 @@ components:
         engagementRate: { type: number }
     AdminBusinessInput:
       type: object
-      required: [name, location]
+      required: [name, location, category]
       properties:
         name: { type: string, minLength: 1, maxLength: 160 }
         location: { type: string, minLength: 1, maxLength: 160 }
-        category: { type: string, maxLength: 80 }
+        category: { type: string, enum: [Tech, Retail, Food, Entertainment, Services, Health, Other] }
         subcategory: { type: string, maxLength: 80 }
         description: { type: string, maxLength: 1000 }
         city: { type: string, maxLength: 100 }
@@ -3139,7 +3139,7 @@ components:
       properties:
         name: { type: string, minLength: 1, maxLength: 160 }
         location: { type: string, minLength: 1, maxLength: 160 }
-        category: { type: string, maxLength: 80 }
+        category: { type: string, enum: [Tech, Retail, Food, Entertainment, Services, Health, Other] }
         subcategory: { type: string, maxLength: 80 }
         description: { type: string, maxLength: 1000 }
         city: { type: string, maxLength: 100 }

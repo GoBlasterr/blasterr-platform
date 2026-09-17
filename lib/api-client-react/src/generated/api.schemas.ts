@@ -2678,6 +2678,19 @@ export interface BusinessAnalytics {
   engagementRate: number;
 }
 
+export type AdminBusinessInputCategory = typeof AdminBusinessInputCategory[keyof typeof AdminBusinessInputCategory];
+
+
+export const AdminBusinessInputCategory = {
+  Tech: 'Tech',
+  Retail: 'Retail',
+  Food: 'Food',
+  Entertainment: 'Entertainment',
+  Services: 'Services',
+  Health: 'Health',
+  Other: 'Other',
+} as const;
+
 export type AdminBusinessInputStatus = typeof AdminBusinessInputStatus[keyof typeof AdminBusinessInputStatus];
 
 
@@ -2698,8 +2711,7 @@ export interface AdminBusinessInput {
      * @maxLength 160
      */
   location: string;
-  /** @maxLength 80 */
-  category?: string;
+  category: AdminBusinessInputCategory;
   /** @maxLength 80 */
   subcategory?: string;
   /** @maxLength 1000 */
@@ -2737,6 +2749,19 @@ export interface AdminBusinessInput {
   longitude?: number;
 }
 
+export type AdminBusinessUpdateCategory = typeof AdminBusinessUpdateCategory[keyof typeof AdminBusinessUpdateCategory];
+
+
+export const AdminBusinessUpdateCategory = {
+  Tech: 'Tech',
+  Retail: 'Retail',
+  Food: 'Food',
+  Entertainment: 'Entertainment',
+  Services: 'Services',
+  Health: 'Health',
+  Other: 'Other',
+} as const;
+
 export type AdminBusinessUpdateStatus = typeof AdminBusinessUpdateStatus[keyof typeof AdminBusinessUpdateStatus];
 
 
@@ -2757,8 +2782,7 @@ export interface AdminBusinessUpdate {
      * @maxLength 160
      */
   location?: string;
-  /** @maxLength 80 */
-  category?: string;
+  category?: AdminBusinessUpdateCategory;
   /** @maxLength 80 */
   subcategory?: string;
   /** @maxLength 1000 */

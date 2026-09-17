@@ -5139,8 +5139,6 @@ export const createAdminBusinessBodyNameMax = 160;
 
 export const createAdminBusinessBodyLocationMax = 160;
 
-export const createAdminBusinessBodyCategoryMax = 80;
-
 export const createAdminBusinessBodySubcategoryMax = 80;
 
 export const createAdminBusinessBodyDescriptionMax = 1000;
@@ -5174,7 +5172,7 @@ export const createAdminBusinessBodyLongitudeMax = 180;
 export const CreateAdminBusinessBody = zod.object({
   "name": zod.string().min(1).max(createAdminBusinessBodyNameMax),
   "location": zod.string().min(1).max(createAdminBusinessBodyLocationMax),
-  "category": zod.string().max(createAdminBusinessBodyCategoryMax).optional(),
+  "category": zod.enum(['Tech', 'Retail', 'Food', 'Entertainment', 'Services', 'Health', 'Other']),
   "subcategory": zod.string().max(createAdminBusinessBodySubcategoryMax).optional(),
   "description": zod.string().max(createAdminBusinessBodyDescriptionMax).optional(),
   "city": zod.string().max(createAdminBusinessBodyCityMax).optional(),
@@ -5323,8 +5321,6 @@ export const updateAdminBusinessBodyNameMax = 160;
 
 export const updateAdminBusinessBodyLocationMax = 160;
 
-export const updateAdminBusinessBodyCategoryMax = 80;
-
 export const updateAdminBusinessBodySubcategoryMax = 80;
 
 export const updateAdminBusinessBodyDescriptionMax = 1000;
@@ -5358,7 +5354,7 @@ export const updateAdminBusinessBodyLongitudeMax = 180;
 export const UpdateAdminBusinessBody = zod.object({
   "name": zod.string().min(1).max(updateAdminBusinessBodyNameMax).optional(),
   "location": zod.string().min(1).max(updateAdminBusinessBodyLocationMax).optional(),
-  "category": zod.string().max(updateAdminBusinessBodyCategoryMax).optional(),
+  "category": zod.enum(['Tech', 'Retail', 'Food', 'Entertainment', 'Services', 'Health', 'Other']).optional(),
   "subcategory": zod.string().max(updateAdminBusinessBodySubcategoryMax).optional(),
   "description": zod.string().max(updateAdminBusinessBodyDescriptionMax).optional(),
   "city": zod.string().max(updateAdminBusinessBodyCityMax).optional(),

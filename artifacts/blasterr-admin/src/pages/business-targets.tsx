@@ -30,7 +30,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, CheckCircle2, Eye, EyeOff, MoreHorizontal, Pencil, Plus, Search, Star, Upload, UserPlus, UserMinus, ExternalLink } from "lucide-react";
 
-type FormState = AdminBusinessInput & { id?: string; status: "active" | "hidden" | "locked" };
+const BUSINESS_CATEGORIES = ["Tech", "Retail", "Food", "Entertainment", "Services", "Health", "Other"] as const;
+type BusinessCategory = typeof BUSINESS_CATEGORIES[number];
+type FormState = Omit<AdminBusinessInput, "category"> & { id?: string; category: BusinessCategory | ""; status: "active" | "hidden" | "locked" };
+const isBusinessCategory = (value: string): value is BusinessCategory => BUSINESS_CATEGORIES.some((category) => category === value);
+
 const blankForm = (): FormState => ({
   name: "", location: "", category: "", subcategory: "", description: "", city: "", state: "", postalCode: "", address: "", phone: "", website: "", email: "", imageUrl: "", bannerImageUrl: "", featured: false, verified: false, latitude: undefined, longitude: undefined, status: "active"
 });
@@ -129,7 +133,7 @@ function BusinessFormDialog({ target, open, onOpenChange }: { target: BusinessSu
       id: target.id, 
       name: target.name, 
       location: target.location, 
-      category: target.category || "", 
+      category: isBusinessCategory(target.category) ? target.category : "", 
       subcategory: (target as any).subcategory || "", 
       description: target.description || "", 
       city: (target as any).city || "", 
@@ -153,7 +157,7 @@ function BusinessFormDialog({ target, open, onOpenChange }: { target: BusinessSu
     const data: AdminBusinessUpdate = { 
       name: form.name.trim(), 
       location: form.location.trim(), 
-      category: form.category?.trim() || undefined, 
+      category: form.category || undefined, 
       subcategory: form.subcategory?.trim() || undefined, 
       description: form.description?.trim() || undefined, 
       city: form.city?.trim() || undefined, 
@@ -172,8 +176,8 @@ function BusinessFormDialog({ target, open, onOpenChange }: { target: BusinessSu
       longitude: form.longitude === undefined ? undefined : Number(form.longitude)
     };
     
-    if (!data.name || !data.location) {
-      toast({ title: "Required fields missing", description: "Name and location are required.", variant: "destructive" }); return;
+    if (!data.name || !data.location || !data.category) {
+      toast({ title: "Required fields missing", description: "Name, location, and category are required.", variant: "destructive" }); return;
     }
     
     const callbacks = { 
@@ -201,7 +205,17 @@ function BusinessFormDialog({ target, open, onOpenChange }: { target: BusinessSu
       <label className="space-y-1 text-sm font-medium">Name <span className="text-destructive">*</span><Input value={form.name} onChange={(e) => set("name", e.target.value)} data-testid="input-business-name" /></label>
       <label className="space-y-1 text-sm font-medium">Location string <span className="text-destructive">*</span><Input value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="e.g. San Francisco, CA" data-testid="input-business-location" /></label>
       
-      <label className="space-y-1 text-sm font-medium">Category<Input value={form.category || ""} onChange={(e) => set("category", e.target.value)} data-testid="input-business-category" /></label>
+      <label className="space-y-1 text-sm font-medium">
+        Category <span className="text-destructive">*</span>
+        <Select value={form.category || undefined} onValueChange={(value) => set("category", value as FormState["category"])}>
+          <SelectTrigger data-testid="input-business-category">
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            {BUSINESS_CATEGORIES.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </label>
       <label className="space-y-1 text-sm font-medium">Subcategory<Input value={form.subcategory || ""} onChange={(e) => set("subcategory", e.target.value)} data-testid="input-business-subcategory" /></label>
       
       <label className="space-y-1 text-sm font-medium sm:col-span-2">Description<Textarea value={form.description || ""} onChange={(e) => set("description", e.target.value)} data-testid="input-business-description" /></label>

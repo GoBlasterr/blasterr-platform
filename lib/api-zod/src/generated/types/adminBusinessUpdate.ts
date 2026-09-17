@@ -5,6 +5,7 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { AdminBusinessUpdateCategory } from './adminBusinessUpdateCategory';
 import type { AdminBusinessUpdateStatus } from './adminBusinessUpdateStatus';
 
 export interface AdminBusinessUpdate {
@@ -18,8 +19,7 @@ export interface AdminBusinessUpdate {
      * @maxLength 160
      */
   location?: string;
-  /** @maxLength 80 */
-  category?: string;
+  category?: AdminBusinessUpdateCategory;
   /** @maxLength 80 */
   subcategory?: string;
   /** @maxLength 1000 */
