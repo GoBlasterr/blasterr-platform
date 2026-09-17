@@ -9,6 +9,10 @@ import { Seo } from "@/components/seo";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
+function absoluteUrl(path: string): string {
+  return new URL(path, window.location.origin).toString();
+}
+
 function messageFromError(cause: unknown): string {
   const error = cause as {
     errors?: Array<{ longMessage?: string; message?: string }>;
@@ -73,8 +77,8 @@ export default function SignIn() {
     try {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
-        redirectUrl: `${basePath}/sign-in/sso-callback`,
-        redirectUrlComplete: `${basePath}/home`,
+        redirectUrl: absoluteUrl(`${basePath}/sign-in/sso-callback`),
+        redirectUrlComplete: absoluteUrl(`${basePath}/home`),
       });
     } catch (cause) {
       setError(messageFromError(cause));
