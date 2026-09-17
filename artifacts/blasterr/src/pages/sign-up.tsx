@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AuthenticateWithRedirectCallback } from "@clerk/react";
 import { useSignUp } from "@clerk/react/legacy";
 import { Link } from "wouter";
@@ -48,6 +48,8 @@ function SignUpForm() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const autoStartGoogle = new URLSearchParams(window.location.search).get("oauth") === "google";
+  const googleStartRef = useRef(false);
 
   async function completeAccount(sessionId: string | null) {
     if (!isLoaded || !setActive || !sessionId) {
@@ -104,7 +106,7 @@ function SignUpForm() {
     }
   }
 
-  async function continueWithGoogle() {
+  async function startGoogleAuth() {
     if (!isLoaded || isSubmitting || isGoogleSubmitting) return;
 
     setError("");
@@ -119,6 +121,26 @@ function SignUpForm() {
       setError(messageFromError(cause));
       setIsGoogleSubmitting(false);
     }
+  }
+
+  useEffect(() => {
+    if (!autoStartGoogle || !isLoaded || googleStartRef.current) return;
+    googleStartRef.current = true;
+    void startGoogleAuth();
+  }, [autoStartGoogle, isLoaded]);
+
+  function continueWithGoogle() {
+    if (window.top !== window.self) {
+      const authUrl = new URL(`${basePath}/sign-up`, window.location.origin);
+      authUrl.searchParams.set("oauth", "google");
+      const authWindow = window.open(authUrl.toString(), "_blank", "noopener,noreferrer");
+      if (!authWindow) {
+        setError("Please allow pop-ups to continue with Google.");
+      }
+      return;
+    }
+
+    void startGoogleAuth();
   }
 
   return (
