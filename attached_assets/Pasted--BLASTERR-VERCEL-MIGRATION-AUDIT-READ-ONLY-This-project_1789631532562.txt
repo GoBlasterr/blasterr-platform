@@ -1,0 +1,144 @@
+# BLASTERR → VERCEL MIGRATION AUDIT (READ-ONLY)
+
+This project is already in production on Replit. I want to migrate it safely to GitHub + Vercel without breaking anything.
+
+## IMPORTANT RULES
+
+* DO NOT modify code.
+* DO NOT refactor files.
+* DO NOT rename folders.
+* DO NOT change authentication.
+* DO NOT change Supabase.
+* DO NOT change Clerk.
+* DO NOT deploy anything.
+* Audit only and generate a report.
+
+## PROJECT GOAL
+
+I want:
+
+* Website frontend hosted on Vercel.
+* Backend migrated only if it is safe.
+* Separate admin dashboard must continue working.
+* Future development will still happen inside Replit and automatically deploy through GitHub to Vercel.
+
+## AUDIT CHECKLIST
+
+### 1. Project Architecture
+
+Explain:
+
+* Frontend framework.
+* Backend framework.
+* Folder structure.
+* Build system.
+* Entry files.
+* API folders.
+* Static assets.
+
+### 2. Authentication Audit
+
+Inspect every authentication implementation.
+
+Tell me:
+
+* Where Clerk is configured.
+* Where Replit authentication is configured.
+* Which pages use Clerk.
+* Which pages use Replit authentication.
+* Callback URLs.
+* Redirect URLs.
+* Middleware protecting routes.
+* Session management.
+
+### 3. Replit Dependency Audit
+
+Find every Replit-specific dependency.
+
+Include:
+
+* Replit Auth.
+* Replit Database.
+* Replit Secrets.
+* Replit Storage.
+* Replit Deploy configuration.
+* Hardcoded *.replit.app URLs.
+* Replit environment APIs.
+
+List every file.
+
+### 4. Supabase Audit
+
+Inspect:
+
+* Database.
+* Storage buckets.
+* Auth usage.
+* Admin authentication.
+* Service role usage.
+* Anonymous key usage.
+
+List every file using Supabase.
+
+### 5. Admin Dashboard Audit
+
+Inspect the admin dashboard separately.
+
+Explain:
+
+* How admin authentication works.
+* Whether admin shares backend code with website.
+* Whether admin can run on Vercel.
+* Whether admin should remain a separate deployment.
+
+### 6. API Audit
+
+List every API endpoint.
+
+Include:
+
+Route | Purpose | Authentication | External Service
+
+### 7. Environment Variables
+
+Generate a complete table.
+
+Variable | Used By | Needed on Vercel | Needed on Replit
+
+Include Clerk, Supabase, Stripe, Cloudflare, Google OAuth, Email, Maps, Analytics, etc.
+
+### 8. Domain & CORS Audit
+
+Inspect:
+
+* Website URL.
+* Admin URL.
+* API URL.
+* CORS origins.
+* Cookie domains.
+* Callback domains.
+
+Explain every configuration that must change for Vercel.
+
+### 9. Vercel Compatibility Report
+
+Create four categories:
+
+* Safe to migrate immediately.
+* Requires configuration changes.
+* Should temporarily stay on Replit.
+* High-risk items.
+
+### 10. GitHub Auto Deploy Plan
+
+Explain how to configure:
+
+Replit → GitHub → Vercel
+
+so every push to GitHub automatically updates Vercel while I continue coding in Replit.
+
+### 11. Migration Checklist
+
+Produce a step-by-step migration checklist.
+
+Do not make changes. Output audit report only.
