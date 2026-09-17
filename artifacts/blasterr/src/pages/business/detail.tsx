@@ -146,7 +146,7 @@ export default function BusinessDetail() {
                 </a>
               )}
               {business.phone && (
-                <div className="flex items-center gap-2 text-sm text-primary bg-primary/10 p-3 rounded-xl border border-primary/20">
+                <div className="flex items-center justify-center gap-2 text-center text-sm text-primary bg-primary/10 p-3 rounded-xl border border-primary/20">
                   <Phone className="w-4 h-4" /> {business.phone}
                 </div>
               )}
