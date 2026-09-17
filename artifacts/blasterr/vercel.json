@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://01150979-4cdc-4281-bbd6-a68bbd2bf764-00-3g80fzfe36k4.riker.replit.dev/api/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
