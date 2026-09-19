@@ -8,3 +8,9 @@ Enforce the Business Target ownership cap across every path that can activate ow
 **Why:** Creation, claim approval, admin assignment, and archived-page reactivation can race. Checking only the direct creation path or using a pre-transaction status snapshot can let an owner exceed the cap.
 
 **How to apply:** Any new ownership-grant or page-reactivation path must join the shared lock/count protocol. Protected owned-list, Business Center, and analytics caches must be scoped to the authenticated user and cleared on identity transitions.
+
+Business media replacements must distinguish Clerk upload ownership from internal business membership. Unchanged media references are idempotent so co-owners can edit text, while actual replacements require ready owner/purpose-matched assets. Binding and deletion must use compatible lifecycle and row locks.
+
+**Why:** Revalidating unchanged media against the current editor blocks legitimate co-owners, while independent delete/bind checks can remove an image as it becomes attached to a Business Target.
+
+**How to apply:** Validate and rebind only changed media slots. Claim deletion before reference checks, serialize binding against that claim, and never allow an attached asset to be deleted.

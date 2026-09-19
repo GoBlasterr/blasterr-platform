@@ -2660,11 +2660,13 @@ export interface BusinessProfileInput {
   /**
      * @minLength 1
      * @maxLength 160
+     * @pattern .*\S.*
      */
   name: string;
   /**
      * @minLength 1
      * @maxLength 160
+     * @pattern .*\S.*
      */
   location: string;
   category: BusinessProfileInputCategory;
@@ -2679,6 +2681,51 @@ export interface BusinessProfileInput {
   email?: string;
   /** @maxLength 40 */
   phone?: string;
+  /** @maxLength 500 */
+  imageUrl?: string;
+  /** @maxLength 500 */
+  bannerImageUrl?: string;
+}
+
+export type BusinessProfileUpdateCategory = typeof BusinessProfileUpdateCategory[keyof typeof BusinessProfileUpdateCategory];
+
+
+export const BusinessProfileUpdateCategory = {
+  Tech: 'Tech',
+  Retail: 'Retail',
+  Food: 'Food',
+  Entertainment: 'Entertainment',
+  Services: 'Services',
+  Health: 'Health',
+  Other: 'Other',
+} as const;
+
+export interface BusinessProfileUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     * @pattern .*\S.*
+     */
+  name?: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     * @pattern .*\S.*
+     */
+  location?: string;
+  category?: BusinessProfileUpdateCategory;
+  /** @maxLength 1000 */
+  description?: string;
+  /** @maxLength 500 */
+  website?: string;
+  /** @maxLength 320 */
+  email?: string;
+  /** @maxLength 40 */
+  phone?: string;
+  /** @maxLength 500 */
+  imageUrl?: string;
+  /** @maxLength 500 */
+  bannerImageUrl?: string;
 }
 
 export type BusinessClaimStatus = typeof BusinessClaimStatus[keyof typeof BusinessClaimStatus];

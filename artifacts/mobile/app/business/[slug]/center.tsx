@@ -99,16 +99,16 @@ export default function BusinessCenterScreen() {
 
         <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 32 }]}>Management</Text>
         <View style={styles.menu}>
-          <Pressable style={[styles.menuItem, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+          {center.membershipRole === 'owner' && <Pressable onPress={() => router.push(`/business/${slug}/edit` as never)} accessibilityRole="button" style={[styles.menuItem, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
             <Feather name="edit-3" size={20} color={colors.foreground} />
             <Text style={[styles.menuText, { color: colors.foreground }]}>Edit Profile Details</Text>
             <Feather name="chevron-right" size={20} color={colors.mutedForeground} style={{ marginLeft: 'auto' }} />
-          </Pressable>
-          <Pressable style={[styles.menuItem, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+          </Pressable>}
+          {center.membershipRole === 'owner' && <Pressable onPress={() => router.push(`/business/${slug}/edit` as never)} accessibilityRole="button" style={[styles.menuItem, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
             <Feather name="image" size={20} color={colors.foreground} />
             <Text style={[styles.menuText, { color: colors.foreground }]}>Manage Photos</Text>
             <Feather name="chevron-right" size={20} color={colors.mutedForeground} style={{ marginLeft: 'auto' }} />
-          </Pressable>
+          </Pressable>}
           <Pressable style={[styles.menuItem, { backgroundColor: colors.card, borderBottomColor: colors.border, borderBottomWidth: 0 }]}>
             <Feather name="trending-up" size={20} color={colors.foreground} />
             <Text style={[styles.menuText, { color: colors.foreground }]}>Promote Business</Text>

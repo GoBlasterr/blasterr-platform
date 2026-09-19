@@ -10,9 +10,12 @@ import {
   targetAliasesTable,
   usersTable,
   targetsTable,
+  mediaAssetsTable,
   db,
 } from "@workspace/db";
-import { normalizeTargetText, targetIdentityLockKey } from "./target-resolution";
+import { lockTargetNameIdentity, normalizeTargetText, targetIdentityLockKey } from "./target-resolution";
+import { keyFromObjectPath } from "./r2";
+import { preloadedCollisions } from "./social-repository";
 
 export type BusinessFilters = { page?: number; limit?: number; q?: string; city?: string; state?: string; category?: string; featured?: boolean; status?: string; includeInactive?: boolean };
 const pageArgs = (filters: BusinessFilters) => ({ page: Math.max(1, filters.page ?? 1), limit: Math.min(100, Math.max(1, filters.limit ?? 20)) });
@@ -157,10 +160,14 @@ export async function assignBusinessOwner(targetId: string, input: { userId?: st
 export async function removeBusinessOwner(targetId: string, input: { userId?: string; email?: string }) {
   const user = await resolveBusinessOwner(input);
   if (!user) return null;
-  const updated = await db.update(businessMembershipsTable).set({ status: "revoked", updatedAt: new Date() })
-    .where(and(eq(businessMembershipsTable.targetId, targetId), eq(businessMembershipsTable.userId, user.id))).returning();
-  if (!updated[0]) return null;
-  return { userId: user.id, role: updated[0].role, status: "revoked" as const, displayName: user.displayName, email: user.email };
+  return db.transaction(async (tx) => {
+    await lockBusinessOwnerSet(tx, targetId);
+    await tx.execute(sql`select target_id from business_memberships where target_id = ${targetId} and user_id = ${user.id} for update`);
+    const updated = await tx.update(businessMembershipsTable).set({ status: "revoked", updatedAt: new Date() })
+      .where(and(eq(businessMembershipsTable.targetId, targetId), eq(businessMembershipsTable.userId, user.id))).returning();
+    if (!updated[0]) return null;
+    return { userId: user.id, role: updated[0].role, status: "revoked" as const, displayName: user.displayName, email: user.email };
+  });
 }
 
 export async function toggleFollow(targetId: string, userId: string) {
@@ -266,6 +273,9 @@ export async function createOwnedBusinessTarget(input: {
   website?: string;
   email?: string;
   phone?: string;
+  imageUrl?: string;
+  bannerImageUrl?: string;
+  mediaOwnerId?: string;
 }, ownerUserId: string) {
   const name = input.name.trim();
   const location = input.location.trim();
@@ -276,6 +286,7 @@ export async function createOwnedBusinessTarget(input: {
   return db.transaction(async (tx) => {
     if (!(await hasOwnerCapacity(tx, ownerUserId))) return { conflict: "limit" as const };
 
+    await lockTargetNameIdentity(tx, name);
     const lockKey = targetIdentityLockKey({ type: "business", name, location });
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
     const aliasTargetIds = (await tx.select({ targetId: targetAliasesTable.targetId })
@@ -303,6 +314,8 @@ export async function createOwnedBusinessTarget(input: {
       slug,
       type: "business",
       description: input.description.trim(),
+      imageUrl: input.imageUrl?.trim() ?? "",
+      bannerImageUrl: input.bannerImageUrl?.trim() ?? "",
       location,
       normalizedName,
       normalizedLocation,
@@ -320,6 +333,10 @@ export async function createOwnedBusinessTarget(input: {
       verificationStatus: "unverified",
       status: "active",
     });
+    await bindTargetMedia(tx, target.id, input.mediaOwnerId ?? ownerUserId, [
+      { value: input.imageUrl, purpose: "target-image", replace: input.imageUrl !== undefined && input.imageUrl !== "" },
+      { value: input.bannerImageUrl, purpose: "banner", replace: input.bannerImageUrl !== undefined && input.bannerImageUrl !== "" },
+    ]);
     await tx.insert(businessMembershipsTable).values({
       targetId: target.id,
       userId: ownerUserId,
@@ -328,6 +345,91 @@ export async function createOwnedBusinessTarget(input: {
     });
     return { conflict: null, target };
   });
+}
+
+export async function updateOwnedBusinessTarget(targetId: string, ownerUserId: string, input: {
+  name?: string;
+  location?: string;
+  category?: string;
+  description?: string;
+  website?: string;
+  email?: string;
+  phone?: string;
+  imageUrl?: string;
+  bannerImageUrl?: string;
+  resolveImage?: (value: string | undefined, current: string) => Promise<string>;
+  resolveBanner?: (value: string | undefined, current: string) => Promise<string>;
+  mediaOwnerId?: string;
+}) {
+  return db.transaction(async (tx) => {
+    await lockBusinessOwnerSet(tx, targetId);
+    const membership = (await tx.execute(sql`select role from business_memberships where target_id = ${targetId} and user_id = ${ownerUserId} and status = 'active' for update`)).rows[0] as { role?: string } | undefined;
+    if (!membership || membership.role !== "owner") return null;
+    const target = (await tx.select().from(targetsTable)
+      .where(and(eq(targetsTable.id, targetId), eq(targetsTable.type, "business"))))[0];
+    if (!target) return null;
+    const profile = (await tx.select().from(businessProfilesTable).where(eq(businessProfilesTable.targetId, targetId)))[0];
+    if (!profile) return null;
+    const name = input.name === undefined ? target.name : input.name.trim();
+    const location = input.location === undefined ? target.location : input.location.trim();
+    const normalizedName = normalizeTargetText(name);
+    const normalizedLocation = normalizeTargetText(location);
+    if (input.name !== undefined || input.location !== undefined) {
+      await lockTargetNameIdentity(tx, name);
+      const lockKey = targetIdentityLockKey({ type: "business", name, location });
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
+      const aliasTargetIds = (await tx.select({ targetId: targetAliasesTable.targetId }).from(targetAliasesTable).where(eq(targetAliasesTable.normalizedAlias, normalizedName))).map(row => row.targetId);
+      const canonical = (await tx.select({ id: targetsTable.id }).from(targetsTable).where(and(
+        eq(targetsTable.isCanonical, true), eq(targetsTable.isPreloaded, true),
+        or(eq(targetsTable.normalizedName, normalizedName), ...(aliasTargetIds.length ? [inArray(targetsTable.id, aliasTargetIds)] : [])),
+      )))[0];
+      if (canonical && canonical.id !== targetId) return { conflict: "duplicate" as const };
+      const existing = (await tx.select({ id: targetsTable.id }).from(targetsTable).where(and(
+        eq(targetsTable.type, "business"), eq(targetsTable.normalizedName, normalizedName), eq(targetsTable.normalizedLocation, normalizedLocation),
+      )))[0];
+      if (existing && existing.id !== targetId) return { conflict: "duplicate" as const };
+    }
+    const targetChanges: Record<string, unknown> = { updatedAt: new Date() };
+    if (input.name !== undefined) { targetChanges.name = name; targetChanges.normalizedName = normalizedName; }
+    if (input.location !== undefined) { targetChanges.location = location; targetChanges.normalizedLocation = normalizedLocation; }
+    if (input.description !== undefined) targetChanges.description = input.description.trim();
+    const replaceImage = input.imageUrl !== undefined && input.imageUrl !== "" && input.imageUrl !== target.imageUrl;
+    const replaceBanner = input.bannerImageUrl !== undefined && input.bannerImageUrl !== "" && input.bannerImageUrl !== target.bannerImageUrl;
+    if (replaceImage) targetChanges.imageUrl = input.resolveImage ? await input.resolveImage(input.imageUrl!, target.imageUrl) : input.imageUrl;
+    if (replaceBanner) targetChanges.bannerImageUrl = input.resolveBanner ? await input.resolveBanner(input.bannerImageUrl!, target.bannerImageUrl) : input.bannerImageUrl;
+    await tx.update(targetsTable).set(targetChanges).where(eq(targetsTable.id, targetId));
+    const profileChanges: Record<string, unknown> = { updatedAt: new Date() };
+    for (const key of ["category", "website", "email", "phone"] as const) {
+      if (input[key] !== undefined) profileChanges[key] = input[key]!.trim();
+    }
+    await tx.update(businessProfilesTable).set(profileChanges).where(eq(businessProfilesTable.targetId, targetId));
+    await bindTargetMedia(tx, targetId, input.mediaOwnerId ?? ownerUserId, [
+      { value: targetChanges.imageUrl as string | undefined, purpose: "target-image", replace: replaceImage },
+      { value: targetChanges.bannerImageUrl as string | undefined, purpose: "banner", replace: replaceBanner },
+    ]);
+    return { ...target, ...targetChanges, ...profile, ...profileChanges };
+  });
+}
+
+async function bindTargetMedia(tx: BusinessTransaction, targetId: string, ownerId: string, values: Array<{ value: string | undefined; purpose: string; replace: boolean }>) {
+  const readyAssets: Array<{ id: string }> = [];
+  for (const { value, purpose } of values) {
+    if (!values.find(item => item.purpose === purpose)?.replace) continue;
+    const objectKey = value ? keyFromObjectPath(value) : null;
+    if (!objectKey) continue;
+    const locked = await tx.execute(sql`select id from media_assets where owner_id = ${ownerId} and object_key = ${objectKey} and purpose = ${purpose} and lifecycle_status = 'ready' for update`);
+    if (locked.rows.length !== 1) throw new Error("Referenced business media asset is no longer ready or owned by this account.");
+    readyAssets.push({ id: String((locked.rows[0] as { id: string }).id) });
+  }
+  for (const { purpose, replace } of values) {
+    if (!replace) continue;
+    await tx.update(mediaAssetsTable).set({ resourceType: null, resourceId: null, updatedAt: new Date() })
+      .where(and(eq(mediaAssetsTable.resourceType, "business_target"), eq(mediaAssetsTable.resourceId, targetId), eq(mediaAssetsTable.purpose, purpose)));
+  }
+  for (const asset of readyAssets) {
+    await tx.update(mediaAssetsTable).set({ resourceType: "business_target", resourceId: targetId, updatedAt: new Date() })
+      .where(eq(mediaAssetsTable.id, asset.id));
+  }
 }
 
 export async function submitClaim(targetId: string, applicantId: string, verificationMethod: string, evidence: string) {
@@ -393,9 +495,17 @@ export async function createBusinessTarget(input: {
 // Kept here to ensure Target and profile are committed in one transaction.
 async function socialCreatePreloadedTarget(tx: any, input: Parameters<typeof createBusinessTarget>[0], actorId: string) {
   const canonicalKey = input.slug.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const existing = (await tx.select().from(targetsTable).where(sql`${targetsTable.canonicalKey} = ${canonicalKey} or (${targetsTable.type} = 'business' and ${targetsTable.normalizedName} = ${input.name.trim().toLowerCase()} and ${targetsTable.normalizedLocation} = ${input.location.trim().toLowerCase()})`))[0];
+  await lockTargetNameIdentity(tx, input.name);
+  const normalizedName = normalizeTargetText(input.name);
+  const normalizedLocation = normalizeTargetText(input.location);
+  const collisions = await preloadedCollisions(tx, { name: input.name, slug: input.slug });
+  const existing = (await tx.select().from(targetsTable).where(or(
+    eq(targetsTable.canonicalKey, canonicalKey),
+    and(eq(targetsTable.type, "business"), eq(targetsTable.normalizedName, normalizedName), eq(targetsTable.normalizedLocation, normalizedLocation)),
+    ...(collisions.targetIds.length ? [inArray(targetsTable.id, collisions.targetIds)] : []),
+  )))[0];
   if (existing) return { created: false, target: existing };
-   const [target] = await tx.insert(targetsTable).values({ id: `target-${randomUUID()}`, name: input.name.trim(), slug: input.slug, type: "business", description: input.description, imageUrl: input.imageUrl, bannerImageUrl: input.bannerImageUrl, location: input.location, latitude: input.latitude, longitude: input.longitude, normalizedName: input.name.trim().toLowerCase(), normalizedLocation: input.location.trim().toLowerCase(), isCanonical: true, isPreloaded: true, preloadCategory: input.category, provenance: "admin", createdByAdminId: actorId, featured: input.featured, verified: input.verified, canonicalKey, archivedAt: input.status === "hidden" ? new Date() : null }).returning();
+   const [target] = await tx.insert(targetsTable).values({ id: `target-${randomUUID()}`, name: input.name.trim(), slug: input.slug, type: "business", description: input.description, imageUrl: input.imageUrl, bannerImageUrl: input.bannerImageUrl, location: input.location, latitude: input.latitude, longitude: input.longitude, normalizedName, normalizedLocation, isCanonical: true, isPreloaded: true, preloadCategory: input.category, provenance: "admin", createdByAdminId: actorId, featured: input.featured, verified: input.verified, canonicalKey, archivedAt: input.status === "hidden" ? new Date() : null }).returning();
   if (!target) throw new Error("Unable to create Business Target.");
   return { created: true, target };
 }

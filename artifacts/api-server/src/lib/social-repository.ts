@@ -5,7 +5,7 @@ import {
 } from "@workspace/db";
 import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { shouldBootstrapSocialFixtures } from "./social-bootstrap-policy";
-import { normalizeTargetText, normalizedTargetTerms, targetIdentityLockKey } from "./target-resolution";
+import { lockTargetNameIdentity, normalizeTargetText, normalizedTargetTerms, targetIdentityLockKey } from "./target-resolution";
 import { readableProfileMedia } from "./profile-media";
 
 export type Reaction = "blast" | "facts" | "cap" | "funny" | "watching";
@@ -153,6 +153,7 @@ export async function createTarget(input: Pick<SocialTarget, "id" | "name" | "sl
   return db.transaction(async tx => {
     const normalizedName = normalizeTargetText(input.name);
     const normalizedLocation = normalizeTargetText(input.location);
+    await lockTargetNameIdentity(tx, normalizedName);
     const identity = targetIdentityLockKey(input);
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${identity}))`);
     const canonical = await tx.select({ id: targetsTable.id }).from(targetsTable)
@@ -195,7 +196,7 @@ export class PreloadedTargetCollisionError extends Error {
   }
 }
 const canonicalKeyFor = (slug: string) => normalizeTargetText(slug).replace(/\s/g, "-");
-async function preloadedCollisions(tx: any, input: { name: string; slug: string; aliases?: string[] }, exceptId?: string) {
+export async function preloadedCollisions(tx: any, input: { name: string; slug: string; aliases?: string[] }, exceptId?: string) {
   const canonicalKey = canonicalKeyFor(input.slug);
   const normalizedAliases = normalizedTargetTerms(input.name, input.aliases);
   const targetRows = await tx.select({ id: targetsTable.id }).from(targetsTable).where(or(
@@ -210,6 +211,7 @@ async function preloadedCollisions(tx: any, input: { name: string; slug: string;
 }
 export async function createPreloadedTargetInTransaction(tx: any, input: PreloadedSubjectInput, actorId: string, provenance = "admin") {
   const canonicalKey = canonicalKeyFor(input.slug);
+    await lockTargetNameIdentity(tx, [input.name, ...(input.aliases ?? [])]);
     const [existing] = await tx.select().from(targetsTable).where(eq(targetsTable.canonicalKey, canonicalKey));
     if (existing) return { target: existing, created: false };
     const collisions = await preloadedCollisions(tx, input);
@@ -235,6 +237,7 @@ export async function updatePreloadedTarget(id: string, input: Partial<Preloaded
   const [existing] = await tx.select().from(targetsTable).where(and(eq(targetsTable.id, id), eq(targetsTable.isPreloaded, true)));
   if (!existing) return undefined;
   const candidate = { name: input.name ?? existing.name, slug: input.slug ?? existing.slug, aliases: input.aliases ?? (await tx.select({ alias: targetAliasesTable.alias }).from(targetAliasesTable).where(eq(targetAliasesTable.targetId, id))).map((row: { alias: string }) => row.alias) };
+   await lockTargetNameIdentity(tx, [candidate.name, ...candidate.aliases]);
   const collisions = await preloadedCollisions(tx, candidate, id);
   if (collisions.targetIds.length) throw new PreloadedTargetCollisionError(collisions);
   const [row] = await tx.update(targetsTable).set({
@@ -261,6 +264,7 @@ export async function adoptPreloadedTarget(id: string, input: PreloadedSubjectIn
     if (!existing) return undefined;
     if (existing.isPreloaded) throw new PreloadedTargetCollisionError({ targetIds: [id], aliases: [] });
     const candidate = { name: existing.name, slug: input.slug, aliases: input.aliases ?? [] };
+    await lockTargetNameIdentity(tx, [candidate.name, ...candidate.aliases]);
     const collisions = await preloadedCollisions(tx, candidate, id);
     if (collisions.targetIds.length) throw new PreloadedTargetCollisionError(collisions);
     const [row] = await tx.update(targetsTable).set({

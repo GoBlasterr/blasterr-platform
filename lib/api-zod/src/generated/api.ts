@@ -4953,8 +4953,12 @@ export const ListBusinessesResponse = zod.object({
  */
 export const createBusinessProfileBodyNameMax = 160;
 
+
+export const createBusinessProfileBodyNameRegExp = new RegExp('.*\\S.*');
 export const createBusinessProfileBodyLocationMax = 160;
 
+
+export const createBusinessProfileBodyLocationRegExp = new RegExp('.*\\S.*');
 export const createBusinessProfileBodyDescriptionMax = 1000;
 
 export const createBusinessProfileBodyWebsiteMax = 500;
@@ -4963,16 +4967,22 @@ export const createBusinessProfileBodyEmailMax = 320;
 
 export const createBusinessProfileBodyPhoneMax = 40;
 
+export const createBusinessProfileBodyImageUrlMax = 500;
+
+export const createBusinessProfileBodyBannerImageUrlMax = 500;
+
 
 
 export const CreateBusinessProfileBody = zod.object({
-  "name": zod.string().min(1).max(createBusinessProfileBodyNameMax),
-  "location": zod.string().min(1).max(createBusinessProfileBodyLocationMax),
+  "name": zod.string().min(1).max(createBusinessProfileBodyNameMax).regex(createBusinessProfileBodyNameRegExp),
+  "location": zod.string().min(1).max(createBusinessProfileBodyLocationMax).regex(createBusinessProfileBodyLocationRegExp),
   "category": zod.enum(['Tech', 'Retail', 'Food', 'Entertainment', 'Services', 'Health', 'Other']),
   "description": zod.string().min(1).max(createBusinessProfileBodyDescriptionMax),
   "website": zod.string().max(createBusinessProfileBodyWebsiteMax).optional(),
   "email": zod.string().max(createBusinessProfileBodyEmailMax).optional(),
-  "phone": zod.string().max(createBusinessProfileBodyPhoneMax).optional()
+  "phone": zod.string().max(createBusinessProfileBodyPhoneMax).optional(),
+  "imageUrl": zod.string().max(createBusinessProfileBodyImageUrlMax).optional(),
+  "bannerImageUrl": zod.string().max(createBusinessProfileBodyBannerImageUrlMax).optional()
 })
 
 export const CreateBusinessProfileResponse = zod.object({
@@ -5019,6 +5029,86 @@ export const GetBusinessParams = zod.object({
 })
 
 export const GetBusinessResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "location": zod.string(),
+  "category": zod.string(),
+  "description": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "bannerImageUrl": zod.string().optional(),
+  "blastCount": zod.number(),
+  "viewCount": zod.number(),
+  "commentCount": zod.number(),
+  "reactionCount": zod.number(),
+  "followerCount": zod.number(),
+  "featured": zod.boolean(),
+  "verified": zod.boolean(),
+  "status": zod.enum(['active', 'hidden', 'locked']),
+  "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
+  "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
+}).and(zod.object({
+  "subcategory": zod.string(),
+  "address": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "postalCode": zod.string(),
+  "phone": zod.string(),
+  "website": zod.string(),
+  "email": zod.string(),
+  "verificationStatus": zod.string(),
+  "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable()
+}))
+
+
+/**
+ * @summary Edit a Business Target as its active owner
+ */
+export const UpdateBusinessProfileParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const updateBusinessProfileBodyNameMax = 160;
+
+
+export const updateBusinessProfileBodyNameRegExp = new RegExp('.*\\S.*');
+export const updateBusinessProfileBodyLocationMax = 160;
+
+
+export const updateBusinessProfileBodyLocationRegExp = new RegExp('.*\\S.*');
+export const updateBusinessProfileBodyDescriptionMax = 1000;
+
+export const updateBusinessProfileBodyWebsiteMax = 500;
+
+export const updateBusinessProfileBodyEmailMax = 320;
+
+export const updateBusinessProfileBodyPhoneMax = 40;
+
+export const updateBusinessProfileBodyImageUrlMax = 500;
+
+export const updateBusinessProfileBodyBannerImageUrlMax = 500;
+
+
+
+export const UpdateBusinessProfileBody = zod.object({
+  "name": zod.string().min(1).max(updateBusinessProfileBodyNameMax).regex(updateBusinessProfileBodyNameRegExp).optional(),
+  "location": zod.string().min(1).max(updateBusinessProfileBodyLocationMax).regex(updateBusinessProfileBodyLocationRegExp).optional(),
+  "category": zod.enum(['Tech', 'Retail', 'Food', 'Entertainment', 'Services', 'Health', 'Other']).optional(),
+  "description": zod.string().max(updateBusinessProfileBodyDescriptionMax).optional(),
+  "website": zod.string().max(updateBusinessProfileBodyWebsiteMax).optional(),
+  "email": zod.string().max(updateBusinessProfileBodyEmailMax).optional(),
+  "phone": zod.string().max(updateBusinessProfileBodyPhoneMax).optional(),
+  "imageUrl": zod.string().max(updateBusinessProfileBodyImageUrlMax).optional(),
+  "bannerImageUrl": zod.string().max(updateBusinessProfileBodyBannerImageUrlMax).optional()
+})
+
+export const UpdateBusinessProfileResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "slug": zod.string(),

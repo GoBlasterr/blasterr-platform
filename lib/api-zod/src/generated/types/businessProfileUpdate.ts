@@ -5,27 +5,24 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
-import type { BusinessProfileInputCategory } from './businessProfileInputCategory';
+import type { BusinessProfileUpdateCategory } from './businessProfileUpdateCategory';
 
-export interface BusinessProfileInput {
+export interface BusinessProfileUpdate {
   /**
      * @minLength 1
      * @maxLength 160
      * @pattern .*\S.*
      */
-  name: string;
+  name?: string;
   /**
      * @minLength 1
      * @maxLength 160
      * @pattern .*\S.*
      */
-  location: string;
-  category: BusinessProfileInputCategory;
-  /**
-     * @minLength 1
-     * @maxLength 1000
-     */
-  description: string;
+  location?: string;
+  category?: BusinessProfileUpdateCategory;
+  /** @maxLength 1000 */
+  description?: string;
   /** @maxLength 500 */
   website?: string;
   /** @maxLength 320 */

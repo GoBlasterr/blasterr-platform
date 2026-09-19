@@ -1,3 +1,5 @@
+import { sql } from "drizzle-orm";
+
 export type ResolvableTarget = {
   id: string;
   name: string;
@@ -63,6 +65,14 @@ export function targetIdentityLockKey(input: {
     normalizeTargetText(input.name),
     normalizeTargetText(input.location),
   ]);
+}
+
+/** Shared lock for canonical names and aliases; location is deliberately excluded. */
+export async function lockTargetNameIdentity(tx: { execute: (query: unknown) => Promise<unknown> }, names: string | string[]) {
+  const terms = [...new Set((Array.isArray(names) ? names : [names]).map(normalizeTargetText).filter(Boolean))].sort();
+  for (const term of terms) {
+    await tx.execute(sql`select pg_advisory_xact_lock(92103, hashtext(${`target-name:${term}`}))`);
+  }
 }
 
 function canonicalTargetName(value: string): string {

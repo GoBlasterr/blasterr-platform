@@ -1530,6 +1530,24 @@ paths:
       responses:
         "200": { description: Business Target, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessDetail" } } } }
         "404": { description: Not found }
+  /business/{targetId}:
+    patch:
+      operationId: updateBusinessProfile
+      tags: [business]
+      summary: Edit a Business Target as its active owner
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/BusinessProfileUpdate" } }
+      responses:
+        "200": { description: Updated Business Target, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessDetail" } } } }
+        "401": { description: Authentication required }
+        "403": { description: Active owner access required }
+        "404": { description: Business Target not found }
+        "409": { description: A matching Business Target already exists }
   /business/mine:
     get:
       operationId: listOwnedBusinesses
@@ -3105,13 +3123,29 @@ components:
       type: object
       required: [name, location, category, description]
       properties:
-        name: { type: string, minLength: 1, maxLength: 160 }
-        location: { type: string, minLength: 1, maxLength: 160 }
+        name: { type: string, minLength: 1, maxLength: 160, pattern: '.*\S.*' }
+        location: { type: string, minLength: 1, maxLength: 160, pattern: '.*\S.*' }
         category: { type: string, enum: [Tech, Retail, Food, Entertainment, Services, Health, Other] }
         description: { type: string, minLength: 1, maxLength: 1000 }
         website: { type: string, maxLength: 500 }
         email: { type: string, maxLength: 320 }
         phone: { type: string, maxLength: 40 }
+        imageUrl: { type: string, maxLength: 500 }
+        bannerImageUrl: { type: string, maxLength: 500 }
+    BusinessProfileUpdate:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160, pattern: '.*\S.*' }
+        location: { type: string, minLength: 1, maxLength: 160, pattern: '.*\S.*' }
+        category: { type: string, enum: [Tech, Retail, Food, Entertainment, Services, Health, Other] }
+        description: { type: string, maxLength: 1000 }
+        website: { type: string, maxLength: 500 }
+        email: { type: string, maxLength: 320 }
+        phone: { type: string, maxLength: 40 }
+        imageUrl: { type: string, maxLength: 500 }
+        bannerImageUrl: { type: string, maxLength: 500 }
     BusinessClaim:
       type: object
       required: [id, targetId, applicantId, verificationMethod, status, createdAt, updatedAt]

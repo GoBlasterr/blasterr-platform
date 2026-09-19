@@ -1,4 +1,4 @@
-export type ProfileMediaPurpose = "avatar" | "banner";
+export type ProfileMediaPurpose = "avatar" | "banner" | "target-image";
 
 export type ProfileMediaAssetPolicyFields = {
   ownerId: string;

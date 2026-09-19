@@ -76,6 +76,21 @@ export async function deleteMediaMetadata(id: string, ownerAuthId?: string): Pro
   return row ?? null;
 }
 
+export async function claimMediaForDeletion(id: string, ownerAuthId: string): Promise<{ asset: MediaAssetRow; previousStatus: string } | null> {
+  const current = await mediaById(id);
+  if (!current || current.ownerId !== ownerAuthId || !["pending", "ready"].includes(current.lifecycleStatus)) return null;
+  const [claimed] = await db.update(mediaAssetsTable)
+    .set({ lifecycleStatus: "failed", updatedAt: new Date() })
+    .where(and(eq(mediaAssetsTable.id, id), eq(mediaAssetsTable.ownerId, ownerAuthId), eq(mediaAssetsTable.lifecycleStatus, current.lifecycleStatus)))
+    .returning();
+  return claimed ? { asset: claimed, previousStatus: current.lifecycleStatus } : null;
+}
+
+export async function restoreClaimedMedia(id: string, ownerAuthId: string, status: string): Promise<void> {
+  await db.update(mediaAssetsTable).set({ lifecycleStatus: status, updatedAt: new Date() })
+    .where(and(eq(mediaAssetsTable.id, id), eq(mediaAssetsTable.ownerId, ownerAuthId), eq(mediaAssetsTable.lifecycleStatus, "failed")));
+}
+
 export async function listMediaAssets(limit = 100): Promise<MediaAssetRow[]> {
   return db.select().from(mediaAssetsTable).orderBy(desc(mediaAssetsTable.createdAt)).limit(limit);
 }

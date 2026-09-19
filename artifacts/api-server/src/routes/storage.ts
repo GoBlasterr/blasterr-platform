@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { getAuth } from "@clerk/express";
+import { eq, or } from "drizzle-orm";
+import { db, targetsTable, usersTable } from "@workspace/db";
 import { getAdminSession, originMatchesHost } from "../lib/admin-supabase-auth";
 import {
   buildMediaObjectKey,
@@ -21,6 +23,8 @@ import {
   markMediaFailed,
   markMediaReady,
   mediaById,
+  claimMediaForDeletion,
+  restoreClaimedMedia,
 } from "../lib/media-repository";
 
 const router: IRouter = Router();
@@ -202,16 +206,33 @@ router.delete("/storage/uploads/:id", async (req: Request, res: Response) => {
     return;
   }
   const assetId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const asset = await mediaById(assetId);
-  if (!asset || asset.ownerId !== ownerId || asset.lifecycleStatus === "deleted") {
+  const claimed = await claimMediaForDeletion(assetId, ownerId);
+  if (!claimed) {
     res.status(404).json({ error: "Upload not found." });
     return;
   }
+  const { asset } = claimed;
   try {
+    const objectPath = objectPathForKey(asset.objectKey);
+    const referenced = asset.resourceType === "business_target" ||
+      (await db.select({ id: targetsTable.id }).from(targetsTable).where(or(
+        eq(targetsTable.imageUrl, objectPath),
+        eq(targetsTable.bannerImageUrl, objectPath),
+      )).limit(1))[0] ||
+      (await db.select({ id: usersTable.id }).from(usersTable).where(or(
+        eq(usersTable.avatarUrl, objectPath),
+        eq(usersTable.coverUrl, objectPath),
+      )).limit(1))[0];
+    if (referenced) {
+      await restoreClaimedMedia(asset.id, ownerId, claimed.previousStatus);
+      res.status(409).json({ error: "This media is currently referenced by a profile and cannot be deleted." });
+      return;
+    }
     await deleteR2Object(asset.objectKey);
     await deleteMediaMetadata(asset.id, ownerId);
     res.sendStatus(204);
   } catch (error) {
+    await restoreClaimedMedia(asset.id, ownerId, claimed.previousStatus);
     req.log.error({ err: error, assetId: asset.id }, "Unable to delete R2 object");
     res.status(503).json({ error: "The media object could not be deleted. Nothing was removed from its metadata." });
   }

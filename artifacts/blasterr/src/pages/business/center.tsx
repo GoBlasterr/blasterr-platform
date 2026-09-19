@@ -1,17 +1,35 @@
 import { useLocation, useParams } from "wouter";
-import { useGetBusinessCenter, useGetBusinessAnalytics, getGetBusinessCenterQueryKey, getGetBusinessAnalyticsQueryKey } from "@workspace/api-client-react";
+import { useGetBusinessCenter, useGetBusinessAnalytics, getGetBusinessCenterQueryKey, getGetBusinessAnalyticsQueryKey, getGetBusinessQueryKey, getListOwnedBusinessesQueryKey, useUpdateBusinessProfile, BusinessProfileUpdateCategory } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Seo } from "@/components/seo";
 import { ArrowLeft, Settings, Activity, Users, MessageSquare, Megaphone, Target, ExternalLink, ThumbsUp, Eye, Rocket } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useToast } from "@/hooks/use-toast";
+import { useRef, useEffect, useState, type RefObject } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function BusinessCenter() {
   const [, setLocation] = useLocation();
   const params = useParams();
   const targetId = params.targetId || "";
   const { data: currentUser } = useCurrentUser();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const updateBusiness = useUpdateBusinessProfile();
+  const [editing, setEditing] = useState(false);
+  type BusinessForm = { name: string; location: string; category: typeof BusinessProfileUpdateCategory[keyof typeof BusinessProfileUpdateCategory]; description: string; website: string; email: string; phone: string; imageUrl: string; bannerImageUrl: string };
+  const [form, setForm] = useState<BusinessForm>({ name: "", location: "", category: BusinessProfileUpdateCategory.Services, description: "", website: "", email: "", phone: "", imageUrl: "", bannerImageUrl: "" });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [bannerPreview, setBannerPreview] = useState("");
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const { data: center, isLoading: isCenterLoading, isError: isCenterError } = useGetBusinessCenter(targetId, {
     query: { enabled: !!currentUser, retry: false, queryKey: [...getGetBusinessCenterQueryKey(targetId), currentUser?.id ?? "guest"] }
@@ -20,6 +38,57 @@ export default function BusinessCenter() {
   const { data: analytics, isLoading: isAnalyticsLoading } = useGetBusinessAnalytics(targetId, {
     query: { enabled: !!center && !!currentUser, queryKey: [...getGetBusinessAnalyticsQueryKey(targetId), currentUser?.id ?? "guest"] }
   });
+
+  useEffect(() => {
+    if (!center) return;
+    setForm({ name: center.name, location: center.location, category: center.category as BusinessForm["category"], description: center.description ?? "", website: center.website ?? "", email: center.email ?? "", phone: center.phone ?? "", imageUrl: center.imageUrl ?? "", bannerImageUrl: center.bannerImageUrl ?? "" });
+    setAvatarPreview(center.imageUrl ?? "");
+    setBannerPreview(center.bannerImageUrl ?? "");
+  }, [center]);
+
+  const chooseImage = (file: File | undefined, purpose: "avatar" | "banner") => {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      toast({ title: "Choose a JPG, PNG, WebP, or GIF image.", variant: "destructive" }); return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Images must be 10 MB or smaller.", variant: "destructive" }); return;
+    }
+    const preview = URL.createObjectURL(file);
+    if (purpose === "avatar") { setAvatarFile(file); setAvatarPreview(preview); }
+    else { setBannerFile(file); setBannerPreview(preview); }
+  };
+
+  const uploadImage = async (file: File, purpose: "target-image" | "banner") => {
+    const request = await fetch("/api/storage/uploads/request-url", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type, purpose }) });
+    const details = await request.json() as { uploadURL?: string; objectPath?: string; assetId?: string; error?: string };
+    if (!request.ok || !details.uploadURL || !details.objectPath || !details.assetId) throw new Error(details.error || `Could not prepare the ${purpose} upload.`);
+    const upload = await fetch(`/api/storage/uploads/${details.assetId}/content`, { method: "PUT", credentials: "include", headers: { "Content-Type": file.type }, body: file });
+    if (!upload.ok) throw new Error(`Could not upload the ${purpose} image.`);
+    const completed = await fetch(`/api/storage/uploads/${details.assetId}/complete`, { method: "POST", credentials: "include" });
+    const result = await completed.json() as { objectPath?: string; status?: string; error?: string };
+    if (!completed.ok || result.status !== "ready" || !result.objectPath) throw new Error(result.error || `Could not verify the ${purpose} image.`);
+    return `/api/storage${result.objectPath}`;
+  };
+
+  const saveBusiness = async () => {
+    try {
+      const [imageUrl, bannerImageUrl] = await Promise.all([
+        avatarFile ? uploadImage(avatarFile, "target-image") : Promise.resolve(form.imageUrl),
+        bannerFile ? uploadImage(bannerFile, "banner") : Promise.resolve(form.bannerImageUrl),
+      ]);
+      const updated = await updateBusiness.mutateAsync({ targetId, data: { ...form, imageUrl, bannerImageUrl } });
+      setForm((current) => ({ ...current, name: updated.name, location: updated.location, category: updated.category as BusinessForm["category"], description: updated.description ?? "", website: updated.website ?? "", email: updated.email ?? "", phone: updated.phone ?? "", imageUrl: updated.imageUrl ?? "", bannerImageUrl: updated.bannerImageUrl ?? "" }));
+      setAvatarFile(null); setBannerFile(null); setAvatarPreview(updated.imageUrl ?? ""); setBannerPreview(updated.bannerImageUrl ?? "");
+      await queryClient.invalidateQueries({ queryKey: getGetBusinessCenterQueryKey(targetId) });
+      await queryClient.invalidateQueries({ queryKey: getGetBusinessQueryKey(updated.slug) });
+      await queryClient.invalidateQueries({ queryKey: getListOwnedBusinessesQueryKey() });
+      setEditing(false);
+      toast({ title: "Business profile saved." });
+    } catch (error) {
+      toast({ title: error instanceof Error ? error.message : "Business profile could not be saved.", variant: "destructive" });
+    }
+  };
 
   if (isCenterLoading) {
     return (
@@ -69,7 +138,7 @@ export default function BusinessCenter() {
             </div>
           </div>
           
-          <Button variant="ghost" size="sm" className="hidden md:flex text-muted-foreground hover:text-white">
+           <Button variant="ghost" size="sm" onClick={() => setEditing((value) => !value)} className="text-muted-foreground hover:text-white">
             <Settings className="w-4 h-4 mr-2" /> Settings
           </Button>
         </header>
@@ -87,6 +156,27 @@ export default function BusinessCenter() {
                   <div className="w-full h-full flex items-center justify-center"><Target className="w-6 h-6 text-muted-foreground" /></div>
                 )}
               </div>
+
+          {editing && <section className="space-y-5 rounded-3xl border border-primary/20 bg-card/70 p-5">
+            <h2 className="text-xl font-bold text-white">Edit business profile</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="space-y-2"><span className="text-sm font-semibold text-white">Business name</span><Input value={form.name} maxLength={160} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+              <label className="space-y-2"><span className="text-sm font-semibold text-white">City or location</span><Input value={form.location} maxLength={160} onChange={(e) => setForm({ ...form, location: e.target.value })} /></label>
+            </div>
+            <label className="block space-y-2"><span className="text-sm font-semibold text-white">Category</span><Select value={form.category} onValueChange={(category) => setForm({ ...form, category: category as typeof form.category })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.values(BusinessProfileUpdateCategory).map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent></Select></label>
+            <label className="block space-y-2"><span className="text-sm font-semibold text-white">About the business</span><Textarea value={form.description} maxLength={1000} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
+            <div className="grid gap-4 md:grid-cols-3">
+              <Input placeholder="Website" maxLength={500} value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
+              <Input placeholder="Email" type="email" maxLength={320} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Input placeholder="Phone" maxLength={40} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            </div>
+            <div className="grid gap-5 md:grid-cols-2">
+              <BusinessImagePicker label="Logo" preview={avatarPreview} file={avatarFile} inputRef={avatarInputRef} onPick={(file) => chooseImage(file, "avatar")} />
+              <BusinessImagePicker label="Banner" preview={bannerPreview} file={bannerFile} inputRef={bannerInputRef} onPick={(file) => chooseImage(file, "banner")} banner />
+            </div>
+            <p className="text-xs text-muted-foreground">JPEG, PNG, WebP, or GIF images up to 10 MB.</p>
+            <Button onClick={saveBusiness} disabled={updateBusiness.isPending || !form.name.trim() || !form.location.trim()} className="bg-primary text-primary-foreground">{updateBusiness.isPending ? "Saving…" : "Save business profile"}</Button>
+          </section>}
               <div>
                 <h2 className="text-2xl font-bold text-white">Overview</h2>
                 <p className="text-sm text-muted-foreground mt-1">Role: <span className="capitalize text-white/80">{center.membershipRole}</span></p>
@@ -178,5 +268,28 @@ export default function BusinessCenter() {
         </main>
       </div>
     </>
+  );
+}
+
+function BusinessImagePicker({ label, preview, file, inputRef, onPick, banner = false }: {
+  label: string;
+  preview: string;
+  file: File | null;
+  inputRef: RefObject<HTMLInputElement | null>;
+  onPick: (file: File | undefined) => void;
+  banner?: boolean;
+}) {
+  return (
+    <div className="space-y-2">
+      <span className="text-sm font-semibold text-white">{label}</span>
+      <div className={`overflow-hidden rounded-xl border border-white/10 bg-black/20 ${banner ? "h-28" : "h-28 w-28"}`}>
+        {preview ? <img src={preview} alt={`${label} preview`} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No image selected</div>}
+      </div>
+      <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} className="rounded-full border-white/20">
+        {file ? "Change file" : `Select ${label.toLowerCase()}`}
+      </Button>
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => onPick(event.target.files?.[0])} />
+      {file && <p className="max-w-full truncate text-xs text-primary">Selected: {file.name}</p>}
+    </div>
   );
 }

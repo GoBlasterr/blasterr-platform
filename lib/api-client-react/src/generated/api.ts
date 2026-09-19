@@ -109,6 +109,7 @@ import type {
   BusinessOwnerInput,
   BusinessPage,
   BusinessProfileInput,
+  BusinessProfileUpdate,
   Campaign,
   CampaignInput,
   CampaignPage,
@@ -8675,6 +8676,78 @@ export function useGetBusiness<TData = Awaited<ReturnType<typeof getBusiness>>, 
 
 
 
+
+export const getUpdateBusinessProfileUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/business/${targetId}`
+}
+
+/**
+ * @summary Edit a Business Target as its active owner
+ */
+export const updateBusinessProfile = async (targetId: string,
+    businessProfileUpdate: BusinessProfileUpdate, options?: Parameters<typeof customFetch>[1]): Promise<BusinessDetail> => {
+
+  return customFetch<BusinessDetail>(getUpdateBusinessProfileUrl(targetId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(businessProfileUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateBusinessProfileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBusinessProfile>>, TError,{targetId: string;data: BodyType<BusinessProfileUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateBusinessProfile>>, TError,{targetId: string;data: BodyType<BusinessProfileUpdate>}, TContext> => {
+
+const mutationKey = ['updateBusinessProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBusinessProfile>>, {targetId: string;data: BodyType<BusinessProfileUpdate>}> = (props) => {
+          const {targetId,data} = props ?? {};
+
+          return  updateBusinessProfile(targetId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateBusinessProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateBusinessProfile>>>
+    export type UpdateBusinessProfileMutationBody = BodyType<BusinessProfileUpdate>
+    export type UpdateBusinessProfileMutationError = ErrorType<void>
+
+    /**
+ * @summary Edit a Business Target as its active owner
+ */
+export const useUpdateBusinessProfile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBusinessProfile>>, TError,{targetId: string;data: BodyType<BusinessProfileUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateBusinessProfile>>,
+        TError,
+        {targetId: string;data: BodyType<BusinessProfileUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateBusinessProfileMutationOptions(options));
+    }
 
 export const getListOwnedBusinessesUrl = () => {
 

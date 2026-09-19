@@ -6,11 +6,14 @@ import {
   GetBusinessParams, GetBusinessResponse, ListBusinessesQueryParams, ListBusinessesResponse, SubmitBusinessClaimBody,
   SubmitBusinessClaimParams, SubmitBusinessClaimResponse, ToggleBusinessFollowParams, ToggleBusinessFollowResponse,
   CreateBusinessProfileBody, CreateBusinessProfileResponse, ListOwnedBusinessesResponse,
+  UpdateBusinessProfileParams, UpdateBusinessProfileBody, UpdateBusinessProfileResponse,
 } from "@workspace/api-zod";
 import { db, targetsTable } from "@workspace/db";
 import * as social from "../lib/social-repository";
 import * as business from "../lib/business-repository";
 import { adminFeatureFlags, ensureAdminState } from "../lib/admin-state";
+import { ProfileMediaValidationError, validateProfileMediaUpdate } from "../lib/profile-media";
+import { resolveSubmittedProfileMediaReference } from "../lib/profile-media-policy";
 
 const router: IRouter = Router();
 
@@ -54,7 +57,12 @@ router.post("/business", async (req, res): Promise<void> => {
     return;
   }
   try {
-    const created = await business.createOwnedBusinessTarget(body.data, viewer.id);
+     const mediaOwnerId = userId;
+     const [imageUrl, bannerImageUrl] = await Promise.all([
+       resolveSubmittedProfileMediaReference(body.data.imageUrl, "", value => validateProfileMediaUpdate({ value, currentValue: "", ownerId: mediaOwnerId, purpose: "target-image" })),
+       resolveSubmittedProfileMediaReference(body.data.bannerImageUrl, "", value => validateProfileMediaUpdate({ value, currentValue: "", ownerId: mediaOwnerId, purpose: "banner" })),
+     ]);
+     const created = await business.createOwnedBusinessTarget({ ...body.data, imageUrl, bannerImageUrl, mediaOwnerId: userId }, viewer.id);
     if (created.conflict === "limit") {
       res.status(409).json({ error: `You can own up to ${business.ownedBusinessLimit} Business Target pages.` });
       return;
@@ -66,12 +74,46 @@ router.post("/business", async (req, res): Promise<void> => {
     const detail = detailPayload(await business.getBusinessBySlug(created.target.slug));
     res.status(201).json(CreateBusinessProfileResponse.parse(detail));
   } catch (error) {
-    if ((error as { code?: string })?.code === "23505") {
-      res.status(409).json({ error: "A Business Target with this identity already exists. Open that page to claim it instead." });
-      return;
-    }
+    if (error instanceof ProfileMediaValidationError) { res.status(409).json({ error: error.message }); return; }
+    if ((error as { code?: string })?.code === "23505") { res.status(409).json({ error: "A Business Target with this name and location already exists." }); return; }
     req.log.error({ err: error, userId: viewer.id }, "Unable to create owned Business Target");
     res.status(500).json({ error: "Business profile could not be created. Please try again." });
+  }
+});
+
+router.patch("/business/:targetId", async (req, res): Promise<void> => {
+  const params = UpdateBusinessProfileParams.safeParse(req.params);
+  const body = UpdateBusinessProfileBody.safeParse(req.body);
+  if (!params.success || !body.success) { res.status(400).json({ error: "Enter valid business information." }); return; }
+  if (Object.keys(body.data).length === 0) { res.status(400).json({ error: "At least one business field is required." }); return; }
+  if ((body.data.name !== undefined && !body.data.name.trim()) || (body.data.location !== undefined && !body.data.location.trim())) {
+    res.status(400).json({ error: "Business name and location cannot be blank." }); return;
+  }
+  const { userId } = getAuth(req);
+  if (!userId) { res.status(401).json({ error: "Sign in is required to edit a business profile." }); return; }
+  const viewer = await current(req);
+  if (!viewer) { res.status(401).json({ error: "Complete your personal profile before editing a business profile." }); return; }
+  const target = (await db.select({ id: targetsTable.id, slug: targetsTable.slug })
+    .from(targetsTable).where(and(eq(targetsTable.id, params.data.targetId), eq(targetsTable.type, "business"))))[0];
+  if (!target) { res.status(404).json({ error: "Business Target not found." }); return; }
+  const membership = await business.getMembership(target.id, viewer.id);
+  if (!membership || membership.role !== "owner") { res.status(403).json({ error: "Only an active business owner can edit this profile." }); return; }
+  try {
+    const updated = await business.updateOwnedBusinessTarget(target.id, viewer.id, {
+      ...body.data,
+      mediaOwnerId: userId,
+      resolveImage: (value, currentValue) => resolveSubmittedProfileMediaReference(value, currentValue, next => validateProfileMediaUpdate({ value: next, currentValue, ownerId: userId, purpose: "target-image" })),
+      resolveBanner: (value, currentValue) => resolveSubmittedProfileMediaReference(value, currentValue, next => validateProfileMediaUpdate({ value: next, currentValue, ownerId: userId, purpose: "banner" })),
+    });
+    if (!updated) { res.status(403).json({ error: "Only an active business owner can edit this profile." }); return; }
+    if ("conflict" in updated && updated.conflict === "duplicate") { res.status(409).json({ error: "A Business Target with this name and location already exists." }); return; }
+    const detail = detailPayload(await business.getBusinessBySlug(target.slug));
+    res.json(UpdateBusinessProfileResponse.parse(detail));
+  } catch (error) {
+    if (error instanceof ProfileMediaValidationError) { res.status(409).json({ error: error.message }); return; }
+    if ((error as { code?: string })?.code === "23505") { res.status(409).json({ error: "A Business Target with this name and location already exists." }); return; }
+    req.log.error({ err: error, userId }, "Unable to update owned Business Target");
+    res.status(500).json({ error: "Business profile could not be updated. Please try again." });
   }
 });
 

@@ -8,6 +8,7 @@ export default function BusinessLayout() {
       <Stack.Screen name="[slug]/index" />
       <Stack.Screen name="[slug]/claim" />
       <Stack.Screen name="[slug]/center" />
+      <Stack.Screen name="[slug]/edit" />
     </Stack>
   );
 }

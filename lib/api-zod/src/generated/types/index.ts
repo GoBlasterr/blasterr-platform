@@ -174,6 +174,8 @@ export * from './businessOwnerStatus';
 export * from './businessPage';
 export * from './businessProfileInput';
 export * from './businessProfileInputCategory';
+export * from './businessProfileUpdate';
+export * from './businessProfileUpdateCategory';
 export * from './businessSummary';
 export * from './businessSummaryClaimStatus';
 export * from './businessSummaryStatus';
