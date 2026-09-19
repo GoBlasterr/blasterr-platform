@@ -247,6 +247,7 @@ function LegalPage({ kind }: LegalPageProps) {
 
   useEffect(() => {
     const previousTitle = document.title;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     document.title = `${title} | BLASTERR`;
     setMetaDescription(description);
     return () => {
