@@ -5,6 +5,7 @@ import {
   GetBusinessAnalyticsParams, GetBusinessAnalyticsResponse, GetBusinessCenterParams, GetBusinessCenterResponse,
   GetBusinessParams, GetBusinessResponse, ListBusinessesQueryParams, ListBusinessesResponse, SubmitBusinessClaimBody,
   SubmitBusinessClaimParams, SubmitBusinessClaimResponse, ToggleBusinessFollowParams, ToggleBusinessFollowResponse,
+  CreateBusinessProfileBody, CreateBusinessProfileResponse, ListOwnedBusinessesResponse,
 } from "@workspace/api-zod";
 import { db, targetsTable } from "@workspace/db";
 import * as social from "../lib/social-repository";
@@ -34,6 +35,55 @@ router.get("/business", async (req, res): Promise<void> => {
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const result = await business.listBusinesses(parsed.data);
   res.json(ListBusinessesResponse.parse(result));
+});
+
+router.post("/business", async (req, res): Promise<void> => {
+  await ensureAdminState();
+  if (!flagEnabled("business_targets_enabled") || !flagEnabled("new_target_requests")) {
+    res.status(403).json({ error: "New Business Target requests are currently disabled." });
+    return;
+  }
+  const { userId } = getAuth(req);
+  if (!userId) { res.status(401).json({ error: "Sign in is required to create a business profile." }); return; }
+  const viewer = await current(req);
+  if (!viewer) { res.status(401).json({ error: "Complete your personal profile before creating a business profile." }); return; }
+  const body = CreateBusinessProfileBody.safeParse(req.body);
+  if (!body.success) { res.status(400).json({ error: "Enter valid business information." }); return; }
+  if (!body.data.name.trim() || !body.data.location.trim() || !body.data.description.trim()) {
+    res.status(400).json({ error: "Business name, location, and description are required." });
+    return;
+  }
+  try {
+    const created = await business.createOwnedBusinessTarget(body.data, viewer.id);
+    if (created.conflict === "limit") {
+      res.status(409).json({ error: `You can own up to ${business.ownedBusinessLimit} Business Target pages.` });
+      return;
+    }
+    if (created.conflict === "duplicate") {
+      res.status(409).json({ error: "A Business Target with this name and location already exists. Open that page to claim it instead." });
+      return;
+    }
+    const detail = detailPayload(await business.getBusinessBySlug(created.target.slug));
+    res.status(201).json(CreateBusinessProfileResponse.parse(detail));
+  } catch (error) {
+    if ((error as { code?: string })?.code === "23505") {
+      res.status(409).json({ error: "A Business Target with this identity already exists. Open that page to claim it instead." });
+      return;
+    }
+    req.log.error({ err: error, userId: viewer.id }, "Unable to create owned Business Target");
+    res.status(500).json({ error: "Business profile could not be created. Please try again." });
+  }
+});
+
+router.get("/business/mine", async (req, res): Promise<void> => {
+  const viewer = await current(req);
+  if (!viewer) { res.status(401).json({ error: "Sign in is required to view your business pages." }); return; }
+  const items = await business.listOwnedBusinesses(viewer.id);
+  res.json(ListOwnedBusinessesResponse.parse({
+    items,
+    limit: business.ownedBusinessLimit,
+    canCreate: items.length < business.ownedBusinessLimit,
+  }));
 });
 
 router.get("/business/:slug", async (req, res): Promise<void> => {

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from
 import { useLocalSearchParams, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
-import { useGetBusiness, getGetBusinessQueryKey, useToggleBusinessFollow, useGetBusinessCenter, getGetBusinessCenterQueryKey, Blast } from '@workspace/api-client-react';
+import { useGetBusiness, getGetBusinessQueryKey, useToggleBusinessFollow, useGetBusinessCenter, getGetBusinessCenterQueryKey, useGetCurrentUser, Blast } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { CosmicBackground } from '@/components/cosmic-background';
 import { BlastCard } from '@/components/blast-card';
@@ -15,6 +15,7 @@ export default function BusinessDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const colors = useColors();
   const queryClient = useQueryClient();
+  const currentUser = useGetCurrentUser();
 
   const { data: business, isLoading, isError } = useGetBusiness(slug, {
     query: {
@@ -25,9 +26,9 @@ export default function BusinessDetailScreen() {
 
   const centerQuery = useGetBusinessCenter(business?.id ?? '', {
     query: {
-      enabled: !!business?.id && business.verificationStatus === 'verified',
+      enabled: !!business?.id && !!currentUser.data,
       retry: false,
-      queryKey: getGetBusinessCenterQueryKey(business?.id ?? '')
+      queryKey: [...getGetBusinessCenterQueryKey(business?.id ?? ''), currentUser.data?.id ?? 'guest']
     }
   });
 
@@ -111,6 +112,12 @@ export default function BusinessDetailScreen() {
           
           <View style={styles.actionsRow}>
             {isOwner && (
+              <Pressable onPress={() => router.push('/profile')} style={[styles.actionBtn, { borderColor: colors.primary }]}>
+                <Feather name="user" size={16} color={colors.primary} />
+                <Text style={[styles.actionBtnText, { color: colors.primary }]}>Personal</Text>
+              </Pressable>
+            )}
+            {isOwner && (
               <Pressable 
                 onPress={() => router.push(`/business/${business.slug}/center`)}
                 style={[styles.actionBtn, { borderColor: colors.border }]}
@@ -120,7 +127,7 @@ export default function BusinessDetailScreen() {
               </Pressable>
             )}
             
-            {business.verificationStatus !== 'verified' && (
+            {business.verificationStatus !== 'verified' && !isOwner && (
               <Pressable 
                 onPress={() => router.push(`/business/${business.slug}/claim`)}
                 style={[styles.actionBtn, { borderColor: colors.border }]}

@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -32,11 +32,19 @@ const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
 
 function ApiAuthBridge() {
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
+  const activeQueryClient = useQueryClient();
+  const previousUserId = useRef<string | null | undefined>(undefined);
   useEffect(() => {
     setAuthTokenGetter(() => getToken());
     return () => setAuthTokenGetter(null);
   }, [getToken]);
+  useEffect(() => {
+    if (previousUserId.current !== undefined && previousUserId.current !== userId) {
+      activeQueryClient.clear();
+    }
+    previousUserId.current = userId;
+  }, [activeQueryClient, userId]);
   return null;
 }
 

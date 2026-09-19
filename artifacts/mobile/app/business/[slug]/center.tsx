@@ -2,24 +2,25 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { useGetBusiness, useGetBusinessCenter, useGetBusinessAnalytics, getGetBusinessQueryKey, getGetBusinessCenterQueryKey, getGetBusinessAnalyticsQueryKey } from '@workspace/api-client-react';
+import { useGetBusiness, useGetBusinessCenter, useGetBusinessAnalytics, useGetCurrentUser, getGetBusinessQueryKey, getGetBusinessCenterQueryKey, getGetBusinessAnalyticsQueryKey } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { CosmicBackground } from '@/components/cosmic-background';
 
 export default function BusinessCenterScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const colors = useColors();
+  const currentUser = useGetCurrentUser();
 
   const { data: business, isLoading: loadingBusiness, isError: errorBusiness } = useGetBusiness(slug, {
     query: { enabled: !!slug, queryKey: getGetBusinessQueryKey(slug) }
   });
 
   const { data: center, isLoading: loadingCenter, isError: errorCenter } = useGetBusinessCenter(business?.id ?? '', {
-    query: { enabled: !!business?.id, retry: false, queryKey: getGetBusinessCenterQueryKey(business?.id ?? '') }
+    query: { enabled: !!business?.id && !!currentUser.data, retry: false, queryKey: [...getGetBusinessCenterQueryKey(business?.id ?? ''), currentUser.data?.id ?? 'guest'] }
   });
 
   const { data: analytics, isLoading: loadingAnalytics } = useGetBusinessAnalytics(business?.id ?? '', {
-    query: { enabled: !!business?.id, retry: false, queryKey: getGetBusinessAnalyticsQueryKey(business?.id ?? '') }
+    query: { enabled: !!business?.id && !!currentUser.data, retry: false, queryKey: [...getGetBusinessAnalyticsQueryKey(business?.id ?? ''), currentUser.data?.id ?? 'guest'] }
   });
 
   if (loadingBusiness || loadingCenter || loadingAnalytics) {

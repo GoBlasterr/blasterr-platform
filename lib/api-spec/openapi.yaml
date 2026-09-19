@@ -1509,6 +1509,19 @@ paths:
         - { name: featured, in: query, schema: { type: boolean } }
       responses:
         "200": { description: Business discovery results, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessPage" } } } }
+    post:
+      operationId: createBusinessProfile
+      tags: [business]
+      summary: Create a Business Target owned by the signed-in user
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/BusinessProfileInput" } }
+      responses:
+        "201": { description: Created Business Target, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessDetail" } } } }
+        "401": { description: Authentication required }
+        "409": { description: A matching Business Target already exists }
   /business/{slug}:
     get:
       operationId: getBusiness
@@ -1517,6 +1530,15 @@ paths:
       responses:
         "200": { description: Business Target, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessDetail" } } } }
         "404": { description: Not found }
+  /business/mine:
+    get:
+      operationId: listOwnedBusinesses
+      tags: [business]
+      summary: List Business Targets owned by the signed-in user
+      security: [{ clerkSession: [] }]
+      responses:
+        "200": { description: Owned Business Targets, content: { application/json: { schema: { $ref: "#/components/schemas/OwnedBusinessList" } } } }
+        "401": { description: Authentication required }
   /business/{targetId}/follow:
     post:
       operationId: toggleBusinessFollow
@@ -3042,6 +3064,13 @@ components:
         limit: { type: number }
         total: { type: number }
         hasMore: { type: boolean }
+    OwnedBusinessList:
+      type: object
+      required: [items, limit, canCreate]
+      properties:
+        items: { type: array, maxItems: 5, items: { $ref: "#/components/schemas/BusinessSummary" } }
+        limit: { type: number, minimum: 1 }
+        canCreate: { type: boolean }
     BusinessDetail:
       allOf:
         - $ref: "#/components/schemas/BusinessSummary"
@@ -3072,6 +3101,17 @@ components:
       properties:
         verificationMethod: { type: string, enum: [business_email, website, documentation, admin_review] }
         evidence: { type: string, maxLength: 2000 }
+    BusinessProfileInput:
+      type: object
+      required: [name, location, category, description]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        location: { type: string, minLength: 1, maxLength: 160 }
+        category: { type: string, enum: [Tech, Retail, Food, Entertainment, Services, Health, Other] }
+        description: { type: string, minLength: 1, maxLength: 1000 }
+        website: { type: string, maxLength: 500 }
+        email: { type: string, maxLength: 320 }
+        phone: { type: string, maxLength: 40 }
     BusinessClaim:
       type: object
       required: [id, targetId, applicantId, verificationMethod, status, createdAt, updatedAt]

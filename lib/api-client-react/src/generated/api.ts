@@ -108,6 +108,7 @@ import type {
   BusinessOwner,
   BusinessOwnerInput,
   BusinessPage,
+  BusinessProfileInput,
   Campaign,
   CampaignInput,
   CampaignPage,
@@ -153,6 +154,7 @@ import type {
   ListTargetsParams,
   MarkAllAdminNotificationsRead200,
   Notification,
+  OwnedBusinessList,
   PreloadedCsvImport,
   PreloadedImportPreview,
   PreloadedTargetEnrichment,
@@ -8532,6 +8534,77 @@ export function useListBusinesses<TData = Awaited<ReturnType<typeof listBusiness
 
 
 
+export const getCreateBusinessProfileUrl = () => {
+
+
+
+
+  return `/api/business`
+}
+
+/**
+ * @summary Create a Business Target owned by the signed-in user
+ */
+export const createBusinessProfile = async (businessProfileInput: BusinessProfileInput, options?: Parameters<typeof customFetch>[1]): Promise<BusinessDetail> => {
+
+  return customFetch<BusinessDetail>(getCreateBusinessProfileUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(businessProfileInput)
+  }
+);}
+
+
+
+
+
+export const getCreateBusinessProfileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBusinessProfile>>, TError,{data: BodyType<BusinessProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createBusinessProfile>>, TError,{data: BodyType<BusinessProfileInput>}, TContext> => {
+
+const mutationKey = ['createBusinessProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBusinessProfile>>, {data: BodyType<BusinessProfileInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createBusinessProfile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateBusinessProfileMutationResult = NonNullable<Awaited<ReturnType<typeof createBusinessProfile>>>
+    export type CreateBusinessProfileMutationBody = BodyType<BusinessProfileInput>
+    export type CreateBusinessProfileMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a Business Target owned by the signed-in user
+ */
+export const useCreateBusinessProfile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBusinessProfile>>, TError,{data: BodyType<BusinessProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createBusinessProfile>>,
+        TError,
+        {data: BodyType<BusinessProfileInput>},
+        TContext
+      > => {
+      return useMutation(getCreateBusinessProfileMutationOptions(options));
+    }
+
 export const getGetBusinessUrl = (slug: string,) => {
 
 
@@ -8591,6 +8664,83 @@ export function useGetBusiness<TData = Awaited<ReturnType<typeof getBusiness>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetBusinessQueryOptions(slug,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListOwnedBusinessesUrl = () => {
+
+
+
+
+  return `/api/business/mine`
+}
+
+/**
+ * @summary List Business Targets owned by the signed-in user
+ */
+export const listOwnedBusinesses = async ( options?: Parameters<typeof customFetch>[1]): Promise<OwnedBusinessList> => {
+
+  return customFetch<OwnedBusinessList>(getListOwnedBusinessesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOwnedBusinessesQueryKey = () => {
+    return [
+    `/api/business/mine`
+    ] as const;
+    }
+
+
+export const getListOwnedBusinessesQueryOptions = <TData = Awaited<ReturnType<typeof listOwnedBusinesses>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOwnedBusinesses>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOwnedBusinessesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOwnedBusinesses>>> = ({ signal }) => listOwnedBusinesses({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOwnedBusinesses>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOwnedBusinessesQueryResult = NonNullable<Awaited<ReturnType<typeof listOwnedBusinesses>>>
+export type ListOwnedBusinessesQueryError = ErrorType<void>
+
+
+/**
+ * @summary List Business Targets owned by the signed-in user
+ */
+
+export function useListOwnedBusinesses<TData = Awaited<ReturnType<typeof listOwnedBusinesses>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOwnedBusinesses>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOwnedBusinessesQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

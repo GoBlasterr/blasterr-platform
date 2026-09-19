@@ -7,10 +7,12 @@ import {
   businessMembershipsTable,
   businessProfilesTable,
   adminAuditEventsTable,
+  targetAliasesTable,
   usersTable,
   targetsTable,
   db,
 } from "@workspace/db";
+import { normalizeTargetText, targetIdentityLockKey } from "./target-resolution";
 
 export type BusinessFilters = { page?: number; limit?: number; q?: string; city?: string; state?: string; category?: string; featured?: boolean; status?: string; includeInactive?: boolean };
 const pageArgs = (filters: BusinessFilters) => ({ page: Math.max(1, filters.page ?? 1), limit: Math.min(100, Math.max(1, filters.limit ?? 20)) });
@@ -138,16 +140,18 @@ export async function resolveBusinessOwner(input: { userId?: string; email?: str
 }
 
 export async function assignBusinessOwner(targetId: string, input: { userId?: string; email?: string }) {
-  const [user, target] = await Promise.all([
-    resolveBusinessOwner(input),
-    db.select({ id: targetsTable.id }).from(targetsTable)
-      .where(and(eq(targetsTable.id, targetId), eq(targetsTable.type, "business")))
-      .then((rows) => rows[0]),
-  ]);
-  if (!user || !target) return null;
-  await db.insert(businessMembershipsTable).values({ targetId, userId: user.id, role: "owner", status: "active" })
-    .onConflictDoUpdate({ target: [businessMembershipsTable.targetId, businessMembershipsTable.userId], set: { role: "owner", status: "active", updatedAt: new Date() } });
-  return { userId: user.id, role: "owner", status: "active" as const, displayName: user.displayName, email: user.email };
+  const user = await resolveBusinessOwner(input);
+  if (!user) return null;
+  return db.transaction(async (tx) => {
+    await lockBusinessOwnerSet(tx, targetId);
+    const target = (await tx.select({ id: targetsTable.id }).from(targetsTable)
+      .where(and(eq(targetsTable.id, targetId), eq(targetsTable.type, "business"))))[0];
+    if (!target) return null;
+    if (!(await hasOwnerCapacity(tx, user.id, targetId))) return { conflict: "limit" as const };
+    await tx.insert(businessMembershipsTable).values({ targetId, userId: user.id, role: "owner", status: "active" })
+      .onConflictDoUpdate({ target: [businessMembershipsTable.targetId, businessMembershipsTable.userId], set: { role: "owner", status: "active", updatedAt: new Date() } });
+    return { userId: user.id, role: "owner", status: "active" as const, displayName: user.displayName, email: user.email };
+  });
 }
 
 export async function removeBusinessOwner(targetId: string, input: { userId?: string; email?: string }) {
@@ -176,6 +180,156 @@ export async function getMembership(targetId: string, userId: string) {
   return (await db.select().from(businessMembershipsTable).where(and(eq(businessMembershipsTable.targetId, targetId), eq(businessMembershipsTable.userId, userId), eq(businessMembershipsTable.status, "active"))))[0];
 }
 
+export const ownedBusinessLimit = 5;
+type BusinessTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export async function lockBusinessOwnerSet(tx: BusinessTransaction, targetId: string) {
+  await tx.execute(sql`select pg_advisory_xact_lock(92101, hashtext(${targetId}))`);
+}
+
+async function hasOwnerCapacity(tx: BusinessTransaction, userId: string, targetId?: string) {
+  await tx.execute(sql`select pg_advisory_xact_lock(92102, hashtext(${userId}))`);
+  if (targetId) {
+    const existing = (await tx.select({ targetId: businessMembershipsTable.targetId })
+      .from(businessMembershipsTable)
+      .where(and(
+        eq(businessMembershipsTable.targetId, targetId),
+        eq(businessMembershipsTable.userId, userId),
+        eq(businessMembershipsTable.role, "owner"),
+        eq(businessMembershipsTable.status, "active"),
+      )))[0];
+    if (existing) return true;
+  }
+  const [{ count }] = await tx.select({ count: sql<number>`count(*)::int` })
+    .from(businessMembershipsTable)
+    .innerJoin(targetsTable, eq(targetsTable.id, businessMembershipsTable.targetId))
+    .where(and(
+      eq(businessMembershipsTable.userId, userId),
+      eq(businessMembershipsTable.role, "owner"),
+      eq(businessMembershipsTable.status, "active"),
+      eq(targetsTable.type, "business"),
+      sql`${targetsTable.archivedAt} is null`,
+    ));
+  return (count ?? 0) < ownedBusinessLimit;
+}
+
+export async function canActivateBusinessTarget(tx: BusinessTransaction, targetId: string) {
+  await lockBusinessOwnerSet(tx, targetId);
+  const owners = await tx.select({ userId: businessMembershipsTable.userId })
+    .from(businessMembershipsTable)
+    .where(and(
+      eq(businessMembershipsTable.targetId, targetId),
+      eq(businessMembershipsTable.role, "owner"),
+      eq(businessMembershipsTable.status, "active"),
+    ))
+    .orderBy(businessMembershipsTable.userId);
+  for (const owner of owners) {
+    await tx.execute(sql`select pg_advisory_xact_lock(92102, hashtext(${owner.userId}))`);
+  }
+  for (const owner of owners) {
+    const [{ count }] = await tx.select({ count: sql<number>`count(*)::int` })
+      .from(businessMembershipsTable)
+      .innerJoin(targetsTable, eq(targetsTable.id, businessMembershipsTable.targetId))
+      .where(and(
+        eq(businessMembershipsTable.userId, owner.userId),
+        eq(businessMembershipsTable.role, "owner"),
+        eq(businessMembershipsTable.status, "active"),
+        eq(targetsTable.type, "business"),
+        sql`${targetsTable.archivedAt} is null`,
+      ));
+    if ((count ?? 0) >= ownedBusinessLimit) return false;
+  }
+  return true;
+}
+
+export async function listOwnedBusinesses(userId: string) {
+  return db.select(aggregateColumns())
+    .from(targetsTable)
+    .innerJoin(businessMembershipsTable, eq(businessMembershipsTable.targetId, targetsTable.id))
+    .leftJoin(businessProfilesTable, eq(businessProfilesTable.targetId, targetsTable.id))
+    .where(and(
+      eq(businessMembershipsTable.userId, userId),
+      eq(businessMembershipsTable.role, "owner"),
+      eq(businessMembershipsTable.status, "active"),
+      eq(targetsTable.type, "business"),
+      sql`${targetsTable.archivedAt} is null`,
+    ))
+    .orderBy(desc(targetsTable.createdAt))
+    .limit(ownedBusinessLimit);
+}
+
+export async function createOwnedBusinessTarget(input: {
+  name: string;
+  location: string;
+  category: string;
+  description: string;
+  website?: string;
+  email?: string;
+  phone?: string;
+}, ownerUserId: string) {
+  const name = input.name.trim();
+  const location = input.location.trim();
+  const normalizedName = normalizeTargetText(name);
+  const normalizedLocation = normalizeTargetText(location);
+  const slug = `${name}-${location}-${randomUUID().slice(0, 8)}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 180);
+
+  return db.transaction(async (tx) => {
+    if (!(await hasOwnerCapacity(tx, ownerUserId))) return { conflict: "limit" as const };
+
+    const lockKey = targetIdentityLockKey({ type: "business", name, location });
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
+    const aliasTargetIds = (await tx.select({ targetId: targetAliasesTable.targetId })
+      .from(targetAliasesTable)
+      .where(eq(targetAliasesTable.normalizedAlias, normalizedName))).map((row) => row.targetId);
+    const canonical = (await tx.select({ id: targetsTable.id, slug: targetsTable.slug })
+      .from(targetsTable)
+      .where(and(
+        eq(targetsTable.isCanonical, true),
+        eq(targetsTable.isPreloaded, true),
+        or(
+          eq(targetsTable.normalizedName, normalizedName),
+          ...(aliasTargetIds.length ? [inArray(targetsTable.id, aliasTargetIds)] : []),
+        ),
+      )))[0];
+    if (canonical) return { conflict: "duplicate" as const, target: canonical };
+    const existing = (await tx.select({ id: targetsTable.id, slug: targetsTable.slug })
+      .from(targetsTable)
+      .where(and(eq(targetsTable.type, "business"), eq(targetsTable.normalizedName, normalizedName), eq(targetsTable.normalizedLocation, normalizedLocation))))[0];
+    if (existing) return { conflict: "duplicate" as const, target: existing };
+
+    const [target] = await tx.insert(targetsTable).values({
+      id: `target-${randomUUID()}`,
+      name,
+      slug,
+      type: "business",
+      description: input.description.trim(),
+      location,
+      normalizedName,
+      normalizedLocation,
+      provenance: "user",
+      preloadCategory: input.category,
+    }).returning();
+    if (!target) throw new Error("Unable to create Business Target.");
+
+    await tx.insert(businessProfilesTable).values({
+      targetId: target.id,
+      category: input.category,
+      website: input.website?.trim() ?? "",
+      email: input.email?.trim() ?? "",
+      phone: input.phone?.trim() ?? "",
+      verificationStatus: "unverified",
+      status: "active",
+    });
+    await tx.insert(businessMembershipsTable).values({
+      targetId: target.id,
+      userId: ownerUserId,
+      role: "owner",
+      status: "active",
+    });
+    return { conflict: null, target };
+  });
+}
+
 export async function submitClaim(targetId: string, applicantId: string, verificationMethod: string, evidence: string) {
   return db.transaction(async (tx) => {
     await tx.execute(sql`select id from targets where id = ${targetId} for update`);
@@ -197,6 +351,10 @@ export async function reviewClaim(claimId: string, reviewerId: string, status: "
     const claim = (await tx.select().from(businessClaimsTable).where(eq(businessClaimsTable.id, claimId)))[0];
     if (!claim) return null;
     if (!["pending", "more_info"].includes(claim.status)) return null;
+    await lockBusinessOwnerSet(tx, claim.targetId);
+    if (status === "approved" && !(await hasOwnerCapacity(tx, claim.applicantId, claim.targetId))) {
+      return { conflict: "limit" as const };
+    }
     await tx.execute(sql`select id from targets where id = ${claim.targetId} for update`);
     await tx.execute(sql`select target_id from business_profiles where target_id = ${claim.targetId} for update`);
     const target = (await tx.select({ id: targetsTable.id, verified: targetsTable.verified }).from(targetsTable).where(eq(targetsTable.id, claim.targetId)))[0];

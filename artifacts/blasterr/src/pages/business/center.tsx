@@ -5,18 +5,20 @@ import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Seo } from "@/components/seo";
 import { ArrowLeft, Settings, Activity, Users, MessageSquare, Megaphone, Target, ExternalLink, ThumbsUp, Eye, Rocket } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function BusinessCenter() {
   const [, setLocation] = useLocation();
   const params = useParams();
   const targetId = params.targetId || "";
+  const { data: currentUser } = useCurrentUser();
 
   const { data: center, isLoading: isCenterLoading, isError: isCenterError } = useGetBusinessCenter(targetId, {
-    query: { retry: false, queryKey: getGetBusinessCenterQueryKey(targetId) }
+    query: { enabled: !!currentUser, retry: false, queryKey: [...getGetBusinessCenterQueryKey(targetId), currentUser?.id ?? "guest"] }
   });
   
   const { data: analytics, isLoading: isAnalyticsLoading } = useGetBusinessAnalytics(targetId, {
-    query: { enabled: !!center, queryKey: getGetBusinessAnalyticsQueryKey(targetId) }
+    query: { enabled: !!center && !!currentUser, queryKey: [...getGetBusinessAnalyticsQueryKey(targetId), currentUser?.id ?? "guest"] }
   });
 
   if (isCenterLoading) {

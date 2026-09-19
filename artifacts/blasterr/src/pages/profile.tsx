@@ -1,9 +1,9 @@
 import { useLocation, useParams } from "wouter";
-import { useGetUserProfile, useToggleFollow, getGetUserProfileQueryKey } from "@workspace/api-client-react";
+import { useGetUserProfile, useToggleFollow, getGetUserProfileQueryKey, getListOwnedBusinessesQueryKey, useListOwnedBusinesses } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MapPin, Calendar, Link as LinkIcon, UserPlus, UserMinus } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, UserPlus, UserMinus, BriefcaseBusiness, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +22,13 @@ export default function Profile() {
   
   const { data: profile, isLoading } = useGetUserProfile(username);
   const { data: currentUser, isLoading: isCurrentUserLoading } = useCurrentUser();
+  const isOwnProfileCandidate = !!profile && (
+    currentUser?.id === profile.id ||
+    currentUser?.username.toLowerCase() === profile.username.toLowerCase()
+  );
+  const { data: ownedBusinesses } = useListOwnedBusinesses({
+    query: { enabled: isOwnProfileCandidate, queryKey: [...getListOwnedBusinessesQueryKey(), currentUser?.id ?? "guest"] },
+  });
   const followMutation = useToggleFollow();
 
   const handleFollow = () => {
@@ -143,6 +150,19 @@ export default function Profile() {
               </Button>
             </div>
           )}
+          {!isCurrentUserLoading && isOwnProfile && (
+            <div className="pt-16 sm:pt-20">
+              <Button
+                variant="outline"
+                className="rounded-full border-primary/40 px-5 font-bold text-primary hover:bg-primary/10"
+                onClick={() => setLocation("/business/create")}
+                disabled={ownedBusinesses ? !ownedBusinesses.canCreate : false}
+              >
+                <BriefcaseBusiness className="mr-2 h-4 w-4" />
+                {ownedBusinesses && !ownedBusinesses.canCreate ? "5 Page Limit Reached" : "Create Business Page"}
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="mb-4">
@@ -172,6 +192,41 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {isOwnProfile && ownedBusinesses && (
+        <section className="border-b border-white/10 px-4 py-5 sm:px-6">
+          <div className="mb-3 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="font-display text-lg font-bold text-white">Your Business Pages</h2>
+              <p className="text-sm text-muted-foreground">Switch between your personal profile and up to {ownedBusinesses.limit} Business Targets.</p>
+            </div>
+            <span className="text-xs font-bold text-primary">{ownedBusinesses.items.length}/{ownedBusinesses.limit}</span>
+          </div>
+          {ownedBusinesses.items.length ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {ownedBusinesses.items.map((business) => (
+                <button
+                  key={business.id}
+                  type="button"
+                  onClick={() => setLocation(`/business/${business.slug}`)}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-card/70 p-3 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/10">
+                    {business.imageUrl ? <img src={business.imageUrl} alt="" className="h-full w-full object-cover" /> : <BriefcaseBusiness className="h-5 w-5 text-primary" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold text-white">{business.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{business.category} · {business.location}</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-primary" />
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-muted-foreground">You have not created a Business Target page yet.</p>
+          )}
+        </section>
+      )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">

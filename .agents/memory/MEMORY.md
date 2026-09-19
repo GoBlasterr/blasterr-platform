@@ -13,3 +13,4 @@
 - [User-content translation boundary](user-content-translation-boundary.md) — translate on demand without modifying originals or persistently retaining translated user text.
 - [IP locale trust boundary](ip-locale-trust-boundary.md) — derive interface locale from proxy country evidence, with a short-lived cookie and English fallback.
 - [Wikimedia profile enrichment](wikimedia-profile-enrichment.md) — treat lead thumbnails and Commons search as separate trusted paths; some profiles expose no usable lead image.
+- [Business ownership limits](business-ownership-limits.md) — enforce owner caps across every grant and reactivation path with shared target/owner locks; scope protected caches by user.

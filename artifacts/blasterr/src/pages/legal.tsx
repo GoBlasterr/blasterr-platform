@@ -265,7 +265,7 @@ function LegalPage({ kind }: LegalPageProps) {
             <img src="/word-logo.png" alt="BLASTERR" className="h-10 w-auto sm:h-12" />
           </Link>
           <Link
-            href="/"
+            href="/home"
             className="flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -274,7 +274,7 @@ function LegalPage({ kind }: LegalPageProps) {
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto max-w-4xl px-6 py-12 sm:px-10 sm:py-16">
+      <div className="relative z-10 mx-auto max-w-4xl px-6 pb-12 pt-7 sm:px-10 sm:pb-16 sm:pt-9">
         <div className="mb-10 flex items-start gap-4">
           <div className="mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
             {isPrivacy ? <ShieldCheck className="h-6 w-6" /> : <FileText className="h-6 w-6" />}

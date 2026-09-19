@@ -2595,6 +2595,14 @@ export interface BusinessPage {
   hasMore: boolean;
 }
 
+export interface OwnedBusinessList {
+  /** @maxItems 5 */
+  items: BusinessSummary[];
+  /** @minimum 1 */
+  limit: number;
+  canCreate: boolean;
+}
+
 export type BusinessDetailBlastsItem = { [key: string]: unknown };
 
 export type BusinessDetail = BusinessSummary & ({
@@ -2633,6 +2641,44 @@ export interface BusinessClaimInput {
   verificationMethod: BusinessClaimInputVerificationMethod;
   /** @maxLength 2000 */
   evidence?: string;
+}
+
+export type BusinessProfileInputCategory = typeof BusinessProfileInputCategory[keyof typeof BusinessProfileInputCategory];
+
+
+export const BusinessProfileInputCategory = {
+  Tech: 'Tech',
+  Retail: 'Retail',
+  Food: 'Food',
+  Entertainment: 'Entertainment',
+  Services: 'Services',
+  Health: 'Health',
+  Other: 'Other',
+} as const;
+
+export interface BusinessProfileInput {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  location: string;
+  category: BusinessProfileInputCategory;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+  /** @maxLength 500 */
+  website?: string;
+  /** @maxLength 320 */
+  email?: string;
+  /** @maxLength 40 */
+  phone?: string;
 }
 
 export type BusinessClaimStatus = typeof BusinessClaimStatus[keyof typeof BusinessClaimStatus];

@@ -36,6 +36,7 @@ import BusinessList from '@/pages/business/index';
 import BusinessDetail from '@/pages/business/detail';
 import BusinessClaim from '@/pages/business/claim';
 import BusinessCenter from '@/pages/business/center';
+import CreateBusinessProfile from '@/pages/business/create';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +77,11 @@ function Router() {
           <Route path="/trending" component={Trending} />
           <Route path="/trending/targets" component={Trending} />
           <Route path="/business" component={BusinessList} />
+          <Route path="/business/create">
+            <SignedInOnly>
+              <CreateBusinessProfile />
+            </SignedInOnly>
+          </Route>
           <Route path="/business/:slug" component={BusinessDetail} />
           <Route path="/business/:slug/claim">
             <SignedInOnly>

@@ -3,7 +3,7 @@ import { useGetBusiness, useToggleBusinessFollow, useGetBusinessCenter, getGetBu
 import { useQueryClient } from "@tanstack/react-query";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Briefcase, MapPin, Globe, Phone, Mail, ShieldCheck, PenSquare, UserPlus, UserCheck, Settings } from "lucide-react";
+import { ArrowLeft, Briefcase, MapPin, Globe, Phone, Mail, ShieldCheck, PenSquare, UserPlus, UserRound, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Seo, absoluteUrl, canonicalUrl } from "@/components/seo";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -23,7 +23,7 @@ export default function BusinessDetail() {
     query: {
       enabled: !!business?.id && !!currentUser,
       retry: false,
-      queryKey: getGetBusinessCenterQueryKey(business?.id || "")
+      queryKey: [...getGetBusinessCenterQueryKey(business?.id || ""), currentUser?.id ?? "guest"]
     }
   });
 
@@ -111,6 +111,11 @@ export default function BusinessDetail() {
               </div>
               
               <div className="flex items-center gap-2">
+                 {isOwner && currentUser && (
+                   <Button variant="outline" className="rounded-full border-primary/30 text-primary hover:bg-primary/10" onClick={() => setLocation(`/profile/${currentUser.username}`)}>
+                     <UserRound className="mr-2 h-4 w-4" /> Personal Profile
+                   </Button>
+                 )}
                 <Button variant="outline" className="rounded-full border-white/10 hover:bg-white/10" onClick={handleFollow} disabled={toggleFollowMutation.isPending}>
                    <UserPlus className="w-4 h-4 mr-2" /> Follow
                 </Button>

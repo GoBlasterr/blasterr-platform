@@ -4948,6 +4948,72 @@ export const ListBusinessesResponse = zod.object({
 })
 
 
+/**
+ * @summary Create a Business Target owned by the signed-in user
+ */
+export const createBusinessProfileBodyNameMax = 160;
+
+export const createBusinessProfileBodyLocationMax = 160;
+
+export const createBusinessProfileBodyDescriptionMax = 1000;
+
+export const createBusinessProfileBodyWebsiteMax = 500;
+
+export const createBusinessProfileBodyEmailMax = 320;
+
+export const createBusinessProfileBodyPhoneMax = 40;
+
+
+
+export const CreateBusinessProfileBody = zod.object({
+  "name": zod.string().min(1).max(createBusinessProfileBodyNameMax),
+  "location": zod.string().min(1).max(createBusinessProfileBodyLocationMax),
+  "category": zod.enum(['Tech', 'Retail', 'Food', 'Entertainment', 'Services', 'Health', 'Other']),
+  "description": zod.string().min(1).max(createBusinessProfileBodyDescriptionMax),
+  "website": zod.string().max(createBusinessProfileBodyWebsiteMax).optional(),
+  "email": zod.string().max(createBusinessProfileBodyEmailMax).optional(),
+  "phone": zod.string().max(createBusinessProfileBodyPhoneMax).optional()
+})
+
+export const CreateBusinessProfileResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "location": zod.string(),
+  "category": zod.string(),
+  "description": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "bannerImageUrl": zod.string().optional(),
+  "blastCount": zod.number(),
+  "viewCount": zod.number(),
+  "commentCount": zod.number(),
+  "reactionCount": zod.number(),
+  "followerCount": zod.number(),
+  "featured": zod.boolean(),
+  "verified": zod.boolean(),
+  "status": zod.enum(['active', 'hidden', 'locked']),
+  "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
+  "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
+}).and(zod.object({
+  "subcategory": zod.string(),
+  "address": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "postalCode": zod.string(),
+  "phone": zod.string(),
+  "website": zod.string(),
+  "email": zod.string(),
+  "verificationStatus": zod.string(),
+  "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable()
+}))
+
+
 export const GetBusinessParams = zod.object({
   "slug": zod.coerce.string()
 })
@@ -4989,6 +5055,44 @@ export const GetBusinessResponse = zod.object({
   "latitude": zod.number().nullable(),
   "longitude": zod.number().nullable()
 }))
+
+
+/**
+ * @summary List Business Targets owned by the signed-in user
+ */
+export const listOwnedBusinessesResponseItemsMax = 5;
+
+
+
+
+export const ListOwnedBusinessesResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "location": zod.string(),
+  "category": zod.string(),
+  "description": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "bannerImageUrl": zod.string().optional(),
+  "blastCount": zod.number(),
+  "viewCount": zod.number(),
+  "commentCount": zod.number(),
+  "reactionCount": zod.number(),
+  "followerCount": zod.number(),
+  "featured": zod.boolean(),
+  "verified": zod.boolean(),
+  "status": zod.enum(['active', 'hidden', 'locked']),
+  "verificationStatus": zod.enum(['unverified', 'pending', 'verified']),
+  "claimStatus": zod.enum(['unclaimed', 'pending', 'approved', 'rejected', 'more_info']),
+  "ownerCount": zod.number(),
+  "latitude": zod.number().nullable(),
+  "longitude": zod.number().nullable(),
+  "createdAt": zod.string()
+})).max(listOwnedBusinessesResponseItemsMax),
+  "limit": zod.number().min(1),
+  "canCreate": zod.boolean()
+})
 
 
 export const ToggleBusinessFollowParams = zod.object({

@@ -20,7 +20,8 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction): Pr
   next();
 }
 const slugFor = (name: string, location: string) => `${name}-${location}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 180);
-const claimPayload = (claim: NonNullable<Awaited<ReturnType<typeof business.reviewClaim>>>) => ({ ...claim, createdAt: claim.createdAt.toISOString(), updatedAt: claim.updatedAt.toISOString() });
+type ReviewedClaim = Exclude<NonNullable<Awaited<ReturnType<typeof business.reviewClaim>>>, { conflict: string }>;
+const claimPayload = (claim: ReviewedClaim) => ({ ...claim, createdAt: claim.createdAt.toISOString(), updatedAt: claim.updatedAt.toISOString() });
 
 router.use(requireAdmin);
 
@@ -61,6 +62,7 @@ router.patch("/business/claims/:claimId", async (req, res): Promise<void> => {
   if (body.data.status === "approved" && !adminFeatureFlags.find((flag) => flag.key === "business_verification_enabled")?.enabled) { res.status(403).json({ error: "Business verification is disabled." }); return; }
   const claim = await business.reviewClaim(params.data.claimId, actor(res), body.data.status, body.data.reviewNote ?? "");
   if (!claim) { res.status(404).json({ error: "Claim request not found." }); return; }
+  if ("conflict" in claim) { res.status(409).json({ error: `This owner already manages ${business.ownedBusinessLimit} Business Target pages.` }); return; }
   await recordAudit({ action: `business_claim_${body.data.status}`, entityType: "business_claim", entityId: claim.id, actorId: actor(res), details: `Business claim marked ${body.data.status}.` });
   res.json(ReviewAdminBusinessClaimResponse.parse(claimPayload(claim)));
 });
@@ -72,7 +74,14 @@ router.patch("/business/:targetId", async (req, res): Promise<void> => {
   const existing = (await db.select().from(targetsTable).where(and(eq(targetsTable.id, params.data.targetId), eq(targetsTable.type, "business"))))[0];
   if (!existing) { res.status(404).json({ error: "Business Target not found." }); return; }
   const patch = body.data;
-  await db.transaction(async (tx) => {
+  const updated = await db.transaction(async (tx) => {
+    if (patch.status !== undefined) {
+      await business.lockBusinessOwnerSet(tx, existing.id);
+      const current = (await tx.select({ archivedAt: targetsTable.archivedAt }).from(targetsTable).where(eq(targetsTable.id, existing.id)))[0];
+      if (patch.status === "active" && current?.archivedAt && !(await business.canActivateBusinessTarget(tx, existing.id))) {
+        return false;
+      }
+    }
     await tx.update(targetsTable).set({
       ...(patch.name !== undefined ? { name: patch.name } : {}), ...(patch.location !== undefined ? { location: patch.location } : {}),
       ...(patch.description !== undefined ? { description: patch.description } : {}), ...(patch.imageUrl !== undefined ? { imageUrl: patch.imageUrl } : {}),
@@ -87,7 +96,9 @@ router.patch("/business/:targetId", async (req, res): Promise<void> => {
       website: patch.website ?? "", email: patch.email ?? "", verificationStatus: patch.verified ? "verified" : "unverified",
       status: patch.status ?? "active",
     }).onConflictDoUpdate({ target: businessProfilesTable.targetId, set: { ...(patch.category !== undefined ? { category: patch.category } : {}), ...(patch.subcategory !== undefined ? { subcategory: patch.subcategory } : {}), ...(patch.address !== undefined ? { address: patch.address } : {}), ...(patch.city !== undefined ? { city: patch.city } : {}), ...(patch.state !== undefined ? { state: patch.state } : {}), ...(patch.postalCode !== undefined ? { postalCode: patch.postalCode } : {}), ...(patch.phone !== undefined ? { phone: patch.phone } : {}), ...(patch.website !== undefined ? { website: patch.website } : {}), ...(patch.email !== undefined ? { email: patch.email } : {}), ...(patch.status !== undefined ? { status: patch.status } : {}), ...(patch.verified !== undefined ? { verificationStatus: patch.verified ? "verified" : "unverified" } : {}), updatedAt: new Date() } });
+    return true;
   });
+  if (!updated) { res.status(409).json({ error: `An owner already manages ${business.ownedBusinessLimit} active Business Target pages.` }); return; }
   const detail = await business.getBusinessBySlug(existing.slug, true);
   await recordAudit({ action: "business_target_updated", entityType: "business_target", entityId: existing.id, actorId: actor(res), details: `Updated Business Target ${existing.name}.` });
   res.json(UpdateAdminBusinessResponse.parse({ ...detail, blasts: detail?.blasts.map((blast) => ({ ...blast, createdAt: blast.createdAt.toISOString(), updatedAt: blast.updatedAt.toISOString() })) }));
@@ -99,6 +110,7 @@ router.post("/business/:targetId/owners", async (req, res): Promise<void> => {
   if (!params.success || !body.success) { res.status(400).json({ error: "Provide an existing user ID or email." }); return; }
   const owner = await business.assignBusinessOwner(params.data.targetId, body.data);
   if (!owner) { res.status(404).json({ error: "User or Business Target not found." }); return; }
+  if ("conflict" in owner) { res.status(409).json({ error: `This owner already manages ${business.ownedBusinessLimit} Business Target pages.` }); return; }
   await recordAudit({ action: "business_owner_assigned", entityType: "business_target", entityId: params.data.targetId, actorId: actor(res), details: `Assigned ${owner.email} as Business Target owner.` });
   res.json(AssignAdminBusinessOwnerResponse.parse(owner));
 });
