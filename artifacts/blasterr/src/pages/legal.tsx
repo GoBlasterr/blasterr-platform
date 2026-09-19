@@ -9,7 +9,7 @@ type LegalSection = {
 };
 
 type LegalPageProps = {
-  kind: "privacy" | "terms";
+  kind: "privacy" | "terms" | "disclaimer";
 };
 
 const privacySections: LegalSection[] = [
@@ -186,6 +186,44 @@ const termsSections: LegalSection[] = [
   },
 ];
 
+const disclaimerSections: LegalSection[] = [
+  {
+    heading: "BLASTERR DISCLAIMER",
+    paragraphs: [
+      "Violence, Threats & Use of the BLASTERR Name",
+      "BLASTERR is a social media and public discussion platform created to facilitate conversation, commentary, opinions, information sharing, entertainment, and the exchange of ideas.",
+      "The name BLASTERR, as well as terms including “Blast,” “Put It on Blast,” “Blasted,” and similar terminology used throughout the platform, are intended solely as references to online discussion, commentary, attention, or public conversation.",
+    ],
+  },
+  {
+    heading: "BLASTERR DOES NOT CONDONE VIOLENCE",
+    paragraphs: [
+      "BLASTERR does not condone, encourage, promote, support, or endorse violence, physical harm, threats of violence, intimidation, harassment, assault, or any unlawful conduct against any person, business, organization, animal, or property.",
+      "The use of the words “Blast” or “Blasterr” on the platform does not refer to shooting, attacking, harming, or physically targeting another person or property.",
+      "BLASTERR is not a weapons platform, and “Blasterr” does not mean or instruct anyone to use a real weapon, firearm, explosive, or other weapon against another person.",
+      "Any references to “putting someone on Blast” are strictly intended to mean bringing attention to a person, place, business, topic, event, opinion, experience, or issue through online discussion.",
+    ],
+  },
+  {
+    heading: "THREATS AND VIOLENT CONTENT",
+    paragraphs: [
+      "BLASTERR does not authorize the use of its platform to make credible threats, encourage violence, coordinate violent activity, glorify acts of violence, or encourage users to harm another person or property.",
+      "Content that violates applicable law or BLASTERR's Community Guidelines may be removed, restricted, reported to appropriate authorities when warranted, and/or result in suspension or termination of the responsible account.",
+      "Users should never interpret content posted on BLASTERR as permission, encouragement, or instruction to engage in violence or unlawful activity.",
+    ],
+  },
+  {
+    heading: "RESPONSIBLE USE",
+    paragraphs: [
+      "BLASTERR encourages users to use the platform responsibly and to express disagreement through discussion, commentary, evidence, opinions, and lawful communication — not violence or physical confrontation.",
+      "Users are responsible for their own conduct and for complying with applicable laws and BLASTERR's Terms of Service and Community Guidelines.",
+      "If you believe you or someone else is in immediate danger, contact the appropriate emergency services or law-enforcement authority in your area.",
+      "BLASTERR is about putting conversations, opinions, experiences, and issues ON BLAST — not putting people in physical danger.",
+      "BLASTERR™ — SAY IT. SHARE IT. PUT IT ON BLAST.",
+    ],
+  },
+];
+
 function setMetaDescription(description: string) {
   let meta = document.querySelector('meta[name="description"]');
   if (!meta) {
@@ -198,11 +236,14 @@ function setMetaDescription(description: string) {
 
 function LegalPage({ kind }: LegalPageProps) {
   const isPrivacy = kind === "privacy";
-  const title = isPrivacy ? "Privacy Policy" : "Terms and Conditions";
+  const isDisclaimer = kind === "disclaimer";
+  const title = isPrivacy ? "Privacy Policy" : isDisclaimer ? "Disclaimer" : "Terms and Conditions";
   const description = isPrivacy
     ? "Read the BLASTERR Privacy Policy to understand how we collect, use, share, and protect information on the Target-centric social platform."
-    : "Read the BLASTERR Terms and Conditions covering accounts, user content, acceptable use, moderation, and use of the Service.";
-  const sections = isPrivacy ? privacySections : termsSections;
+    : isDisclaimer
+      ? "Read the BLASTERR disclaimer about violence, threats, and responsible use of the BLASTERR name."
+      : "Read the BLASTERR Terms and Conditions covering accounts, user content, acceptable use, moderation, and use of the Service.";
+  const sections = isPrivacy ? privacySections : isDisclaimer ? disclaimerSections : termsSections;
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -273,8 +314,11 @@ function LegalPage({ kind }: LegalPageProps) {
           <Link href="/privacy" className={`transition-colors hover:text-primary ${isPrivacy ? "text-primary" : ""}`}>
             Privacy Policy
           </Link>
-          <Link href="/terms" className={`transition-colors hover:text-primary ${!isPrivacy ? "text-primary" : ""}`}>
+          <Link href="/terms" className={`transition-colors hover:text-primary ${kind === "terms" ? "text-primary" : ""}`}>
             Terms and Conditions
+          </Link>
+          <Link href="/disclaimer" className={`transition-colors hover:text-primary ${isDisclaimer ? "text-primary" : ""}`}>
+            Disclaimer
           </Link>
         </nav>
       </footer>
@@ -288,4 +332,8 @@ export function PrivacyPolicy() {
 
 export function TermsAndConditions() {
   return <LegalPage kind="terms" />;
+}
+
+export function Disclaimer() {
+  return <LegalPage kind="disclaimer" />;
 }

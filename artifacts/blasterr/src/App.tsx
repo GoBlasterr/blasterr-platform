@@ -30,7 +30,7 @@ import SignUp from '@/pages/sign-up';
 import NotFound from '@/pages/not-found';
 import ClipsLibrary from '@/pages/clips/index';
 import CreateClip from '@/pages/clips/create';
-import { PrivacyPolicy, TermsAndConditions } from '@/pages/legal';
+import { Disclaimer, PrivacyPolicy, TermsAndConditions } from '@/pages/legal';
 import CmsCollectionPage from '@/pages/cms-collection';
 import BusinessList from '@/pages/business/index';
 import BusinessDetail from '@/pages/business/detail';
@@ -101,6 +101,7 @@ function Router() {
           <Route path="/sign-up/*?" component={SignUp} />
           <Route path="/privacy" component={PrivacyPolicy} />
           <Route path="/terms" component={TermsAndConditions} />
+          <Route path="/disclaimer" component={Disclaimer} />
           <Route path="/site/:type" component={CmsCollectionPage} />
           <Route component={NotFound} />
         </Switch>

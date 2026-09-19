@@ -164,6 +164,11 @@ export default function Home() {
           </div>
         )}
       </div>
+      <footer className="border-t border-white/5 px-6 py-6 text-center text-sm text-muted-foreground">
+        <Link href="/disclaimer" className="transition-colors hover:text-primary">
+          Disclaimer
+        </Link>
+      </footer>
     </div>
   );
 }
