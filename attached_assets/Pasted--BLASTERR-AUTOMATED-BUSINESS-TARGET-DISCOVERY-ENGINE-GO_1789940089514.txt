@@ -1,0 +1,1715 @@
+# BLASTERR — AUTOMATED BUSINESS TARGET DISCOVERY ENGINE
+
+## GOOGLE PLACES → BUSINESS TARGET AUTOMATION
+
+You are working on an **ALREADY BUILT AND FUNCTIONING BLASTERR PLATFORM**.
+
+Implement a new additive system called:
+
+# BUSINESS TARGET DISCOVERY ENGINE
+
+The purpose of this system is to allow BLASTERR administrators to automatically discover businesses by:
+
+* City
+* State
+* ZIP code
+* Geographic radius
+* Business category
+* Search query
+
+using the **Google Places API / Google Maps Platform Places API**.
+
+The discovered businesses can then be created as BLASTERR Business Targets.
+
+---
+
+# 🚨 ABSOLUTE RULE — DO NOT BREAK EXISTING BLASTERR
+
+BLASTERR is already built.
+
+DO NOT:
+
+* rebuild BLASTERR
+* redesign BLASTERR
+* replace existing features
+* remove existing features
+* refactor unrelated systems
+* modify existing Blast creation unnecessarily
+* modify existing user profiles unnecessarily
+* modify existing feeds
+* modify existing search unnecessarily
+* modify existing comments
+* modify existing reactions
+* modify existing authentication
+* modify existing notifications
+* modify existing BLASTR Clips
+* modify existing Cloudflare R2 configuration
+* modify existing Supabase configuration unnecessarily
+* redesign the Admin Dashboard
+
+This must be an **ADDITIVE BUSINESS TARGET SYSTEM**.
+
+First inspect the current codebase and existing Business Target implementation.
+
+Reuse everything already built for:
+
+* Business Targets
+* Business discovery
+* Business pages
+* Business Center
+* Admin Business Targets
+* Blast → Business Target relationships
+* categories
+* locations
+* search
+* authentication
+* authorization
+* analytics
+* notifications
+* audit logs
+
+Do not create duplicate systems where functionality already exists.
+
+---
+
+# 1. CORE OBJECTIVE
+
+Create an automated workflow:
+
+GOOGLE PLACES API
+
+↓
+
+BUSINESS DISCOVERY
+
+↓
+
+DEDUPLICATION
+
+↓
+
+ADMIN REVIEW / APPROVAL
+
+↓
+
+BLASTERR BUSINESS TARGET
+
+↓
+
+UNCLAIMED BUSINESS TARGET
+
+↓
+
+USERS CREATE BLASTS ABOUT BUSINESS
+
+↓
+
+BUSINESS ACTIVITY ACCUMULATES
+
+↓
+
+BUSINESS OWNER DISCOVERS TARGET
+
+↓
+
+CLAIMS BUSINESS
+
+↓
+
+VERIFIES OWNERSHIP
+
+↓
+
+BUSINESS CENTER
+
+↓
+
+PREMIUM SERVICES / PROMOTION
+
+The purpose is to make BLASTERR proactively create a business ecosystem instead of waiting for users to create a Blast first.
+
+---
+
+# 2. GOOGLE PLACES API
+
+Use Google's current **Places API** through a secure server-side integration.
+
+Do NOT scrape Google Maps.
+
+Do NOT automate browser scraping of Google Maps.
+
+Do NOT expose the Google API key to the client.
+
+Store the API key securely using Replit Secrets / environment variables.
+
+Suggested environment variable:
+
+GOOGLE_PLACES_API_KEY
+
+If a Google Maps Platform project does not already exist, create clear setup instructions for the administrator rather than hardcoding credentials.
+
+---
+
+# 3. GOOGLE DATA POLICY REQUIREMENT
+
+Design the system around Google's current Places API policies.
+
+IMPORTANT:
+
+Do not treat Google Places data as BLASTERR-owned permanent business data.
+
+Use Google as the external discovery/identity source.
+
+Store the Google Place ID as the durable external identifier.
+
+Store only the fields permitted under the applicable Google Maps Platform terms/policies.
+
+Where Google Places data is displayed, implement the required Google attribution.
+
+If Google data needs to be refreshed, retrieve it from the API rather than relying indefinitely on stale cached Places content.
+
+Do not scrape Google Maps.
+
+Do not copy Google reviews into BLASTERR.
+
+Do not copy Google ratings into BLASTERR unless the applicable Google terms explicitly permit the intended use.
+
+Do not copy Google photos into permanent BLASTERR storage unless the applicable API terms permit it.
+
+Business-specific BLASTERR data must remain separate from Google Places data.
+
+---
+
+# 4. BUSINESS TARGET EXTERNAL ID
+
+Add support for:
+
+google_place_id
+
+to the Business Target architecture if it does not already exist.
+
+The Google Place ID should be treated as the primary external discovery reference.
+
+Use it for:
+
+* deduplication
+* refresh
+* matching
+* updating external place information
+* preventing duplicate Business Targets
+
+Do not use business name alone as the unique identifier.
+
+Google Place IDs may change over time, so implement a refresh strategy rather than assuming the ID will remain unchanged forever.
+
+---
+
+# 5. ADMIN LOCATION
+
+Add this functionality to:
+
+ADMIN DASHBOARD
+
+→ BUSINESS TARGETS
+
+Do NOT create a separate Admin application.
+
+Add a new button:
+
+# 🔎 DISCOVER BUSINESSES
+
+or:
+
+# + IMPORT BUSINESSES
+
+Use the existing Admin design system.
+
+---
+
+# 6. BUSINESS DISCOVERY FORM
+
+Create:
+
+# DISCOVER BUSINESSES
+
+Fields:
+
+### LOCATION
+
+City
+
+State
+
+Optional ZIP
+
+Optional latitude/longitude
+
+### CATEGORY
+
+Allow selection from existing BLASTERR business categories.
+
+Examples:
+
+Moving Companies
+
+Junk Removal
+
+Restaurants
+
+Barbers
+
+Beauty Salons
+
+Auto Repair
+
+Auto Dealers
+
+Plumbers
+
+HVAC
+
+Roofing
+
+Landscaping
+
+Electricians
+
+Painters
+
+Hotels
+
+Gyms
+
+Retail
+
+Entertainment
+
+Professional Services
+
+Other
+
+Also allow:
+
+CUSTOM SEARCH
+
+Example:
+
+"moving companies"
+
+---
+
+# 7. SEARCH RADIUS
+
+Allow:
+
+5 miles
+
+10 miles
+
+25 miles
+
+50 miles
+
+100 miles
+
+Custom
+
+Use appropriate Google Places location bias/restriction capabilities.
+
+Do not make assumptions that a text search will return every business in an entire city.
+
+The system should clearly document that Google search results are subject to Google's search/result limits.
+
+---
+
+# 8. RESULT LIMIT
+
+Allow Admin to select:
+
+25
+
+50
+
+100
+
+250
+
+500
+
+However, respect Google's actual API result limits and pagination behavior.
+
+Do not pretend Google returned more businesses than it actually returned.
+
+Google's current Text Search API documentation states that Text Search results are limited across pages, so design the importer around the actual API limits rather than attempting to scrape additional results.
+
+---
+
+# 9. SEARCH STRATEGY
+
+Support queries such as:
+
+"moving companies in Charlotte NC"
+
+"junk removal in Charlotte NC"
+
+"restaurants in Charlotte NC"
+
+"barbers in Charlotte NC"
+
+Use Google Places Text Search / Nearby Search appropriately.
+
+Where possible, use structured category/type filtering and location constraints rather than unnecessarily broad text searches.
+
+Use field masks to request only the fields required.
+
+---
+
+# 10. DISCOVERY PREVIEW
+
+Before creating Business Targets, show Admin a preview.
+
+Example:
+
+# BUSINESS DISCOVERY RESULTS
+
+Charlotte, NC
+
+Moving Companies
+
+25 Results
+
+---
+
+ABC Moving Company
+
+Charlotte, NC
+
+Google Place ID: available
+
+BLASTERR TARGET: NOT FOUND
+
+[ CREATE TARGET ]
+
+---
+
+XYZ Relocation
+
+Charlotte, NC
+
+Google Place ID: available
+
+BLASTERR TARGET: ALREADY EXISTS
+
+[ VIEW TARGET ]
+
+---
+
+Carolina Movers
+
+Charlotte, NC
+
+Google Place ID: available
+
+BLASTERR TARGET: NOT FOUND
+
+[ CREATE TARGET ]
+
+---
+
+Allow:
+
+☑ Select
+
+☐ Skip
+
+[ CREATE SELECTED TARGETS ]
+
+[ CREATE ALL NEW TARGETS ]
+
+---
+
+# 11. DUPLICATE DETECTION
+
+Before creating a Business Target, check:
+
+1. Google Place ID
+2. normalized business name
+3. address
+4. phone where available
+5. website where available
+6. city
+7. state
+
+Do NOT create duplicate Business Targets.
+
+Example:
+
+Joe's Moving Company
+
+Joe’s Moving Company
+
+JOES MOVING COMPANY
+
+should not automatically create three Targets if they clearly refer to the same business.
+
+---
+
+# 12. EXISTING TARGET MATCH
+
+If a Google Place already corresponds to a BLASTERR Business Target:
+
+show:
+
+# ALREADY EXISTS
+
+JOE'S MOVING COMPANY
+
+🎯 BUSINESS TARGET
+
+[ VIEW TARGET ]
+
+Do not create another Target.
+
+---
+
+# 13. CREATE UNCLAIMED BUSINESS TARGET
+
+When Admin creates a discovered business:
+
+automatically create:
+
+JOE'S MOVING COMPANY
+
+🎯 BUSINESS TARGET
+
+📍 Charlotte, NC
+
+🔒 UNCLAIMED
+
+🔥 0 BLASTS
+
+👁 0 VIEWS
+
+[ CLAIM THIS BUSINESS ]
+
+The Target should immediately become discoverable according to its visibility/status settings.
+
+---
+
+# 14. BUSINESS TARGET SOURCE
+
+Add internal metadata:
+
+source_type
+
+Possible values:
+
+ADMIN_CREATED
+
+GOOGLE_PLACES_DISCOVERY
+
+USER_SUGGESTED
+
+OTHER
+
+For Google-discovered Targets:
+
+source_type = GOOGLE_PLACES_DISCOVERY
+
+Also store:
+
+google_place_id
+
+Do not expose unnecessary internal source metadata to users.
+
+---
+
+# 15. AUTO-CREATE MODE
+
+Add an optional setting:
+
+AUTO-CREATE BUSINESS TARGETS
+
+ON / OFF
+
+If OFF:
+
+Google results are previewed and require Admin approval.
+
+If ON:
+
+eligible new businesses can automatically become unclaimed Business Targets.
+
+However, implement safeguards:
+
+* duplicate detection
+* category validation
+* location validation
+* invalid result filtering
+* business status checks where available
+* audit logging
+* import limits
+
+---
+
+# 16. AUTO-DISCOVERY CAMPAIGNS
+
+Create a future-ready Admin feature:
+
+# BUSINESS DISCOVERY CAMPAIGNS
+
+Admin can create:
+
+Campaign Name:
+
+Charlotte Moving Companies
+
+Location:
+
+Charlotte, NC
+
+Category:
+
+Moving Companies
+
+Radius:
+
+25 miles
+
+Frequency:
+
+One Time
+
+Daily
+
+Weekly
+
+Monthly
+
+Status:
+
+Active / Paused
+
+Auto Create:
+
+Yes / No
+
+---
+
+# 17. EXAMPLE CAMPAIGN
+
+Admin creates:
+
+# CHARLOTTE MOVING COMPANIES
+
+Location:
+
+Charlotte, NC
+
+Category:
+
+Moving Companies
+
+Radius:
+
+50 miles
+
+Auto Create:
+
+ON
+
+BLASTERR automatically:
+
+1. searches Google Places
+2. receives eligible results
+3. checks existing Business Targets
+4. identifies new businesses
+5. creates new unclaimed Targets
+6. logs the discovery
+7. does not duplicate existing Targets
+
+---
+
+# 18. FUTURE MULTI-CITY CAMPAIGN
+
+Allow Admin to eventually create:
+
+# NORTH CAROLINA MOVING BUSINESSES
+
+Cities:
+
+Charlotte
+
+Raleigh
+
+Durham
+
+Greensboro
+
+Winston-Salem
+
+Wilmington
+
+etc.
+
+Each city should be processed individually to improve search accuracy and avoid unnecessary API usage.
+
+---
+
+# 19. CATEGORY CAMPAIGNS
+
+Allow Admin to run campaigns by category.
+
+Examples:
+
+MOVING COMPANIES
+
+JUNK REMOVAL
+
+RESTAURANTS
+
+BARBERS
+
+AUTO REPAIR
+
+ROOFING
+
+PLUMBING
+
+HVAC
+
+LANDSCAPING
+
+SALONS
+
+HOTELS
+
+GYMS
+
+etc.
+
+The category should map to BLASTERR's existing Business Target category system.
+
+---
+
+# 20. BUSINESS TARGET AUTO-UPDATE
+
+Do NOT blindly overwrite BLASTERR-owned information.
+
+Separate:
+
+## EXTERNAL PLACE DATA
+
+Google-discovered information.
+
+from:
+
+## BLASTERR BUSINESS DATA
+
+BLASTERR-owned information.
+
+from:
+
+## CLAIMED BUSINESS DATA
+
+Information provided/managed by the verified business owner.
+
+Once a business claims its Target, owner-controlled information should take precedence where appropriate.
+
+Do not overwrite claimed business information with an automated Google refresh.
+
+---
+
+# 21. CLAIMED BUSINESS PROTECTION
+
+If:
+
+claimed = true
+
+then automated discovery refreshes must NOT overwrite:
+
+* owner-provided description
+* owner-selected logo
+* owner cover image
+* owner website
+* owner CTA configuration
+* owner business information
+
+unless the owner explicitly permits synchronization.
+
+---
+
+# 22. UNCLAIMED BUSINESS REFRESH
+
+For unclaimed Targets, external business information may be refreshed according to applicable Google API policies.
+
+Do not store prohibited Google data permanently.
+
+Use appropriate attribution when displaying Google-derived information.
+
+---
+
+# 23. BUSINESS STATUS
+
+If the Places API indicates a business is permanently closed or otherwise unavailable, do NOT automatically delete the Business Target.
+
+Instead:
+
+mark external status appropriately
+
+and allow Admin to review.
+
+Possible BLASTERR status:
+
+ACTIVE
+
+UNCLAIMED
+
+CLAIMED
+
+VERIFIED
+
+PENDING
+
+CLOSED
+
+HIDDEN
+
+SUSPENDED
+
+ARCHIVED
+
+---
+
+# 24. ADMIN IMPORT HISTORY
+
+Create:
+
+# IMPORT HISTORY
+
+Show:
+
+Date
+
+Campaign
+
+Location
+
+Category
+
+Search
+
+Results Found
+
+New Targets
+
+Duplicates
+
+Skipped
+
+Errors
+
+Admin
+
+Status
+
+Example:
+
+Sept 20, 2026
+
+Charlotte Moving Companies
+
+25 Results
+
+18 New Targets
+
+5 Existing
+
+2 Skipped
+
+Completed
+
+---
+
+# 25. IMPORT DETAIL
+
+Admin can click an import and see:
+
+Businesses discovered
+
+Businesses created
+
+Businesses skipped
+
+Businesses matched
+
+Businesses that failed
+
+Reason for failure
+
+Google Place ID
+
+BLASTERR Target ID
+
+Timestamp
+
+---
+
+# 26. RATE LIMITING / COST CONTROL
+
+This is extremely important.
+
+Do not allow an Admin accidentally to generate thousands of Google API requests.
+
+Implement:
+
+* per-run limits
+* campaign limits
+* daily request limits
+* configurable maximum businesses per run
+* API error handling
+* retry with exponential backoff where appropriate
+* request logging
+* usage monitoring
+* estimated request count before large campaigns
+
+Display a warning before large imports.
+
+Example:
+
+"This discovery may require multiple Google Places API requests and may incur Google Maps Platform charges."
+
+---
+
+# 27. FIELD MASKS
+
+Never use:
+
+*
+
+in production Google Places API requests.
+
+Request only the fields required for the current operation.
+
+Example discovery fields should be limited to what BLASTERR actually needs.
+
+Potential fields may include:
+
+places.id
+
+places.displayName
+
+places.formattedAddress
+
+places.types
+
+places.location
+
+places.websiteUri
+
+places.nationalPhoneNumber
+
+Only request fields permitted and necessary for the specific workflow.
+
+Use Google's current pricing documentation to determine the appropriate field selection.
+
+---
+
+# 28. GOOGLE ATTRIBUTION
+
+Whenever Google Places information is displayed in BLASTERR where attribution is required, include the appropriate Google attribution.
+
+Examples:
+
+"Powered by Google"
+
+Google logo
+
+or other required attribution according to Google's current guidelines.
+
+Do not hide or remove required attribution.
+
+---
+
+# 29. DO NOT IMPORT GOOGLE REVIEWS
+
+Do NOT automatically copy:
+
+Google reviews
+
+Google review text
+
+Google review authors
+
+Google review ratings
+
+into BLASTERR.
+
+BLASTERR's own conversation system remains independent.
+
+BLASTERR users create BLASTERR Blasts.
+
+---
+
+# 30. DO NOT IMPORT GOOGLE MAPS SCRAPED DATA
+
+Do not scrape:
+
+Google Maps HTML
+
+Google Maps search pages
+
+Google Maps browser results
+
+Google Maps review pages
+
+Use the official API.
+
+---
+
+# 31. BLASTERR BUSINESS DATA
+
+After creation, the Business Target becomes a BLASTERR entity.
+
+BLASTERR-specific fields include:
+
+Business Target ID
+
+BLASTERR slug
+
+Blast count
+
+Blast views
+
+Comments
+
+Followers
+
+Claim status
+
+Verification status
+
+Business Center
+
+Analytics
+
+Promotions
+
+Campaigns
+
+BLASTERR activity
+
+These are owned by BLASTERR and are separate from Google Places information.
+
+---
+
+# 32. AUTOMATIC BLAST ASSOCIATION
+
+Do NOT automatically associate existing Blasts with a Business Target simply because the business name appears in text.
+
+That could create incorrect associations.
+
+Business Target association should occur through:
+
+* user selecting Business Target during Blast creation
+* approved Admin association
+* future verified entity matching system
+
+Do not automatically classify unrelated conversations.
+
+---
+
+# 33. BUSINESS DISCOVERY → BUSINESS ACQUISITION
+
+Every automatically created unclaimed Business Target should be designed to eventually drive:
+
+BUSINESS OWNER DISCOVERS TARGET
+
+↓
+
+CLAIM THIS BUSINESS
+
+↓
+
+VERIFY OWNERSHIP
+
+↓
+
+BUSINESS CENTER
+
+↓
+
+RESPOND
+
+↓
+
+ANALYTICS
+
+↓
+
+PROMOTE
+
+↓
+
+PREMIUM
+
+This is the intended commercial funnel.
+
+---
+
+# 34. "IS THIS YOUR BUSINESS?"
+
+Every eligible unclaimed Business Target should have:
+
+🔒 IS THIS YOUR BUSINESS?
+
+"Claim your free BLASTERR Business Target."
+
+[ CLAIM THIS BUSINESS ]
+
+Do not display this in a way that overwhelms normal users.
+
+---
+
+# 35. ADMIN TARGET MANAGEMENT
+
+The existing Admin Business Target dashboard must support:
+
+* Google Place ID
+* Source
+* Discovery campaign
+* Imported date
+* Last external refresh
+* Claim status
+* Verification status
+* Business category
+* City
+* State
+* Blast count
+* Views
+* Followers
+* Featured status
+* Visibility
+* Status
+
+---
+
+# 36. ADMIN FILTERS
+
+Add filters:
+
+Source
+
+Google Places
+
+Admin Created
+
+User Suggested
+
+Category
+
+City
+
+State
+
+Claimed
+
+Unclaimed
+
+Verified
+
+Unverified
+
+Featured
+
+Hidden
+
+Recently Imported
+
+Recently Updated
+
+---
+
+# 37. MANUAL BUSINESS TARGET CREATION MUST REMAIN
+
+Do not replace manual Admin creation.
+
+Admin must still be able to:
+
+* CREATE BUSINESS TARGET
+
+without Google Places discovery.
+
+Google discovery is an additional tool.
+
+---
+
+# 38. BUSINESS TARGET SUGGESTION
+
+Consider an additive user-facing option:
+
+"Can't find a business?"
+
+[ SUGGEST A BUSINESS ]
+
+The suggestion enters Admin review.
+
+Do not automatically create public Targets from unverified user submissions unless appropriate safeguards exist.
+
+---
+
+# 39. SCHEDULED DISCOVERY WORKER
+
+If the existing architecture supports background jobs/cron, create a scheduled discovery worker.
+
+Do NOT block normal web requests while large discovery jobs run.
+
+Preferred architecture:
+
+Admin creates campaign
+
+↓
+
+Job created
+
+↓
+
+Background worker processes campaign
+
+↓
+
+Google Places API
+
+↓
+
+Deduplication
+
+↓
+
+Business Target creation
+
+↓
+
+Import log
+
+↓
+
+Admin notification
+
+If the current Replit architecture does not have a job/queue system, implement the simplest safe background approach compatible with the current stack.
+
+Do not introduce unnecessary infrastructure.
+
+---
+
+# 40. ADMIN PROGRESS DISPLAY
+
+During an import:
+
+# DISCOVERING BUSINESSES
+
+Charlotte, NC
+
+Moving Companies
+
+Progress:
+
+18 / 25
+
+Found: 18
+
+New: 13
+
+Existing: 5
+
+Skipped: 0
+
+Errors: 0
+
+Do not freeze the Admin interface.
+
+---
+
+# 41. ERROR HANDLING
+
+Handle:
+
+Invalid API key
+
+API quota exceeded
+
+Billing disabled
+
+Rate limit
+
+Network error
+
+Invalid search
+
+No results
+
+Duplicate business
+
+Missing Place ID
+
+Google API unavailable
+
+Store meaningful error logs.
+
+Never expose API credentials.
+
+---
+
+# 42. SECURITY
+
+Google API key must remain server-side.
+
+Never expose:
+
+GOOGLE_PLACES_API_KEY
+
+in frontend code.
+
+Use server-side API routes/services.
+
+Restrict API key in Google Cloud appropriately.
+
+---
+
+# 43. BUSINESS TARGET URL
+
+Automatically generate a BLASTERR URL/slug.
+
+Example:
+
+/business/joes-moving-company-charlotte
+
+Do not use Google's URL as the BLASTERR canonical URL.
+
+The Business Target is a BLASTERR entity.
+
+---
+
+# 44. BUSINESS TARGET SEO
+
+Each public Target should eventually have:
+
+Title:
+
+Joe's Moving Company — BLASTERR
+
+Description:
+
+See what people are saying about Joe's Moving Company on BLASTERR.
+
+Use BLASTERR-owned data for BLASTERR activity.
+
+Do not generate misleading claims.
+
+---
+
+# 45. AUTOMATIC BUSINESS TARGET SCALE
+
+The architecture must support:
+
+1 city
+
+→ 1 category
+
+→ 25 businesses
+
+and eventually:
+
+100+ cities
+
+→ dozens of categories
+
+→ hundreds/thousands of Business Targets
+
+without requiring a manual database process.
+
+Use proper indexes, pagination, background jobs and deduplication.
+
+---
+
+# 46. EXAMPLE USE CASES
+
+Admin selects:
+
+CITY:
+Charlotte, NC
+
+CATEGORY:
+Moving Companies
+
+↓
+
+BLASTERR discovers businesses.
+
+↓
+
+Admin approves.
+
+↓
+
+Targets created:
+
+ABC Moving
+
+XYZ Relocation
+
+Carolina Movers
+
+Queen City Moving
+
+etc.
+
+↓
+
+Each gets:
+
+🎯 BUSINESS TARGET
+
+↓
+
+Users can discover them.
+
+↓
+
+Users create Business Blasts.
+
+↓
+
+Businesses eventually claim their Targets.
+
+---
+
+# 47. SECOND EXAMPLE
+
+Admin selects:
+
+CITY:
+
+Los Angeles, CA
+
+CATEGORY:
+
+Restaurants
+
+↓
+
+Discover businesses.
+
+↓
+
+Create Targets.
+
+↓
+
+Business section now contains:
+
+Trending Businesses
+
+Nearby Businesses
+
+Most Blasted
+
+Rising Businesses
+
+Restaurants
+
+↓
+
+Users begin creating Blasts.
+
+↓
+
+Businesses accumulate activity.
+
+---
+
+# 48. IMPORTANT: DO NOT MAKE EVERY IMPORTED BUSINESS "VERIFIED"
+
+Businesses imported from Google are:
+
+# UNCLAIMED
+
+They are NOT verified by BLASTERR.
+
+Only actual BLASTERR verification should produce:
+
+✓ VERIFIED BUSINESS
+
+---
+
+# 49. IMPORTANT: DO NOT CALL GOOGLE DISCOVERY "VERIFICATION"
+
+Google discovery simply means:
+
+"This business was discovered through the Google Places API."
+
+It does NOT mean:
+
+"This business has been verified by BLASTERR."
+
+Keep those concepts completely separate.
+
+---
+
+# 50. ADMIN AUDIT LOG
+
+Log:
+
+Discovery campaign created
+
+Discovery started
+
+Discovery completed
+
+Business discovered
+
+Target created
+
+Target skipped
+
+Duplicate detected
+
+Target updated
+
+Claim submitted
+
+Claim approved
+
+Target hidden
+
+Target archived
+
+Use the existing Admin audit log if available.
+
+---
+
+# 51. ZERO REGRESSION
+
+After implementation verify:
+
+✓ Existing user navigation
+
+✓ Existing Blast creation
+
+✓ Business classification
+
+✓ Business Target selection
+
+✓ Business Target pages
+
+✓ Existing search
+
+✓ Existing feeds
+
+✓ Existing comments
+
+✓ Existing notifications
+
+✓ Existing Admin
+
+✓ Existing Admin permissions
+
+✓ Existing authentication
+
+✓ Existing Business Center
+
+✓ Existing analytics
+
+✓ Cloudflare R2
+
+✓ BLASTR Clips
+
+continue working.
+
+---
+
+# 52. IMPLEMENTATION ORDER
+
+Implement in this order:
+
+1. Inspect existing Business Target architecture.
+
+2. Inspect existing Admin Business Target section.
+
+3. Add Google Places API server-side integration.
+
+4. Add secure API configuration.
+
+5. Add Google Place ID support.
+
+6. Add Business Discovery service.
+
+7. Add Admin "Discover Businesses" UI.
+
+8. Add preview results.
+
+9. Add duplicate detection.
+
+10. Add Target creation.
+
+11. Add import history.
+
+12. Add campaign system.
+
+13. Add scheduled discovery foundation.
+
+14. Add cost/rate controls.
+
+15. Add Google attribution.
+
+16. Test Business Target public pages.
+
+17. Test Business claiming.
+
+18. Test Business Center.
+
+19. Test existing Blast association.
+
+20. Perform complete regression testing.
+
+---
+
+# 53. FINAL ARCHITECTURAL PRINCIPLE
+
+The system must follow this model:
+
+GOOGLE PLACES
+
+= DISCOVERY SOURCE
+
+BLASTERR BUSINESS TARGET
+
+= BLASTERR'S BUSINESS IDENTITY
+
+BLASTERR BLASTS
+
+= USER-GENERATED CONVERSATION
+
+BUSINESS CENTER
+
+= OWNER MANAGEMENT
+
+PROMOTE
+
+= FUTURE MONETIZATION
+
+Do not combine these systems.
+
+---
+
+# 54. FINAL GOAL
+
+The goal is for BLASTERR to eventually be able to do this:
+
+ADMIN:
+
+Charlotte, NC
+
+Moving Companies
+
+[DISCOVER]
+
+↓
+
+BLASTERR finds eligible businesses through Google Places.
+
+↓
+
+BLASTERR identifies which ones already have Business Targets.
+
+↓
+
+New businesses become:
+
+🎯 BUSINESS TARGET
+
+🔒 UNCLAIMED
+
+↓
+
+Users see those businesses in:
+
+🏢 BUSINESS
+
+🔥 TRENDING BUSINESSES
+
+📍 NEAR YOU
+
+🔥 MOST BLASTED
+
+📈 RISING BUSINESSES
+
+↓
+
+Users create Blasts.
+
+↓
+
+Business activity grows.
+
+↓
+
+Business owner searches their company online.
+
+↓
+
+They discover:
+
+"Your business is already on BLASTERR."
+
+↓
+
+[ CLAIM THIS BUSINESS ]
+
+↓
+
+FREE BUSINESS TARGET
+
+↓
+
+VERIFICATION
+
+↓
+
+BUSINESS CENTER
+
+↓
+
+RESPOND
+
+↓
+
+ANALYTICS
+
+↓
+
+PROMOTE
+
+↓
+
+PREMIUM SERVICES
+
+---
+
+# FINAL REPLIT INSTRUCTION
+
+Before implementing anything, inspect the current BLASTERR codebase and determine exactly which Business Target and Admin functionality already exists from the previous Business Target implementation.
+
+**DO NOT DUPLICATE EXISTING SYSTEMS.**
+
+Build the Google Places discovery system as an additive layer that feeds the existing Business Target architecture.
+
+The ultimate objective is:
+
+# BLASTERR SHOULD NOT WAIT FOR BUSINESSES TO COME TO BLASTERR.
+
+# BLASTERR SHOULD FIND THE BUSINESSES FIRST.
+
+Then give those businesses a reason to claim their presence because their customers can discover, follow, and talk about them on BLASTERR.
+
+Implement this carefully, securely, economically, and in compliance with the applicable Google Maps Platform/Places API terms and attribution requirements.
