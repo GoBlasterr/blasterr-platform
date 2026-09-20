@@ -1,0 +1,1168 @@
+# BLASTERR BUSINESS TARGET PREMIUM — WEBSITE + MOBILE APP IMPLEMENTATION
+
+## IMPORTANT — EXISTING PLATFORM
+
+BLASTERR is an existing, functioning website and mobile app.
+
+DO NOT rebuild, redesign, remove, replace, or refactor existing BLASTERR functionality.
+
+DO NOT change existing user profiles, Blast creation, feeds, comments, reactions, Reblasts, notifications, authentication, search, Business Targets, Business Center, Admin functionality, or existing mobile navigation unless specifically required to connect this feature.
+
+This is an ADDITIVE feature.
+
+Before making changes:
+
+1. Inspect the existing BLASTERR codebase.
+2. Inspect the existing Business Target / Business Profile architecture.
+3. Inspect the existing Business Center.
+4. Inspect the existing subscription/payment architecture.
+5. Inspect existing user/business authentication and authorization.
+6. Inspect existing notification architecture.
+7. Inspect existing analytics architecture.
+8. Inspect existing Admin dashboard.
+9. Identify reusable components and database tables.
+10. Extend existing systems rather than creating duplicate systems.
+
+The final implementation must work consistently on:
+
+* BLASTERR website
+* BLASTERR mobile app
+* Existing Business Target pages
+* Existing Business Center
+* Existing Admin dashboard
+
+---
+
+# 1. PRIMARY FEATURE
+
+Add a paid subscription called:
+
+## BLASTERR BUSINESS PRO
+
+### Price
+
+**$49/month**
+
+Month-to-month.
+
+Cancel anytime.
+
+The Business Pro subscription unlocks premium Business Target management, analytics, monitoring, engagement, promotional tools, team access, and enhanced business features.
+
+Advertising/promotional campaign spend is NOT included in the $49 monthly subscription.
+
+---
+
+# 2. WHERE USERS START
+
+The subscription must be accessible directly from the existing:
+
+## BUSINESS TARGET / BUSINESS PROFILE PAGE
+
+A claimed business owner should see a prominent premium upgrade area.
+
+Example:
+
+---
+
+### BLASTERR BUSINESS PRO
+
+## Take Your Business Target Further
+
+Unlock advanced analytics, Blast monitoring, verified responses, promotional tools, business alerts, BLASTR Clips, and more.
+
+### $49/month
+
+✓ Cancel anytime
+
+[ UPGRADE TO BUSINESS PRO ]
+
+---
+
+Do not make businesses search through settings to find the subscription.
+
+The Business Profile should be the primary conversion point.
+
+---
+
+# 3. UNCLAIMED BUSINESS TARGET
+
+If the business has NOT been claimed:
+
+Display:
+
+## Is This Your Business?
+
+Your business is already being talked about on BLASTERR.
+
+[ CLAIM THIS BUSINESS ]
+
+The user must complete the existing claim and verification process before accessing Business Pro features that require verified ownership.
+
+Do NOT allow an unverified user to purchase premium access to another company's Business Target.
+
+---
+
+# 4. CLAIMED BUT FREE BUSINESS
+
+If the business has been claimed and verified but does not have Business Pro:
+
+Display the normal Business Target page.
+
+Add a premium section:
+
+## UNLOCK BUSINESS PRO
+
+Get more control over your Business Target and see what people are saying about your business.
+
+### Business Pro — $49/month
+
+* Advanced analytics
+* Business Blast monitoring
+* Verified business responses
+* Advanced alerts
+* Enhanced Business Target
+* Promotional tools
+* Business announcements
+* BLASTR Clips tools
+* Team access
+* Priority support
+
+[ START BUSINESS PRO ]
+
+---
+
+# 5. BUSINESS PRO SUBSCRIPTION FLOW
+
+When the owner clicks:
+
+## START BUSINESS PRO
+
+Open the existing BLASTERR subscription/payment flow if one exists.
+
+DO NOT create a second unrelated payment system if an existing billing architecture is already available.
+
+If Stripe or another existing payment provider is already integrated, reuse it.
+
+The subscription must be associated with:
+
+* User ID
+* Business Target ID
+* Subscription ID
+* Plan ID
+* Subscription status
+* Billing interval
+* Current period start
+* Current period end
+* Trial status
+* Cancellation status
+* Payment status
+
+Recommended plan identifier:
+
+`business_pro_monthly`
+
+Price:
+
+`$49.00/month`
+
+---
+
+# 6. OPTIONAL FREE TRIAL
+
+Build the subscription architecture so a free trial can be enabled from Admin.
+
+Recommended initial configuration:
+
+### 14-Day Free Trial
+
+During the trial:
+
+* Business Pro features are active.
+* No charge during the trial.
+* Show trial expiration date.
+* Notify business owner before trial ends.
+* Automatically convert to $49/month if the payment provider supports the configured subscription flow.
+
+Admin must be able to turn the trial on/off and change the trial length without code changes.
+
+---
+
+# 7. BUSINESS PROFILE PREMIUM STATUS
+
+After successful subscription:
+
+The Business Target should immediately reflect the premium status.
+
+Example:
+
+### JOE'S BURGERS
+
+✓ VERIFIED BUSINESS
+
+◆ BUSINESS PRO
+
+Los Angeles, CA
+
+[ FOLLOW ] [ BLAST ]
+
+Add a subtle premium visual treatment consistent with the existing BLASTERR design.
+
+Do NOT redesign the entire Business Target page.
+
+---
+
+# 8. BUSINESS PRO FEATURES
+
+Implement the following features.
+
+## A. ENHANCED BUSINESS TARGET
+
+Business Pro businesses can manage:
+
+* Business logo
+* Cover image
+* Business description
+* Category
+* Address
+* Service area
+* Phone
+* Website
+* Business hours
+* Social links
+* Call button
+* Directions button
+* Website button
+* Book Now button
+* Order Now button where applicable
+* Custom Business Target URL
+* Business announcements
+* Special offers
+* Important business information
+
+Use existing business profile fields wherever possible.
+
+Do not duplicate existing business data.
+
+---
+
+# 9. BUSINESS BLAST MONITORING
+
+Business Pro users get an enhanced view of all existing BLASTERR Blasts associated with their Business Target.
+
+Add:
+
+## BUSINESS BLASTS
+
+The business owner can see:
+
+* New Blasts
+* Most viewed Blasts
+* Most commented Blasts
+* Most engaged Blasts
+* Trending Blasts
+* Recent Blasts
+* Saved Blasts
+* Blasts requiring attention
+
+Use the existing Blast system.
+
+IMPORTANT:
+
+Do NOT create a second "Business Blast" content database.
+
+Business Blasts remain normal BLASTERR Blasts associated with the Business Target.
+
+---
+
+# 10. VERIFIED BUSINESS RESPONSES
+
+Business Pro businesses can respond publicly to existing Blasts.
+
+Display:
+
+✓ VERIFIED BUSINESS
+
+next to the official business identity.
+
+Allow:
+
+* Blast responses
+* Comment replies
+* Customer questions
+* Public clarifications
+* Customer appreciation responses
+* Official announcements
+* Saved response templates
+* Pin one official response where supported
+
+Reuse the existing BLASTERR comments/replies architecture.
+
+Do not create a separate messaging/content system unless technically required.
+
+---
+
+# 11. ADVANCED ANALYTICS
+
+Add:
+
+## BUSINESS ANALYTICS
+
+Display:
+
+* Business Target views
+* Unique visitors
+* Connected Blasts
+* Blast views
+* Comments
+* Reactions
+* ReBlasts
+* Followers
+* Follower growth
+* Website clicks
+* Phone clicks
+* Direction clicks
+* Booking clicks
+* Order clicks
+* Most-viewed Blasts
+* Most-engaged Blasts
+* Trending activity
+* Audience location information where available
+* Daily performance
+* Weekly performance
+* Monthly performance
+
+Include selectable periods:
+
+* 7 Days
+* 30 Days
+* 90 Days
+* 12 Months
+
+Use charts and visualizations consistent with the existing BLASTERR dashboard.
+
+DO NOT fabricate analytics.
+
+Only display actual recorded data.
+
+---
+
+# 12. BUSINESS ALERTS
+
+Business Pro users should receive enhanced notifications for:
+
+* New Blast mentioning the business
+* Business Target activity spike
+* New follower
+* New comment
+* New customer question
+* High-performing Blast
+* Trending business activity
+* Increased profile views
+* Promotional campaign activity
+* Important business interactions
+
+Reuse the existing BLASTERR notification system.
+
+---
+
+# 13. BUSINESS PROMOTE
+
+Add:
+
+## PROMOTE
+
+Business Pro users can promote:
+
+* Business Target
+* Existing Blast
+* Business announcement
+* Special offer
+* Promotion
+
+Campaign objectives:
+
+* More Business Target views
+* More followers
+* More website visits
+* More calls
+* More directions
+* More bookings
+* More orders
+
+Allow:
+
+* Campaign budget
+* Campaign duration
+* Geographic radius
+* Campaign objective
+* Estimated reach
+* Campaign status
+* Campaign analytics
+
+Suggested budget options:
+
+$10
+
+$25
+
+$50
+
+$100
+
+Custom
+
+IMPORTANT:
+
+The $49 Business Pro subscription DOES NOT include advertising spend.
+
+Advertising charges are separate.
+
+Clearly display:
+
+"Advertising budget is separate from your Business Pro subscription."
+
+If the existing BLASTERR advertising infrastructure is not yet capable of processing campaigns, build the complete UI/data foundation but do not falsely represent campaigns as active or charge users without the required payment/delivery infrastructure.
+
+---
+
+# 14. BUSINESS ANNOUNCEMENTS
+
+Allow Business Pro users to create official business announcements using the existing BLASTERR content architecture.
+
+Examples:
+
+* Grand opening
+* New location
+* New product
+* Special offer
+* Holiday hours
+* Hiring
+* Event
+* Service announcement
+* Customer appreciation
+* Company update
+
+Do not create a separate social network inside Business Center.
+
+Business announcements should integrate with existing BLASTERR content/feed architecture where appropriate.
+
+---
+
+# 15. BLASTR CLIPS FOR BUSINESSES
+
+Add Business Pro access to business-focused BLASTR Clip functionality.
+
+Allow eligible content to become vertical promotional clips.
+
+Options:
+
+* Customer praise
+* Business announcement
+* Product highlight
+* Service highlight
+* Promotion
+* FAQ
+* Business story
+
+Allow:
+
+* Business logo
+* Business name
+* BLASTERR branding
+* Captions
+* CTA
+* Website
+* Phone
+* Booking link
+
+Reuse the existing BLASTR Clips system.
+
+Do not duplicate the video-generation infrastructure.
+
+---
+
+# 16. TEAM ACCESS
+
+Business Pro includes:
+
+### 1 Owner
+
+### Up to 2 additional team members
+
+Permission levels:
+
+* Owner
+* Manager
+* Response Only
+* Analytics Only
+
+Owner can:
+
+* Invite team members
+* Remove team members
+* Change permissions
+* View team activity
+* Revoke access
+
+Implement proper authorization.
+
+A team member must never be able to access another business's Business Center simply by manipulating a URL.
+
+---
+
+# 17. BUSINESS CENTER
+
+The existing Business Center should contain:
+
+## OVERVIEW
+
+Business performance, notifications, alerts, and important actions.
+
+## BLASTS
+
+All connected Blasts and monitoring tools.
+
+## RESPOND
+
+Business responses, comments, customer questions, and saved responses.
+
+## ANALYTICS
+
+Business performance and audience data.
+
+## PROMOTE
+
+Advertising and promotional campaigns.
+
+Add a visible subscription indicator:
+
+### BUSINESS PRO
+
+**Active**
+
+$49/month
+
+[ MANAGE SUBSCRIPTION ]
+
+---
+
+# 18. MANAGE SUBSCRIPTION
+
+From the Business Profile and Business Center, the owner should be able to access:
+
+## MANAGE BUSINESS PRO
+
+Display:
+
+* Current plan
+* Price
+* Billing frequency
+* Next billing date
+* Trial status if applicable
+* Payment method
+* Subscription status
+* Invoice history where supported
+* Cancel subscription
+* Resume subscription where supported
+
+Use the existing billing provider's customer portal if available rather than rebuilding billing management.
+
+---
+
+# 19. CANCELLATION
+
+When the owner chooses:
+
+## CANCEL BUSINESS PRO
+
+Display a confirmation screen.
+
+Explain that premium features remain active until the current billing period ends, where supported by the billing provider.
+
+After cancellation:
+
+* Do not delete the Business Target.
+* Do not delete the business's Blasts.
+* Do not delete analytics history.
+* Do not delete followers.
+* Do not delete responses.
+* Do not delete business information.
+
+Simply downgrade the business to the free Business Target experience when the subscription actually expires.
+
+---
+
+# 20. SUBSCRIPTION EXPIRATION / FAILED PAYMENT
+
+Handle these states:
+
+* Active
+* Trialing
+* Past Due
+* Payment Failed
+* Canceling
+* Canceled
+* Expired
+
+If payment fails:
+
+Show an appropriate notification to the business owner.
+
+Do not immediately delete Business Pro data.
+
+Grace-period behavior should follow the payment provider's existing subscription/webhook architecture.
+
+---
+
+# 21. BUSINESS PROFILE CTA LOGIC
+
+The Business Target page must dynamically show the correct CTA.
+
+### Unclaimed:
+
+[ CLAIM THIS BUSINESS ]
+
+### Claimed + Verified + Free:
+
+[ UPGRADE TO BUSINESS PRO ]
+
+### Business Pro:
+
+[ ✓ BUSINESS PRO ] [ MANAGE BUSINESS ]
+
+Do not display upgrade buttons to unauthorized users.
+
+---
+
+# 22. ADMIN CONTROLS
+
+Add Business Pro controls to the EXISTING BLASTERR ADMIN dashboard.
+
+Admin should be able to see:
+
+* Total Business Pro subscriptions
+* Active subscriptions
+* Trialing subscriptions
+* Canceled subscriptions
+* Past-due subscriptions
+* Monthly recurring revenue
+* Businesses on Business Pro
+* Subscription start date
+* Renewal date
+* Cancellation date
+* Payment status
+
+Admin can:
+
+* View subscription
+* View business
+* View owner
+* Grant promotional trial where authorized
+* Extend trial where authorized
+* Cancel subscription where authorized
+* Suspend premium access for policy reasons
+* View billing status
+* View subscription history
+* View audit log
+
+Do not allow Admin to modify financial records outside the capabilities of the payment provider.
+
+---
+
+# 23. DATABASE ARCHITECTURE
+
+First inspect existing database architecture.
+
+If an existing subscription system exists, extend it.
+
+If one does not exist, create the minimum required structures.
+
+Potential entities:
+
+### business_subscriptions
+
+* id
+* business_target_id
+* owner_user_id
+* plan_id
+* status
+* provider
+* provider_customer_id
+* provider_subscription_id
+* current_period_start
+* current_period_end
+* trial_start
+* trial_end
+* cancel_at_period_end
+* canceled_at
+* created_at
+* updated_at
+
+### business_subscription_events
+
+* id
+* subscription_id
+* event_type
+* provider_event_id
+* event_data
+* created_at
+
+### business_team_members
+
+Only create if an equivalent team/organization architecture does not already exist.
+
+Do not duplicate existing tables unnecessarily.
+
+---
+
+# 24. ACCESS CONTROL
+
+Premium feature access must be verified server-side.
+
+DO NOT rely only on frontend checks.
+
+Create a reusable subscription entitlement check such as:
+
+`hasBusinessProAccess(businessTargetId, userId)`
+
+The server must verify:
+
+1. User is authenticated.
+2. User has authorized access to the Business Target.
+3. Business Target is associated with the user/business account.
+4. Subscription is active or otherwise eligible under the configured trial/grace rules.
+
+Protect all Business Center routes and premium API endpoints.
+
+---
+
+# 25. MOBILE APP
+
+Implement the same Business Pro experience in the BLASTERR mobile app.
+
+From the Business Target page:
+
+[ UPGRADE TO BUSINESS PRO ]
+
+opens the premium information screen.
+
+Mobile premium page should show:
+
+## BUSINESS PRO
+
+### $49/month
+
+Then feature cards:
+
+* Advanced Analytics
+* Blast Monitoring
+* Verified Responses
+* Business Alerts
+* Promote
+* Business Announcements
+* BLASTR Clips
+* Team Access
+* Priority Support
+
+[ START BUSINESS PRO ]
+
+Use the existing app navigation, styling, authentication, and payment architecture.
+
+Do not create a completely different mobile experience.
+
+---
+
+# 26. PREMIUM FEATURE LOCK STATES
+
+For users viewing a free Business Target, premium features can show locked previews.
+
+Example:
+
+### ADVANCED ANALYTICS 🔒
+
+See how people discover and interact with your business on BLASTERR.
+
+[ UNLOCK BUSINESS PRO ]
+
+Similarly:
+
+### BLAST MONITORING 🔒
+
+Monitor conversations about your business in one place.
+
+[ UNLOCK BUSINESS PRO ]
+
+This creates natural upgrade opportunities without blocking normal Business Target functionality.
+
+---
+
+# 27. BUSINESS TARGET PAGE PREMIUM SECTION
+
+Add a premium section toward an appropriate location on the Business Target page:
+
+---
+
+◆ BUSINESS PRO
+
+## Turn Your Business Target Into a Growth Center
+
+See what people are saying.
+
+Track your activity.
+
+Respond as the verified business.
+
+Promote your business.
+
+Understand your audience.
+
+### $49/month
+
+✓ Advanced Analytics
+
+✓ Blast Monitoring
+
+✓ Verified Business Responses
+
+✓ Business Alerts
+
+✓ Promote
+
+✓ Business Announcements
+
+✓ BLASTR Clips
+
+✓ Team Access
+
+[ START BUSINESS PRO ]
+
+---
+
+Match the existing BLASTERR visual design.
+
+Do not make this look like a generic SaaS pricing page.
+
+It should feel native to BLASTERR.
+
+---
+
+# 28. MOBILE BUSINESS TARGET PAGE
+
+On mobile, place the premium CTA near the existing business actions.
+
+Example:
+
+[ FOLLOW ]
+
+[ BLAST ]
+
+[ CLAIM / MANAGE ]
+
+Then:
+
+◆ BUSINESS PRO
+
+[ UPGRADE — $49/MO ]
+
+Make the upgrade CTA highly visible but not disruptive to normal Business Target browsing.
+
+---
+
+# 29. SEO
+
+Do not interfere with existing Business Target SEO.
+
+Business Pro should not create duplicate URLs.
+
+Business Target remains the canonical public page.
+
+Premium subscription status should not create duplicate indexed pages.
+
+---
+
+# 30. NOTIFICATIONS
+
+Create appropriate notifications for:
+
+* Trial started
+* Trial ending soon
+* Subscription activated
+* Payment successful
+* Payment failed
+* Subscription canceled
+* Subscription expiring
+* Business Pro activated
+* Business Pro expired
+
+Reuse existing notification infrastructure.
+
+---
+
+# 31. ANALYTICS EVENTS
+
+Track useful product events:
+
+* business_pro_upgrade_clicked
+* business_pro_checkout_started
+* business_pro_subscription_started
+* business_pro_trial_started
+* business_pro_upgrade_completed
+* business_pro_cancel_started
+* business_pro_canceled
+* business_pro_expired
+* business_pro_feature_viewed
+* business_promote_started
+* business_promote_completed
+
+Do not collect unnecessary personal information.
+
+---
+
+# 32. ADMIN BUSINESS PRO DASHBOARD
+
+Add a section to the existing Admin dashboard:
+
+# BUSINESS PRO
+
+Display cards:
+
+### ACTIVE BUSINESS PRO
+
+Number
+
+### TRIALING
+
+Number
+
+### MONTHLY RECURRING REVENUE
+
+Amount
+
+### PAST DUE
+
+Number
+
+### CANCELED
+
+Number
+
+Table:
+
+Business | Owner | Plan | Status | Start Date | Renewal | Actions
+
+Allow Admin to open the existing Business Target and Business Center records.
+
+---
+
+# 33. BILLING SECURITY
+
+Use the existing secure payment provider.
+
+Never store raw credit-card information in BLASTERR's database.
+
+Use payment provider webhooks to synchronize:
+
+* Subscription creation
+* Payment success
+* Payment failure
+* Cancellation
+* Renewal
+* Trial expiration
+
+Webhook processing must be idempotent.
+
+Never trust frontend payment status.
+
+---
+
+# 34. DESIGN
+
+Use the existing BLASTERR visual language.
+
+Do NOT introduce a generic corporate SaaS appearance.
+
+Use:
+
+* Existing BLASTERR dark theme
+* Existing neon accents
+* Existing typography
+* Existing buttons
+* Existing cards
+* Existing Business Target design
+* Existing responsive layout
+* Existing mobile components
+
+Premium should feel like a native BLASTERR feature.
+
+---
+
+# 35. IMPORTANT BUSINESS MODEL RULE
+
+The $49/month subscription is for BUSINESS MANAGEMENT AND PREMIUM BUSINESS TARGET FEATURES.
+
+It does NOT guarantee:
+
+* Trending status
+* Positive comments
+* Positive Blasts
+* Search ranking
+* Viral reach
+* A specific number of views
+* A specific number of followers
+* Advertising impressions
+
+Do not make guaranteed-performance claims.
+
+---
+
+# 36. IMPLEMENTATION ORDER
+
+Implement in this order:
+
+1. Inspect existing architecture.
+2. Identify existing Business Target system.
+3. Identify existing Business Center.
+4. Identify existing billing/subscription system.
+5. Identify existing authentication/authorization.
+6. Identify existing notification system.
+7. Identify existing analytics.
+8. Add Business Pro subscription entitlement.
+9. Add $49/month plan.
+10. Add Business Profile upgrade CTA.
+11. Build premium checkout.
+12. Connect successful payment to Business Target.
+13. Add Business Pro status.
+14. Add premium Business Center features.
+15. Add advanced Blast monitoring.
+16. Add verified response tools.
+17. Add advanced analytics.
+18. Add alerts.
+19. Add Promote foundation.
+20. Add Business announcements.
+21. Connect BLASTR Clips.
+22. Add team access.
+23. Add subscription management.
+24. Add cancellation/downgrade handling.
+25. Add Admin Business Pro dashboard.
+26. Add mobile implementation.
+27. Add notifications.
+28. Add analytics events.
+29. Test all authorization rules.
+30. Test payment/webhook states.
+31. Test responsive behavior.
+32. Run regression testing.
+
+---
+
+# 37. REGRESSION TESTING
+
+Before completing the implementation, verify that existing functionality still works.
+
+Test:
+
+* Login
+* Signup
+* User profiles
+* Normal Blast creation
+* Business Blast creation/association
+* Feed
+* Search
+* Comments
+* Replies
+* Reactions
+* ReBlasts
+* Notifications
+* Business Targets
+* Business claiming
+* Business verification
+* Business Center
+* Admin
+* Media uploads
+* R2/media infrastructure
+* BLASTR Clips
+* Mobile navigation
+* Existing subscription functionality
+* Existing advertising functionality if present
+
+The new Business Pro system must not break any existing BLASTERR functionality.
+
+---
+
+# 38. FINAL USER EXPERIENCE
+
+The final flow should be:
+
+USER DISCOVERS BUSINESS
+
+↓
+
+BUSINESS TARGET PAGE
+
+↓
+
+Business is already claimed:
+
+### BUSINESS PRO
+
+$49/month
+
+[ UPGRADE ]
+
+↓
+
+Subscription checkout
+
+↓
+
+Payment succeeds
+
+↓
+
+### ✓ BUSINESS PRO
+
+appears on Business Target
+
+↓
+
+Business owner receives access to:
+
+**BUSINESS CENTER**
+
+→ Overview
+
+→ Blasts
+
+→ Respond
+
+→ Analytics
+
+→ Promote
+
+↓
+
+Owner can monitor conversations, respond publicly as the verified business, understand Business Target activity, create business announcements, use BLASTR Clips tools, manage team members, and promote the business.
+
+---
+
+# MOST IMPORTANT DEVELOPMENT RULE
+
+DO NOT BUILD BUSINESS PRO AS A SEPARATE PRODUCT.
+
+BUSINESS PRO IS A PREMIUM LAYER ON TOP OF THE EXISTING BLASTERR BUSINESS TARGET SYSTEM.
+
+The existing Business Target remains the public identity.
+
+The existing Blast system remains the content system.
+
+The existing Business Center remains the management environment.
+
+Business Pro simply unlocks additional capabilities for verified business owners.
+
+Do not rebuild what already exists.
+
+Do not create duplicate databases where existing structures can be extended.
+
+Do not change unrelated BLASTERR functionality.
+
+Make the smallest clean architectural additions necessary to deliver this feature across website, mobile app, Business Target pages, Business Center, and Admin.
