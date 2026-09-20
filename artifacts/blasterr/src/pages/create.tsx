@@ -1086,12 +1086,6 @@ export default function CreateBlast() {
                       {activeMode?.label} {activeMode && <activeMode.icon className="w-3 h-3 text-primary" />}
                     </span>
                   </li>
-                  <li className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Payload Size</span>
-                    <span className={`${form.watch("content").length > 1000 ? 'text-destructive' : 'text-white'} font-bold`}>
-                      {form.watch("content").length} chars
-                    </span>
-                  </li>
                 </ul>
               </div>
 
