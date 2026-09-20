@@ -1,5 +1,5 @@
 import { useLocation, useParams } from "wouter";
-import { useGetBusiness, useToggleBusinessFollow, useGetBusinessCenter, getGetBusinessQueryKey, getGetBusinessCenterQueryKey } from "@workspace/api-client-react";
+import { useGetBusiness, useToggleBusinessFollow, useGetBusinessCenter, useStartBusinessProCheckout, getGetBusinessQueryKey, getGetBusinessCenterQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ export default function BusinessDetail() {
   });
 
   const toggleFollowMutation = useToggleBusinessFollow();
+  const startBusinessPro = useStartBusinessProCheckout();
 
   if (isLoading) {
     return (
@@ -50,6 +51,7 @@ export default function BusinessDetail() {
 
   const isOwner = !!centerData;
   const canClaim = business.verificationStatus !== "verified" && !isOwner;
+  const businessPro = business.businessPro;
   // TODO: The schema says business.followerCount exists, and BusinessFollowResult has following.
   // Wait, does BusinessDetail include isFollowing? Let's check schema.
   // Schema for BusinessDetail does not have isFollowing. How do we know if we're following?
@@ -66,6 +68,21 @@ export default function BusinessDetail() {
         queryClient.invalidateQueries({ queryKey: getGetBusinessQueryKey(slug) });
         toast({ title: "Follow status updated." });
       }
+    });
+  };
+
+  const handleBusinessPro = () => {
+    if (!currentUser) {
+      setLocation("/sign-in");
+      return;
+    }
+    if (businessPro?.hasAccess) {
+      setLocation(`/business/${business.id}/center`);
+      return;
+    }
+    startBusinessPro.mutate({ targetId: business.id }, {
+      onSuccess: ({ url }) => { window.location.assign(url); },
+      onError: (error) => toast({ title: error instanceof Error ? error.message : "Business Pro checkout could not be started.", variant: "destructive" }),
     });
   };
 
@@ -128,6 +145,7 @@ export default function BusinessDetail() {
             <div className="flex items-center gap-2 mb-1">
               <h1 className="font-display font-black text-3xl sm:text-4xl text-white tracking-tight">{business.name}</h1>
               {business.verified && <ShieldCheck className="w-6 h-6 text-primary shrink-0" />}
+              {businessPro?.hasAccess && <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">◆ Business Pro</span>}
             </div>
             
             <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm mb-4">
@@ -162,6 +180,30 @@ export default function BusinessDetail() {
               )}
             </div>
 
+            {businessPro?.hasAccess ? (
+              <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">◆ Business Pro</p>
+                  <p className="mt-1 text-sm text-white/80">Advanced business tools are active for this verified owner.</p>
+                </div>
+                <Button variant="outline" className="border-primary/40 text-primary hover:bg-primary/10" onClick={handleBusinessPro}>
+                  <Settings className="mr-2 h-4 w-4" /> Manage Business
+                </Button>
+              </div>
+            ) : businessPro?.canUpgrade ? (
+              <div className="mb-6 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-5 shadow-[0_0_24px_rgba(229,244,3,0.08)]">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">◆ BLASTERR Business Pro</p>
+                <h2 className="mt-2 font-display text-2xl font-black text-white">Take Your Business Target Further</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/70">Advanced analytics, Blast monitoring, verified responses, business alerts, promotional foundations, Clips tools, and team access.</p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Button onClick={handleBusinessPro} disabled={startBusinessPro.isPending} className="bg-primary font-bold text-primary-foreground hover:bg-primary/90">
+                    {startBusinessPro.isPending ? "Opening checkout…" : "Start Business Pro — $49/month"}
+                  </Button>
+                  <span className="text-xs text-muted-foreground">Cancel anytime · advertising budget billed separately</span>
+                </div>
+              </div>
+            ) : null}
+
             <div className="flex items-center justify-between bg-card p-4 rounded-2xl border border-white/5">
               <div className="flex gap-6 text-center sm:text-left">
                 <div>
@@ -179,7 +221,7 @@ export default function BusinessDetail() {
               </div>
               
               <div className="flex items-center gap-2">
-                {isOwner ? (
+                 {isOwner ? (
                   <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10" onClick={() => setLocation(`/business/${business.id}/center`)}>
                     <Settings className="w-4 h-4 mr-2" /> Manage Business
                   </Button>

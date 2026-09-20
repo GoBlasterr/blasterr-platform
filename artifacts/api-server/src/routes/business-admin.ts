@@ -11,6 +11,7 @@ import {
 import { businessClaimsTable, businessProfilesTable, db, targetsTable } from "@workspace/db";
 import * as business from "../lib/business-repository";
 import { adminFeatureFlags, ensureAdminState, recordAudit } from "../lib/admin-state";
+import { getAdminBusinessProSummary } from "../lib/business-pro";
 
 const router: IRouter = Router();
 const actor = (res: Response) => String(res.locals.adminActorId ?? "");
@@ -33,6 +34,10 @@ router.get("/business", async (req, res): Promise<void> => {
 
 router.get("/business/stats", async (_req, res): Promise<void> => {
   res.json(GetAdminBusinessStatsResponse.parse(await business.getAdminBusinessStats()));
+});
+
+router.get("/business-pro", async (_req, res): Promise<void> => {
+  res.json(await getAdminBusinessProSummary());
 });
 
 router.post("/business", async (req, res): Promise<void> => {

@@ -14,6 +14,7 @@ import * as business from "../lib/business-repository";
 import { adminFeatureFlags, ensureAdminState } from "../lib/admin-state";
 import { ProfileMediaValidationError, validateProfileMediaUpdate } from "../lib/profile-media";
 import { resolveSubmittedProfileMediaReference } from "../lib/profile-media-policy";
+import { getBusinessProSummary } from "../lib/business-pro";
 
 const router: IRouter = Router();
 
@@ -26,9 +27,13 @@ function flagEnabled(key: string) {
   return adminFeatureFlags.find((flag) => flag.key === key)?.enabled ?? false;
 }
 
-function detailPayload(value: Awaited<ReturnType<typeof business.getBusinessBySlug>>) {
+async function detailPayload(value: Awaited<ReturnType<typeof business.getBusinessBySlug>>, userId?: string) {
   if (!value) return null;
-  return { ...value, blasts: value.blasts.map((blast) => ({ ...blast, createdAt: blast.createdAt.toISOString(), updatedAt: blast.updatedAt.toISOString() })) };
+  return {
+    ...value,
+    blasts: value.blasts.map((blast) => ({ ...blast, createdAt: blast.createdAt.toISOString(), updatedAt: blast.updatedAt.toISOString() })),
+    businessPro: await getBusinessProSummary(value.id, userId),
+  };
 }
 
 router.get("/business", async (req, res): Promise<void> => {
@@ -71,7 +76,7 @@ router.post("/business", async (req, res): Promise<void> => {
       res.status(409).json({ error: "A Business Target with this name and location already exists. Open that page to claim it instead." });
       return;
     }
-    const detail = detailPayload(await business.getBusinessBySlug(created.target.slug));
+     const detail = await detailPayload(await business.getBusinessBySlug(created.target.slug), viewer.id);
     res.status(201).json(CreateBusinessProfileResponse.parse(detail));
   } catch (error) {
     if (error instanceof ProfileMediaValidationError) { res.status(409).json({ error: error.message }); return; }
@@ -107,7 +112,7 @@ router.patch("/business/:targetId", async (req, res): Promise<void> => {
     });
     if (!updated) { res.status(403).json({ error: "Only an active business owner can edit this profile." }); return; }
     if ("conflict" in updated && updated.conflict === "duplicate") { res.status(409).json({ error: "A Business Target with this name and location already exists." }); return; }
-    const detail = detailPayload(await business.getBusinessBySlug(target.slug));
+     const detail = await detailPayload(await business.getBusinessBySlug(target.slug), viewer.id);
     res.json(UpdateBusinessProfileResponse.parse(detail));
   } catch (error) {
     if (error instanceof ProfileMediaValidationError) { res.status(409).json({ error: error.message }); return; }
@@ -133,7 +138,7 @@ router.get("/business/:slug", async (req, res): Promise<void> => {
   if (!flagEnabled("business_section_enabled") || !flagEnabled("business_targets_enabled")) { res.status(404).json({ error: "Business discovery is not enabled." }); return; }
   const parsed = GetBusinessParams.safeParse(req.params);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const result = detailPayload(await business.getBusinessBySlug(parsed.data.slug));
+   const result = await detailPayload(await business.getBusinessBySlug(parsed.data.slug), (await current(req))?.id);
   if (!result) { res.status(404).json({ error: "Business Target not found." }); return; }
   res.json(GetBusinessResponse.parse(result));
 });
@@ -183,7 +188,7 @@ router.get("/business/:targetId/center", async (req, res): Promise<void> => {
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const auth = await authorizedCenter(req, params.data.targetId);
   if ("status" in auth) { const status = auth.status ?? 500; res.status(status).json({ error: status === 401 ? "Sign in is required." : status === 403 ? "You are not authorized to manage this business." : "Business Target not found." }); return; }
-  const detail = detailPayload(await business.getBusinessBySlug(auth.target.slug));
+   const detail = await detailPayload(await business.getBusinessBySlug(auth.target.slug), auth.viewer.id);
   if (!detail) { res.status(404).json({ error: "Business Target not found." }); return; }
   res.json(GetBusinessCenterResponse.parse({ ...detail, membershipRole: auth.membership.role }));
 });

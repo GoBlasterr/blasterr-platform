@@ -1,5 +1,5 @@
 import { useLocation, useParams } from "wouter";
-import { useGetBusinessCenter, useGetBusinessAnalytics, getGetBusinessCenterQueryKey, getGetBusinessAnalyticsQueryKey, getGetBusinessQueryKey, getListOwnedBusinessesQueryKey, useUpdateBusinessProfile, BusinessProfileUpdateCategory } from "@workspace/api-client-react";
+import { useGetBusinessCenter, useGetBusinessAnalytics, getGetBusinessCenterQueryKey, getGetBusinessAnalyticsQueryKey, getGetBusinessQueryKey, getListOwnedBusinessesQueryKey, useUpdateBusinessProfile, useOpenBusinessProPortal, useSyncBusinessProCheckout, BusinessProfileUpdateCategory } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,8 @@ export default function BusinessCenter() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const updateBusiness = useUpdateBusinessProfile();
+  const openPortal = useOpenBusinessProPortal();
+  const syncCheckout = useSyncBusinessProCheckout();
   const [editing, setEditing] = useState(false);
   type BusinessForm = { name: string; location: string; category: typeof BusinessProfileUpdateCategory[keyof typeof BusinessProfileUpdateCategory]; description: string; website: string; email: string; phone: string; imageUrl: string; bannerImageUrl: string };
   const [form, setForm] = useState<BusinessForm>({ name: "", location: "", category: BusinessProfileUpdateCategory.Services, description: "", website: "", email: "", phone: "", imageUrl: "", bannerImageUrl: "" });
@@ -38,6 +40,20 @@ export default function BusinessCenter() {
   const { data: analytics, isLoading: isAnalyticsLoading } = useGetBusinessAnalytics(targetId, {
     query: { enabled: !!center && !!currentUser, queryKey: [...getGetBusinessAnalyticsQueryKey(targetId), currentUser?.id ?? "guest"] }
   });
+
+  useEffect(() => {
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
+    if (!sessionId || !currentUser || syncCheckout.isPending) return;
+    syncCheckout.mutate({ targetId, data: { sessionId } }, {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: getGetBusinessCenterQueryKey(targetId) });
+        await queryClient.invalidateQueries({ queryKey: getGetBusinessAnalyticsQueryKey(targetId) });
+        window.history.replaceState({}, "", window.location.pathname);
+        toast({ title: "Business Pro is active." });
+      },
+      onError: () => toast({ title: "Payment is still being confirmed. Refresh in a moment.", variant: "destructive" }),
+    });
+  }, [currentUser, targetId]);
 
   useEffect(() => {
     if (!center) return;
@@ -88,6 +104,13 @@ export default function BusinessCenter() {
     } catch (error) {
       toast({ title: error instanceof Error ? error.message : "Business profile could not be saved.", variant: "destructive" });
     }
+  };
+
+  const manageSubscription = () => {
+    openPortal.mutate({ targetId }, {
+      onSuccess: ({ url }) => window.location.assign(url),
+      onError: () => toast({ title: "Subscription management is not available yet.", variant: "destructive" }),
+    });
   };
 
   if (isCenterLoading) {
@@ -193,11 +216,30 @@ export default function BusinessCenter() {
             </div>
           </div>
 
+          <section className={`rounded-3xl border p-5 ${center.businessPro?.hasAccess ? "border-primary/30 bg-primary/5" : "border-white/10 bg-card"}`}>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">◆ Business Pro</p>
+                <h3 className="mt-1 text-xl font-bold text-white">{center.businessPro?.hasAccess ? "Active" : "Free Business Target"}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{center.businessPro?.hasAccess ? "Advanced analytics, monitoring, and premium business tools are enabled." : "Unlock advanced analytics, Blast monitoring, verified responses, alerts, Clips tools, and more."}</p>
+              </div>
+              {center.businessPro?.hasAccess ? (
+                <Button variant="outline" onClick={manageSubscription} disabled={openPortal.isPending} className="border-primary/40 text-primary hover:bg-primary/10">
+                  {openPortal.isPending ? "Opening…" : "Manage subscription"}
+                </Button>
+              ) : center.businessPro?.canUpgrade ? (
+                <Button onClick={() => setLocation(`/business/${center.slug}`)} className="bg-primary font-bold text-primary-foreground hover:bg-primary/90">Upgrade — $49/month</Button>
+              ) : null}
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">Advertising budget is separate from your Business Pro subscription.</p>
+          </section>
+
           {/* Analytics Grid */}
           <div>
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <Activity className="w-5 h-5 text-primary" /> Performance Analytics
             </h3>
+             {!center.businessPro?.hasAccess && <p className="mb-4 text-sm text-muted-foreground">Advanced analytics are locked. The totals below are the existing Business Center overview.</p>}
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {isAnalyticsLoading || !analytics ? (

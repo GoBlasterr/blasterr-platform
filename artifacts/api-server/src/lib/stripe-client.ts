@@ -1,4 +1,6 @@
 import Stripe from "stripe";
+import { StripeSync } from "stripe-replit-sync";
+import { getSupabaseDatabaseUrl } from "@workspace/db";
 
 type StripeConnectionSettings = {
   secret_key?: string;
@@ -50,4 +52,13 @@ export async function getStripeWebhookSecret(): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+export async function getStripeSync(): Promise<StripeSync> {
+  const settings = await getStripeConnectionSettings();
+  return new StripeSync({
+    poolConfig: { connectionString: getSupabaseDatabaseUrl() },
+    stripeSecretKey: settings.secret_key!,
+    stripeWebhookSecret: settings.webhook_secret ?? process.env.STRIPE_WEBHOOK_SECRET ?? "",
+  });
 }

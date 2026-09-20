@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
 import { getAuth } from "@clerk/express";
-import { z } from "zod";
 import { db, targetsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import * as social from "../lib/social-repository";
@@ -13,7 +12,10 @@ import {
 } from "../lib/business-pro";
 
 const router: IRouter = Router();
-const targetParams = z.object({ targetId: z.string().min(1) });
+const targetIdFrom = (params: Record<string, string | undefined>) => {
+  const targetId = params.targetId;
+  return targetId && targetId.trim() ? targetId : null;
+};
 
 async function viewer(req: Parameters<typeof getAuth>[0]) {
   const { userId } = getAuth(req);
@@ -27,24 +29,24 @@ function requestOrigin(req: Parameters<typeof getAuth>[0]) {
 }
 
 router.get("/business/:targetId/pro", async (req, res): Promise<void> => {
-  const params = targetParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid Business Target." }); return; }
+  const targetId = targetIdFrom(req.params);
+  if (!targetId) { res.status(400).json({ error: "Invalid Business Target." }); return; }
   const current = await viewer(req);
-  res.json(await getBusinessProSummary(params.data.targetId, current?.id));
+  res.json(await getBusinessProSummary(targetId, current?.id));
 });
 
 router.post("/business/:targetId/pro/checkout", async (req, res): Promise<void> => {
-  const params = targetParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid Business Target." }); return; }
+  const targetId = targetIdFrom(req.params);
+  if (!targetId) { res.status(400).json({ error: "Invalid Business Target." }); return; }
   const current = await viewer(req);
   if (!current) { res.status(401).json({ error: "Sign in is required to start Business Pro." }); return; }
   const target = await db.select({ slug: targetsTable.slug })
     .from(targetsTable)
-    .where(eq(targetsTable.id, params.data.targetId)).limit(1);
+    .where(eq(targetsTable.id, targetId)).limit(1);
   if (!target[0]) { res.status(404).json({ error: "Business Target not found." }); return; }
   const origin = requestOrigin(req);
   const result = await createBusinessProCheckout({
-    targetId: params.data.targetId,
+    targetId,
     userId: current.id,
     email: current.email,
     name: current.displayName,
@@ -60,14 +62,14 @@ router.post("/business/:targetId/pro/checkout", async (req, res): Promise<void> 
 });
 
 router.post("/business/:targetId/pro/sync-checkout", async (req, res): Promise<void> => {
-  const params = targetParams.safeParse(req.params);
-  const sessionId = z.string().min(1).safeParse(req.body?.sessionId);
-  if (!params.success || !sessionId.success) { res.status(400).json({ error: "A checkout session is required." }); return; }
+  const targetId = targetIdFrom(req.params);
+  const sessionId = typeof req.body?.sessionId === "string" && req.body.sessionId.trim() ? req.body.sessionId : null;
+  if (!targetId || !sessionId) { res.status(400).json({ error: "A checkout session is required." }); return; }
   const current = await viewer(req);
   if (!current) { res.status(401).json({ error: "Sign in is required." }); return; }
-  const result = await syncBusinessProCheckoutSession(sessionId.data);
+  const result = await syncBusinessProCheckoutSession(sessionId);
   if (!result) { res.status(400).json({ error: "Checkout session is not a Business Pro subscription." }); return; }
-  const summary = await getBusinessProSummary(params.data.targetId, current.id);
+  const summary = await getBusinessProSummary(targetId, current.id);
   if (!summary.hasAccess && summary.status !== "trialing" && summary.status !== "active") {
     res.status(409).json({ error: "Business Pro payment is still being confirmed." });
     return;
@@ -76,11 +78,11 @@ router.post("/business/:targetId/pro/sync-checkout", async (req, res): Promise<v
 });
 
 router.post("/business/:targetId/pro/portal", async (req, res): Promise<void> => {
-  const params = targetParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid Business Target." }); return; }
+  const targetId = targetIdFrom(req.params);
+  if (!targetId) { res.status(400).json({ error: "Invalid Business Target." }); return; }
   const current = await viewer(req);
   if (!current) { res.status(401).json({ error: "Sign in is required." }); return; }
-  const result = await createBusinessProPortal(params.data.targetId, current.id, `${requestOrigin(req)}/business/${params.data.targetId}/center`);
+  const result = await createBusinessProPortal(targetId, current.id, `${requestOrigin(req)}/business/${targetId}/center`);
   if ("error" in result) { res.status(result.error === "forbidden" ? 403 : 404).json({ error: "Business Pro subscription not found." }); return; }
   res.json(result);
 });

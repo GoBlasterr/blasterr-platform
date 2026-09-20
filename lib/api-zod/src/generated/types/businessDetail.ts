@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BusinessDetailBlastsItem } from './businessDetailBlastsItem';
+import type { BusinessProStatus } from './businessProStatus';
 import type { BusinessSummary } from './businessSummary';
 
 export type BusinessDetail = BusinessSummary & ({
@@ -23,4 +24,5 @@ export type BusinessDetail = BusinessSummary & ({
   latitude?: number | null;
   /** @nullable */
   longitude?: number | null;
+  businessPro?: BusinessProStatus;
 });

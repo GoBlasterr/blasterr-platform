@@ -117,6 +117,23 @@ export default function BusinessDetailScreen() {
                 <Text style={[styles.actionBtnText, { color: colors.primary }]}>Personal</Text>
               </Pressable>
             )}
+            {business.businessPro?.hasAccess ? (
+              <Pressable
+                onPress={() => router.push(`/business/${business.slug}/center`)}
+                style={[styles.actionBtn, { borderColor: colors.primary }]}
+              >
+                <Feather name="star" size={16} color={colors.primary} />
+                <Text style={[styles.actionBtnText, { color: colors.primary }]}>Pro</Text>
+              </Pressable>
+            ) : business.businessPro?.canUpgrade ? (
+              <Pressable
+                onPress={() => router.push(`/business/${business.slug}/pro`)}
+                style={[styles.actionBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}
+              >
+                <Feather name="star" size={16} color={colors.primaryForeground} />
+                <Text style={[styles.actionBtnText, { color: colors.primaryForeground }]}>Pro — $49/mo</Text>
+              </Pressable>
+            ) : null}
             {isOwner && (
               <Pressable 
                 onPress={() => router.push(`/business/${business.slug}/center`)}
@@ -160,6 +177,7 @@ export default function BusinessDetailScreen() {
           <View style={styles.nameRow}>
             <Text style={[styles.name, { color: colors.foreground }]}>{business.name}</Text>
             {business.verified && <Feather name="check-circle" size={18} color={colors.primary} />}
+            {business.businessPro?.hasAccess && <Text style={[styles.proBadge, { color: colors.primary }]}>◆ PRO</Text>}
           </View>
           <Text style={[styles.handle, { color: colors.mutedForeground }]}>
             {business.category} {business.subcategory ? `• ${business.subcategory}` : ''}
@@ -245,6 +263,7 @@ const styles = StyleSheet.create({
   infoBlock: { paddingHorizontal: 16 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name: { fontFamily: 'Inter_700Bold', fontSize: 22 },
+  proBadge: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.2, marginLeft: 6 },
   handle: { fontFamily: 'Inter_400Regular', fontSize: 14, marginTop: 2 },
   bio: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22, marginTop: 12 },
   

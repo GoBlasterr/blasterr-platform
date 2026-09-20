@@ -34,6 +34,7 @@ import type {
   AdminAuditResponse,
   AdminBusinessDetail,
   AdminBusinessInput,
+  AdminBusinessProSummary,
   AdminBusinessStats,
   AdminBusinessUpdate,
   AdminClipsOverview,
@@ -108,6 +109,10 @@ import type {
   BusinessOwner,
   BusinessOwnerInput,
   BusinessPage,
+  BusinessProCheckout,
+  BusinessProCheckoutInput,
+  BusinessProPortal,
+  BusinessProStatus,
   BusinessProfileInput,
   BusinessProfileUpdate,
   Campaign,
@@ -9099,6 +9104,273 @@ export function useGetBusinessAnalytics<TData = Awaited<ReturnType<typeof getBus
 
 
 
+export const getGetBusinessProStatusUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/business/${targetId}/pro`
+}
+
+export const getBusinessProStatus = async (targetId: string, options?: Parameters<typeof customFetch>[1]): Promise<BusinessProStatus> => {
+
+  return customFetch<BusinessProStatus>(getGetBusinessProStatusUrl(targetId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBusinessProStatusQueryKey = (targetId: string,) => {
+    return [
+    `/api/business/${targetId}/pro`
+    ] as const;
+    }
+
+
+export const getGetBusinessProStatusQueryOptions = <TData = Awaited<ReturnType<typeof getBusinessProStatus>>, TError = ErrorType<unknown>>(targetId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBusinessProStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBusinessProStatusQueryKey(targetId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBusinessProStatus>>> = ({ signal }) => getBusinessProStatus(targetId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: targetId !== null && targetId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBusinessProStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBusinessProStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getBusinessProStatus>>>
+export type GetBusinessProStatusQueryError = ErrorType<unknown>
+
+
+
+export function useGetBusinessProStatus<TData = Awaited<ReturnType<typeof getBusinessProStatus>>, TError = ErrorType<unknown>>(
+ targetId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBusinessProStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBusinessProStatusQueryOptions(targetId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getStartBusinessProCheckoutUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/business/${targetId}/pro/checkout`
+}
+
+export const startBusinessProCheckout = async (targetId: string, options?: Parameters<typeof customFetch>[1]): Promise<BusinessProCheckout> => {
+
+  return customFetch<BusinessProCheckout>(getStartBusinessProCheckoutUrl(targetId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getStartBusinessProCheckoutMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startBusinessProCheckout>>, TError,{targetId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startBusinessProCheckout>>, TError,{targetId: string}, TContext> => {
+
+const mutationKey = ['startBusinessProCheckout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startBusinessProCheckout>>, {targetId: string}> = (props) => {
+          const {targetId} = props ?? {};
+
+          return  startBusinessProCheckout(targetId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartBusinessProCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof startBusinessProCheckout>>>
+
+    export type StartBusinessProCheckoutMutationError = ErrorType<void>
+
+    export const useStartBusinessProCheckout = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startBusinessProCheckout>>, TError,{targetId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startBusinessProCheckout>>,
+        TError,
+        {targetId: string},
+        TContext
+      > => {
+      return useMutation(getStartBusinessProCheckoutMutationOptions(options));
+    }
+
+export const getSyncBusinessProCheckoutUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/business/${targetId}/pro/sync-checkout`
+}
+
+export const syncBusinessProCheckout = async (targetId: string,
+    businessProCheckoutInput: BusinessProCheckoutInput, options?: Parameters<typeof customFetch>[1]): Promise<BusinessProStatus> => {
+
+  return customFetch<BusinessProStatus>(getSyncBusinessProCheckoutUrl(targetId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(businessProCheckoutInput)
+  }
+);}
+
+
+
+
+
+export const getSyncBusinessProCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncBusinessProCheckout>>, TError,{targetId: string;data: BodyType<BusinessProCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof syncBusinessProCheckout>>, TError,{targetId: string;data: BodyType<BusinessProCheckoutInput>}, TContext> => {
+
+const mutationKey = ['syncBusinessProCheckout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof syncBusinessProCheckout>>, {targetId: string;data: BodyType<BusinessProCheckoutInput>}> = (props) => {
+          const {targetId,data} = props ?? {};
+
+          return  syncBusinessProCheckout(targetId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SyncBusinessProCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof syncBusinessProCheckout>>>
+    export type SyncBusinessProCheckoutMutationBody = BodyType<BusinessProCheckoutInput>
+    export type SyncBusinessProCheckoutMutationError = ErrorType<unknown>
+
+    export const useSyncBusinessProCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncBusinessProCheckout>>, TError,{targetId: string;data: BodyType<BusinessProCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof syncBusinessProCheckout>>,
+        TError,
+        {targetId: string;data: BodyType<BusinessProCheckoutInput>},
+        TContext
+      > => {
+      return useMutation(getSyncBusinessProCheckoutMutationOptions(options));
+    }
+
+export const getOpenBusinessProPortalUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/business/${targetId}/pro/portal`
+}
+
+export const openBusinessProPortal = async (targetId: string, options?: Parameters<typeof customFetch>[1]): Promise<BusinessProPortal> => {
+
+  return customFetch<BusinessProPortal>(getOpenBusinessProPortalUrl(targetId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getOpenBusinessProPortalMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openBusinessProPortal>>, TError,{targetId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof openBusinessProPortal>>, TError,{targetId: string}, TContext> => {
+
+const mutationKey = ['openBusinessProPortal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof openBusinessProPortal>>, {targetId: string}> = (props) => {
+          const {targetId} = props ?? {};
+
+          return  openBusinessProPortal(targetId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OpenBusinessProPortalMutationResult = NonNullable<Awaited<ReturnType<typeof openBusinessProPortal>>>
+
+    export type OpenBusinessProPortalMutationError = ErrorType<unknown>
+
+    export const useOpenBusinessProPortal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openBusinessProPortal>>, TError,{targetId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof openBusinessProPortal>>,
+        TError,
+        {targetId: string},
+        TContext
+      > => {
+      return useMutation(getOpenBusinessProPortalMutationOptions(options));
+    }
+
 export const getListAdminBusinessesUrl = (params?: ListAdminBusinessesParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -9301,6 +9573,77 @@ export function useGetAdminBusinessStats<TData = Awaited<ReturnType<typeof getAd
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAdminBusinessStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAdminBusinessProSummaryUrl = () => {
+
+
+
+
+  return `/api/admin/business-pro`
+}
+
+export const getAdminBusinessProSummary = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdminBusinessProSummary> => {
+
+  return customFetch<AdminBusinessProSummary>(getGetAdminBusinessProSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminBusinessProSummaryQueryKey = () => {
+    return [
+    `/api/admin/business-pro`
+    ] as const;
+    }
+
+
+export const getGetAdminBusinessProSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getAdminBusinessProSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminBusinessProSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminBusinessProSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminBusinessProSummary>>> = ({ signal }) => getAdminBusinessProSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminBusinessProSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminBusinessProSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminBusinessProSummary>>>
+export type GetAdminBusinessProSummaryQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdminBusinessProSummary<TData = Awaited<ReturnType<typeof getAdminBusinessProSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminBusinessProSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminBusinessProSummaryQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

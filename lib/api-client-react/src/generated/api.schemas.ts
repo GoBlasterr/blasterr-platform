@@ -2605,6 +2605,39 @@ export interface OwnedBusinessList {
 
 export type BusinessDetailBlastsItem = { [key: string]: unknown };
 
+export type BusinessProStatusPlanId = typeof BusinessProStatusPlanId[keyof typeof BusinessProStatusPlanId];
+
+
+export const BusinessProStatusPlanId = {
+  business_pro_monthly: 'business_pro_monthly',
+} as const;
+
+export type BusinessProStatusPriceCents = typeof BusinessProStatusPriceCents[keyof typeof BusinessProStatusPriceCents];
+
+
+export const BusinessProStatusPriceCents = {
+  NUMBER_4900: 4900,
+} as const;
+
+export type BusinessProStatusCurrency = typeof BusinessProStatusCurrency[keyof typeof BusinessProStatusCurrency];
+
+
+export const BusinessProStatusCurrency = {
+  usd: 'usd',
+} as const;
+
+export interface BusinessProStatus {
+  planId: BusinessProStatusPlanId;
+  priceCents: BusinessProStatusPriceCents;
+  currency: BusinessProStatusCurrency;
+  /** @nullable */
+  status: string | null;
+  hasAccess: boolean;
+  isOwner: boolean;
+  canUpgrade: boolean;
+  cancelAtPeriodEnd: boolean;
+}
+
 export type BusinessDetail = BusinessSummary & ({
   subcategory: string;
   address: string;
@@ -2620,6 +2653,7 @@ export type BusinessDetail = BusinessSummary & ({
   latitude?: number | null;
   /** @nullable */
   longitude?: number | null;
+  businessPro?: BusinessProStatus;
 });
 
 export interface BusinessFollowResult {
@@ -2769,6 +2803,19 @@ export interface BusinessAnalytics {
   reactionCount: number;
   followerCount: number;
   engagementRate: number;
+}
+
+export interface BusinessProCheckout {
+  url: string;
+  sessionId: string;
+}
+
+export interface BusinessProCheckoutInput {
+  sessionId: string;
+}
+
+export interface BusinessProPortal {
+  url: string;
 }
 
 export type AdminBusinessInputCategory = typeof AdminBusinessInputCategory[keyof typeof AdminBusinessInputCategory];
@@ -2946,6 +2993,14 @@ export interface AdminBusinessStats {
   featured: number;
   hidden: number;
   recentActivity: number;
+}
+
+export interface AdminBusinessProSummary {
+  active: number;
+  trialing: number;
+  pastDue: number;
+  canceled: number;
+  monthlyRecurringRevenueCents: number;
 }
 
 export type AdminBusinessDetailAuditHistoryItem = { [key: string]: unknown };

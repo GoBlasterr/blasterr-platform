@@ -59,6 +59,7 @@ import NotificationsPage from '@/pages/notifications';
 import PreloadedBlastsPage from '@/pages/preloaded-blasts';
 import BusinessTargetsPage from '@/pages/business-targets';
 import BusinessClaimsPage from '@/pages/business-claims';
+import BusinessProPage from '@/pages/business-pro';
 import { useAdminAuth } from '@/lib/admin-auth';
 
 const queryClient = new QueryClient();
@@ -133,6 +134,7 @@ function AdminRouter() {
           <Route path="/preloaded-blasts" component={PreloadedBlastsPage} />
           <Route path="/business-targets" component={BusinessTargetsPage} />
           <Route path="/business-claims" component={BusinessClaimsPage} />
+          <Route path="/business/pro" component={BusinessProPage} />
           
           <Route component={NotFound} />
         </Switch>

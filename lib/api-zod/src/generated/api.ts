@@ -5020,7 +5020,17 @@ export const CreateBusinessProfileResponse = zod.object({
   "verificationStatus": zod.string(),
   "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
   "latitude": zod.number().nullable(),
-  "longitude": zod.number().nullable()
+  "longitude": zod.number().nullable(),
+  "businessPro": zod.object({
+  "planId": zod.enum(['business_pro_monthly']),
+  "priceCents": zod.literal(4900),
+  "currency": zod.enum(['usd']),
+  "status": zod.string().nullable(),
+  "hasAccess": zod.boolean(),
+  "isOwner": zod.boolean(),
+  "canUpgrade": zod.boolean(),
+  "cancelAtPeriodEnd": zod.boolean()
+}).optional()
 }))
 
 
@@ -5063,7 +5073,17 @@ export const GetBusinessResponse = zod.object({
   "verificationStatus": zod.string(),
   "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
   "latitude": zod.number().nullable(),
-  "longitude": zod.number().nullable()
+  "longitude": zod.number().nullable(),
+  "businessPro": zod.object({
+  "planId": zod.enum(['business_pro_monthly']),
+  "priceCents": zod.literal(4900),
+  "currency": zod.enum(['usd']),
+  "status": zod.string().nullable(),
+  "hasAccess": zod.boolean(),
+  "isOwner": zod.boolean(),
+  "canUpgrade": zod.boolean(),
+  "cancelAtPeriodEnd": zod.boolean()
+}).optional()
 }))
 
 
@@ -5143,7 +5163,17 @@ export const UpdateBusinessProfileResponse = zod.object({
   "verificationStatus": zod.string(),
   "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
   "latitude": zod.number().nullable(),
-  "longitude": zod.number().nullable()
+  "longitude": zod.number().nullable(),
+  "businessPro": zod.object({
+  "planId": zod.enum(['business_pro_monthly']),
+  "priceCents": zod.literal(4900),
+  "currency": zod.enum(['usd']),
+  "status": zod.string().nullable(),
+  "hasAccess": zod.boolean(),
+  "isOwner": zod.boolean(),
+  "canUpgrade": zod.boolean(),
+  "cancelAtPeriodEnd": zod.boolean()
+}).optional()
 }))
 
 
@@ -5260,7 +5290,17 @@ export const GetBusinessCenterResponse = zod.object({
   "verificationStatus": zod.string(),
   "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
   "latitude": zod.number().nullable(),
-  "longitude": zod.number().nullable()
+  "longitude": zod.number().nullable(),
+  "businessPro": zod.object({
+  "planId": zod.enum(['business_pro_monthly']),
+  "priceCents": zod.literal(4900),
+  "currency": zod.enum(['usd']),
+  "status": zod.string().nullable(),
+  "hasAccess": zod.boolean(),
+  "isOwner": zod.boolean(),
+  "canUpgrade": zod.boolean(),
+  "cancelAtPeriodEnd": zod.boolean()
+}).optional()
 })).and(zod.object({
   "membershipRole": zod.string()
 }))
@@ -5277,6 +5317,61 @@ export const GetBusinessAnalyticsResponse = zod.object({
   "reactionCount": zod.number(),
   "followerCount": zod.number(),
   "engagementRate": zod.number()
+})
+
+
+export const GetBusinessProStatusParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const GetBusinessProStatusResponse = zod.object({
+  "planId": zod.enum(['business_pro_monthly']),
+  "priceCents": zod.literal(4900),
+  "currency": zod.enum(['usd']),
+  "status": zod.string().nullable(),
+  "hasAccess": zod.boolean(),
+  "isOwner": zod.boolean(),
+  "canUpgrade": zod.boolean(),
+  "cancelAtPeriodEnd": zod.boolean()
+})
+
+
+export const StartBusinessProCheckoutParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const StartBusinessProCheckoutResponse = zod.object({
+  "url": zod.string(),
+  "sessionId": zod.string()
+})
+
+
+export const SyncBusinessProCheckoutParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const SyncBusinessProCheckoutBody = zod.object({
+  "sessionId": zod.string()
+})
+
+export const SyncBusinessProCheckoutResponse = zod.object({
+  "planId": zod.enum(['business_pro_monthly']),
+  "priceCents": zod.literal(4900),
+  "currency": zod.enum(['usd']),
+  "status": zod.string().nullable(),
+  "hasAccess": zod.boolean(),
+  "isOwner": zod.boolean(),
+  "canUpgrade": zod.boolean(),
+  "cancelAtPeriodEnd": zod.boolean()
+})
+
+
+export const OpenBusinessProPortalParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const OpenBusinessProPortalResponse = zod.object({
+  "url": zod.string()
 })
 
 
@@ -5420,7 +5515,17 @@ export const CreateAdminBusinessResponse = zod.object({
   "verificationStatus": zod.string(),
   "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
   "latitude": zod.number().nullable(),
-  "longitude": zod.number().nullable()
+  "longitude": zod.number().nullable(),
+  "businessPro": zod.object({
+  "planId": zod.enum(['business_pro_monthly']),
+  "priceCents": zod.literal(4900),
+  "currency": zod.enum(['usd']),
+  "status": zod.string().nullable(),
+  "hasAccess": zod.boolean(),
+  "isOwner": zod.boolean(),
+  "canUpgrade": zod.boolean(),
+  "cancelAtPeriodEnd": zod.boolean()
+}).optional()
 }))
 
 
@@ -5433,6 +5538,15 @@ export const GetAdminBusinessStatsResponse = zod.object({
   "featured": zod.number(),
   "hidden": zod.number(),
   "recentActivity": zod.number()
+})
+
+
+export const GetAdminBusinessProSummaryResponse = zod.object({
+  "active": zod.number(),
+  "trialing": zod.number(),
+  "pastDue": zod.number(),
+  "canceled": zod.number(),
+  "monthlyRecurringRevenueCents": zod.number()
 })
 
 
@@ -5475,7 +5589,17 @@ export const GetAdminBusinessResponse = zod.object({
   "verificationStatus": zod.string(),
   "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
   "latitude": zod.number().nullable(),
-  "longitude": zod.number().nullable()
+  "longitude": zod.number().nullable(),
+  "businessPro": zod.object({
+  "planId": zod.enum(['business_pro_monthly']),
+  "priceCents": zod.literal(4900),
+  "currency": zod.enum(['usd']),
+  "status": zod.string().nullable(),
+  "hasAccess": zod.boolean(),
+  "isOwner": zod.boolean(),
+  "canUpgrade": zod.boolean(),
+  "cancelAtPeriodEnd": zod.boolean()
+}).optional()
 })).and(zod.object({
   "owners": zod.array(zod.object({
   "userId": zod.string(),
@@ -5602,7 +5726,17 @@ export const UpdateAdminBusinessResponse = zod.object({
   "verificationStatus": zod.string(),
   "blasts": zod.array(zod.record(zod.string(), zod.unknown())),
   "latitude": zod.number().nullable(),
-  "longitude": zod.number().nullable()
+  "longitude": zod.number().nullable(),
+  "businessPro": zod.object({
+  "planId": zod.enum(['business_pro_monthly']),
+  "priceCents": zod.literal(4900),
+  "currency": zod.enum(['usd']),
+  "status": zod.string().nullable(),
+  "hasAccess": zod.boolean(),
+  "isOwner": zod.boolean(),
+  "canUpgrade": zod.boolean(),
+  "cancelAtPeriodEnd": zod.boolean()
+}).optional()
 }))
 
 

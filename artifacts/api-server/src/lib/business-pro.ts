@@ -3,13 +3,11 @@ import {
   businessMembershipsTable,
   businessProSubscriptionEventsTable,
   businessProSubscriptionsTable,
-  businessProfilesTable,
   db,
   targetsTable,
-  usersTable,
 } from "@workspace/db";
 import Stripe from "stripe";
-import { getStripeClient } from "./stripe-client";
+import { getStripeClient, getStripeSync } from "./stripe-client";
 
 export const BUSINESS_PRO_PLAN_ID = "business_pro_monthly";
 export const BUSINESS_PRO_PRICE_ID = "price_1UHsRnDA38rGKJNoer0HVRUx";
@@ -88,7 +86,7 @@ export async function createBusinessProCheckout(input: {
   cancelUrl: string;
 }) {
   const access = await requireBusinessProOwner(input.targetId, input.userId);
-  if ("error" in access) return access;
+  if ("error" in access) return { error: access.error };
 
   const current = await getBusinessProSummary(input.targetId, input.userId);
   if (current.hasAccess) return { error: "already_active" as const };
@@ -119,6 +117,7 @@ export async function createBusinessProCheckout(input: {
       ownerUserId: input.userId,
     },
   });
+  if (!session.url) return { error: "checkout_unavailable" as const };
   return { url: session.url, sessionId: session.id };
 }
 
@@ -184,6 +183,8 @@ export async function handleBusinessProWebhook(payload: Buffer, signature: strin
   const webhookSecret = await getStripeWebhookSecret();
   if (!webhookSecret) throw new Error("Stripe webhook signing secret is not configured.");
   const stripe = await getStripeClient();
+  const stripeSync = await getStripeSync();
+  await stripeSync.processWebhook(payload, signature);
   const event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
   if (event.type.startsWith("customer.subscription.")) {
     return syncSubscription(event.data.object as Stripe.Subscription, event.id, event.type);
