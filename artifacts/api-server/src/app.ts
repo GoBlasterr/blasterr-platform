@@ -14,6 +14,7 @@ import { adminSettings, ensureAdminState } from "./lib/admin-state";
 import { isSuspended } from "./lib/admin-auth";
 import { handleAdvertisingBillingWebhook } from "./lib/ad-billing";
 import { requireSupabaseAdmin } from "./lib/admin-supabase-auth";
+import { handleBusinessProWebhook } from "./lib/business-pro";
 
 const app: Express = express();
 app.set("trust proxy", 1);
@@ -43,6 +44,25 @@ app.post(
   "/api/advertising/billing/webhook",
   express.raw({ type: "application/json", limit: "1mb" }),
   handleAdvertisingBillingWebhook,
+);
+app.post(
+  "/api/stripe/webhook",
+  express.raw({ type: "application/json", limit: "1mb" }),
+  async (req, res): Promise<void> => {
+    const signatureHeader = req.headers["stripe-signature"];
+    const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
+    if (!Buffer.isBuffer(req.body) || !signature) {
+      res.status(400).json({ error: "Invalid Stripe webhook." });
+      return;
+    }
+    try {
+      const processed = await handleBusinessProWebhook(req.body, signature);
+      res.json({ received: true, processed });
+    } catch (error) {
+      req.log.warn({ err: error }, "Rejected Business Pro Stripe webhook");
+      res.status(400).json({ error: "Invalid Stripe webhook." });
+    }
+  },
 );
 app.use(
   "/api/storage/uploads/:id/content",

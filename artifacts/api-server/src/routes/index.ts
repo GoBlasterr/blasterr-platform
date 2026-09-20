@@ -12,6 +12,7 @@ import appealsRouter from "./appeals";
 import localizationRouter from "./localization";
 import businessRouter from "./business";
 import businessAdminRouter from "./business-admin";
+import businessProRouter from "./business-pro";
 
 const router: IRouter = Router();
 router.use("/admin-auth", adminAuthRouter);
@@ -19,6 +20,7 @@ router.use("/admin-auth", adminAuthRouter);
 router.use(healthRouter);
 router.use(localizationRouter);
 router.use(businessRouter);
+router.use(businessProRouter);
 router.use(announcementsRouter);
 router.use("/admin", adminRouter);
 router.use("/admin", businessAdminRouter);

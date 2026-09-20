@@ -67,8 +67,49 @@ export const businessMembershipsTable = pgTable("business_memberships", {
   primaryKey({ columns: [table.targetId, table.userId] }),
   index("business_memberships_user_idx").on(table.userId, table.status),
   index("business_memberships_target_idx").on(table.targetId, table.status),
-  check("business_memberships_role_check", sql`${table.role} in ('owner', 'manager', 'analyst')`),
+  check("business_memberships_role_check", sql`${table.role} in ('owner', 'manager', 'response_only', 'analytics_only', 'analyst')`),
   check("business_memberships_status_check", sql`${table.status} in ('active', 'revoked')`),
+]);
+
+/**
+ * Application-side relationship between a Business Target and its Stripe
+ * subscription. Stripe remains the source of truth for billing records; this
+ * table only binds provider IDs to a target and records the last entitlement
+ * state received from a signed provider event.
+ */
+export const businessProSubscriptionsTable = pgTable("business_pro_subscriptions", {
+  id: text("id").primaryKey().$defaultFn(randomUUID),
+  targetId: text("target_id").notNull().references(() => targetsTable.id, { onDelete: "cascade" }),
+  ownerUserId: text("owner_user_id").notNull().references(() => usersTable.id, { onDelete: "restrict" }),
+  provider: text("provider").notNull().default("stripe"),
+  providerCustomerId: text("provider_customer_id").notNull(),
+  providerSubscriptionId: text("provider_subscription_id").notNull(),
+  planId: text("plan_id").notNull().default("business_pro_monthly"),
+  status: text("status").notNull().default("incomplete"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  canceledAt: timestamp("canceled_at", { withTimezone: true }),
+  suspendedAt: timestamp("suspended_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("business_pro_subscriptions_target_unique").on(table.targetId),
+  uniqueIndex("business_pro_subscriptions_provider_subscription_unique").on(table.provider, table.providerSubscriptionId),
+  index("business_pro_subscriptions_status_idx").on(table.status, table.updatedAt),
+  index("business_pro_subscriptions_owner_idx").on(table.ownerUserId, table.status),
+  check("business_pro_subscriptions_provider_check", sql`${table.provider} in ('stripe')`),
+  check("business_pro_subscriptions_status_check", sql`${table.status} in ('incomplete', 'trialing', 'active', 'past_due', 'unpaid', 'canceled', 'incomplete_expired', 'paused', 'expired')`),
+]);
+
+export const businessProSubscriptionEventsTable = pgTable("business_pro_subscription_events", {
+  id: text("id").primaryKey().$defaultFn(randomUUID),
+  provider: text("provider").notNull().default("stripe"),
+  providerEventId: text("provider_event_id").notNull(),
+  eventType: text("event_type").notNull(),
+  subscriptionId: text("subscription_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("business_pro_subscription_events_provider_event_unique").on(table.provider, table.providerEventId),
+  index("business_pro_subscription_events_subscription_idx").on(table.subscriptionId, table.createdAt),
 ]);
 
 export const businessFollowsTable = pgTable("business_follows", {
@@ -88,4 +129,6 @@ export const insertBusinessFollowSchema = createInsertSchema(businessFollowsTabl
 export type BusinessProfile = typeof businessProfilesTable.$inferSelect;
 export type BusinessClaim = typeof businessClaimsTable.$inferSelect;
 export type BusinessMembership = typeof businessMembershipsTable.$inferSelect;
+export type BusinessProSubscription = typeof businessProSubscriptionsTable.$inferSelect;
+export type BusinessProSubscriptionEvent = typeof businessProSubscriptionEventsTable.$inferSelect;
 export type BusinessFollow = typeof businessFollowsTable.$inferSelect;
