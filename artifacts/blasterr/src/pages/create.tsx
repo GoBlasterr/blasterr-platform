@@ -1071,7 +1071,7 @@ export default function CreateBlast() {
               {/* Pre-Fire Summary */}
               <div className="mt-6 p-5 rounded-2xl bg-black/40 border border-white/5">
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-primary" /> Pre-Fire Check
+                   <CheckCircle2 className="w-4 h-4 text-primary" /> Pre-BLAST Check
                 </h3>
                 <ul className="space-y-3 text-sm">
                   <li className="flex justify-between items-center">
