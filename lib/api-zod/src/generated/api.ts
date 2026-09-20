@@ -5316,7 +5316,32 @@ export const GetBusinessAnalyticsResponse = zod.object({
   "commentCount": zod.number(),
   "reactionCount": zod.number(),
   "followerCount": zod.number(),
-  "engagementRate": zod.number()
+  "engagementRate": zod.number(),
+  "period": zod.enum(['7d', '30d', '90d', '12m']).optional(),
+  "periodBlastCount": zod.number().optional(),
+  "periodCommentCount": zod.number().optional(),
+  "periodReactionCount": zod.number().optional(),
+  "newFollowerCount": zod.number().optional()
+})
+
+
+export const GetBusinessAnalyticsByPeriodParams = zod.object({
+  "targetId": zod.coerce.string(),
+  "period": zod.enum(['7d', '30d', '90d', '12m'])
+})
+
+export const GetBusinessAnalyticsByPeriodResponse = zod.object({
+  "blastCount": zod.number(),
+  "viewCount": zod.number(),
+  "commentCount": zod.number(),
+  "reactionCount": zod.number(),
+  "followerCount": zod.number(),
+  "engagementRate": zod.number(),
+  "period": zod.enum(['7d', '30d', '90d', '12m']).optional(),
+  "periodBlastCount": zod.number().optional(),
+  "periodCommentCount": zod.number().optional(),
+  "periodReactionCount": zod.number().optional(),
+  "newFollowerCount": zod.number().optional()
 })
 
 
@@ -5372,6 +5397,76 @@ export const OpenBusinessProPortalParams = zod.object({
 
 export const OpenBusinessProPortalResponse = zod.object({
   "url": zod.string()
+})
+
+
+export const ListBusinessProTeamParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const ListBusinessProTeamResponse = zod.object({
+  "members": zod.array(zod.object({
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'response_only', 'analytics_only', 'analyst']),
+  "status": zod.enum(['active', 'revoked'])
+}))
+})
+
+
+export const AddBusinessProTeamMemberParams = zod.object({
+  "targetId": zod.coerce.string()
+})
+
+export const addBusinessProTeamMemberBodyTwoEmailMax = 320;
+
+
+
+export const AddBusinessProTeamMemberBody = zod.object({
+  "role": zod.enum(['manager', 'response_only', 'analytics_only'])
+}).and(zod.object({
+  "email": zod.string().max(addBusinessProTeamMemberBodyTwoEmailMax)
+}))
+
+export const AddBusinessProTeamMemberResponse = zod.object({
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'response_only', 'analytics_only', 'analyst']),
+  "status": zod.enum(['active', 'revoked'])
+})
+
+
+export const UpdateBusinessProTeamMemberParams = zod.object({
+  "targetId": zod.coerce.string(),
+  "userId": zod.coerce.string()
+})
+
+export const UpdateBusinessProTeamMemberBody = zod.object({
+  "role": zod.enum(['manager', 'response_only', 'analytics_only'])
+})
+
+export const UpdateBusinessProTeamMemberResponse = zod.object({
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'response_only', 'analytics_only', 'analyst']),
+  "status": zod.enum(['active', 'revoked'])
+})
+
+
+export const RemoveBusinessProTeamMemberParams = zod.object({
+  "targetId": zod.coerce.string(),
+  "userId": zod.coerce.string()
+})
+
+export const RemoveBusinessProTeamMemberResponse = zod.object({
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'response_only', 'analytics_only', 'analyst']),
+  "status": zod.enum(['active', 'revoked'])
 })
 
 
@@ -5626,7 +5721,12 @@ export const GetAdminBusinessResponse = zod.object({
   "commentCount": zod.number(),
   "reactionCount": zod.number(),
   "followerCount": zod.number(),
-  "engagementRate": zod.number()
+  "engagementRate": zod.number(),
+  "period": zod.enum(['7d', '30d', '90d', '12m']).optional(),
+  "periodBlastCount": zod.number().optional(),
+  "periodCommentCount": zod.number().optional(),
+  "periodReactionCount": zod.number().optional(),
+  "newFollowerCount": zod.number().optional()
 })
 }))
 

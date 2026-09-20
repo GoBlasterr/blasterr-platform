@@ -6,6 +6,11 @@ import * as social from "../lib/social-repository";
 import {
   createBusinessProCheckout,
   createBusinessProPortal,
+  addBusinessProTeamMember,
+  listBusinessProTeam,
+  removeBusinessProTeamMember,
+  updateBusinessProTeamMember,
+  BUSINESS_PRO_TEAM_ROLES,
   getBusinessProSummary,
   handleBusinessProWebhook,
   syncBusinessProCheckoutSession,
@@ -53,7 +58,7 @@ router.post("/business/:targetId/pro/checkout", async (req, res): Promise<void> 
     successUrl: `${origin}/business/${target[0].slug}/center?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${origin}/business/${target[0].slug}?checkout=canceled`,
   });
-  if ("error" in result) {
+  if (!("member" in result)) {
     const status = result.error === "already_active" ? 409 : result.error === "unverified" ? 403 : result.error === "forbidden" ? 403 : 404;
     res.status(status).json({ error: result.error === "already_active" ? "Business Pro is already active." : result.error === "unverified" ? "Business verification must be complete before upgrading." : "Only the verified business owner can upgrade this Business Target." });
     return;
@@ -85,6 +90,50 @@ router.post("/business/:targetId/pro/portal", async (req, res): Promise<void> =>
   const result = await createBusinessProPortal(targetId, current.id, `${requestOrigin(req)}/business/${targetId}/center`);
   if ("error" in result) { res.status(result.error === "forbidden" ? 403 : 404).json({ error: "Business Pro subscription not found." }); return; }
   res.json(result);
+});
+
+router.get("/business/:targetId/pro/team", async (req, res): Promise<void> => {
+  const targetId = targetIdFrom(req.params);
+  const current = await viewer(req);
+  if (!targetId || !current) { res.status(401).json({ error: "Sign in is required." }); return; }
+  const result = await listBusinessProTeam(targetId, current.id);
+  if ("error" in result) { res.status(result.error === "not_found" ? 404 : 403).json({ error: "Business Pro team access is not available." }); return; }
+  res.json(result);
+});
+
+router.post("/business/:targetId/pro/team", async (req, res): Promise<void> => {
+  const targetId = targetIdFrom(req.params);
+  const current = await viewer(req);
+  const email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
+  const role = req.body?.role;
+  if (!targetId || !current || !email || !BUSINESS_PRO_TEAM_ROLES.includes(role)) { res.status(400).json({ error: "Provide an existing BLASTERR account email and a valid team role." }); return; }
+  const result = await addBusinessProTeamMember(targetId, current.id, email, role);
+  if (!("member" in result)) {
+    const error = "error" in result ? result.error : "forbidden";
+    const status = error === "user_not_found" ? 404 : error === "team_limit" ? 409 : error === "invalid_role" ? 400 : 403;
+    res.status(status).json({ error: error === "team_limit" ? "Business Pro includes up to two additional team members." : error === "user_not_found" ? "That email does not belong to an existing BLASTERR account." : "Only the Business Pro owner can manage team access." });
+    return;
+  }
+  res.status(201).json(result.member);
+});
+
+router.patch("/business/:targetId/pro/team/:userId", async (req, res): Promise<void> => {
+  const targetId = targetIdFrom(req.params);
+  const current = await viewer(req);
+  const role = req.body?.role;
+  if (!targetId || !current || !BUSINESS_PRO_TEAM_ROLES.includes(role)) { res.status(400).json({ error: "Provide a valid team role." }); return; }
+  const result = await updateBusinessProTeamMember(targetId, current.id, req.params.userId, role);
+  if (!("member" in result)) { res.status("error" in result && result.error === "not_found" ? 404 : 403).json({ error: "error" in result && result.error === "not_found" ? "Team member not found." : "Only the Business Pro owner can manage team access." }); return; }
+  res.json(result.member);
+});
+
+router.delete("/business/:targetId/pro/team/:userId", async (req, res): Promise<void> => {
+  const targetId = targetIdFrom(req.params);
+  const current = await viewer(req);
+  if (!targetId || !current) { res.status(401).json({ error: "Sign in is required." }); return; }
+  const result = await removeBusinessProTeamMember(targetId, current.id, req.params.userId);
+  if (!("member" in result)) { res.status("error" in result && result.error === "not_found" ? 404 : 403).json({ error: "error" in result && result.error === "not_found" ? "Team member not found." : "Only the Business Pro owner can manage team access." }); return; }
+  res.json(result.member);
 });
 
 router.post("/stripe/webhook", async (req, res): Promise<void> => {

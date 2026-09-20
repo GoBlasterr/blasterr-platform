@@ -1,6 +1,6 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Response } from "express";
 import { getAuth } from "@clerk/express";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import {
   GetBusinessAnalyticsParams, GetBusinessAnalyticsResponse, GetBusinessCenterParams, GetBusinessCenterResponse,
   GetBusinessParams, GetBusinessResponse, ListBusinessesQueryParams, ListBusinessesResponse, SubmitBusinessClaimBody,
@@ -8,13 +8,13 @@ import {
   CreateBusinessProfileBody, CreateBusinessProfileResponse, ListOwnedBusinessesResponse,
   UpdateBusinessProfileParams, UpdateBusinessProfileBody, UpdateBusinessProfileResponse,
 } from "@workspace/api-zod";
-import { db, targetsTable } from "@workspace/db";
+import { blastsTable, businessFollowsTable, commentsTable, db, reactionsTable, targetsTable } from "@workspace/db";
 import * as social from "../lib/social-repository";
 import * as business from "../lib/business-repository";
 import { adminFeatureFlags, ensureAdminState } from "../lib/admin-state";
 import { ProfileMediaValidationError, validateProfileMediaUpdate } from "../lib/profile-media";
 import { resolveSubmittedProfileMediaReference } from "../lib/profile-media-policy";
-import { getBusinessProSummary } from "../lib/business-pro";
+import { getBusinessProSummary, requireBusinessProMember } from "../lib/business-pro";
 
 const router: IRouter = Router();
 
@@ -193,17 +193,51 @@ router.get("/business/:targetId/center", async (req, res): Promise<void> => {
   res.json(GetBusinessCenterResponse.parse({ ...detail, membershipRole: auth.membership.role }));
 });
 
-router.get("/business/:targetId/center/analytics", async (req, res): Promise<void> => {
+async function sendBusinessAnalytics(req: Parameters<typeof getAuth>[0], res: Response, periodOverride?: string) {
   await ensureAdminState();
   if (!flagEnabled("business_center_enabled")) { res.status(404).json({ error: "Business Center is not enabled." }); return; }
   const params = GetBusinessAnalyticsParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const auth = await authorizedCenter(req, params.data.targetId);
   if ("status" in auth) { const status = auth.status ?? 500; res.status(status).json({ error: status === 401 ? "Sign in is required." : "You are not authorized to view this business." }); return; }
+  if (periodOverride) {
+    const premium = await requireBusinessProMember(params.data.targetId, auth.viewer.id);
+    if ("error" in premium) { res.status(premium.error === "not_found" ? 404 : 403).json({ error: "Business Pro is required for period analytics." }); return; }
+  }
   const detail = await business.getBusinessBySlug(auth.target.slug);
   if (!detail) { res.status(404).json({ error: "Business Target not found." }); return; }
+  const requestedPeriod = periodOverride ?? (typeof req.query.period === "string" ? req.query.period : "30d");
+  const periodDays = requestedPeriod === "7d" ? 7 : requestedPeriod === "90d" ? 90 : requestedPeriod === "12m" ? 365 : 30;
+  const period = requestedPeriod === "7d" || requestedPeriod === "90d" || requestedPeriod === "12m" ? requestedPeriod : "30d";
+  const since = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
+  const [periodBlasts, periodComments, periodReactions, newFollowers] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(blastsTable).where(and(eq(blastsTable.targetId, params.data.targetId), eq(blastsTable.status, "active"), eq(blastsTable.visibility, "public"), gte(blastsTable.createdAt, since))),
+    db.select({ count: sql<number>`count(*)::int` }).from(commentsTable).innerJoin(blastsTable, eq(blastsTable.id, commentsTable.blastId)).where(and(eq(blastsTable.targetId, params.data.targetId), eq(blastsTable.status, "active"), gte(commentsTable.createdAt, since))),
+    db.select({ count: sql<number>`count(*)::int` }).from(reactionsTable).innerJoin(blastsTable, eq(blastsTable.id, reactionsTable.blastId)).where(and(eq(blastsTable.targetId, params.data.targetId), eq(blastsTable.status, "active"), gte(reactionsTable.createdAt, since))),
+    db.select({ count: sql<number>`count(*)::int` }).from(businessFollowsTable).where(and(eq(businessFollowsTable.targetId, params.data.targetId), gte(businessFollowsTable.createdAt, since))),
+  ]);
   const engagementRate = detail.viewCount > 0 ? (detail.commentCount + detail.reactionCount) / detail.viewCount : 0;
-  res.json(GetBusinessAnalyticsResponse.parse({ blastCount: detail.blastCount, viewCount: detail.viewCount, commentCount: detail.commentCount, reactionCount: detail.reactionCount, followerCount: detail.followerCount, engagementRate }));
+  res.json(GetBusinessAnalyticsResponse.parse({
+    blastCount: detail.blastCount,
+    viewCount: detail.viewCount,
+    commentCount: detail.commentCount,
+    reactionCount: detail.reactionCount,
+    followerCount: detail.followerCount,
+    engagementRate,
+    period,
+    periodBlastCount: periodBlasts[0]?.count ?? 0,
+    periodCommentCount: periodComments[0]?.count ?? 0,
+    periodReactionCount: periodReactions[0]?.count ?? 0,
+    newFollowerCount: newFollowers[0]?.count ?? 0,
+  }));
+}
+
+router.get("/business/:targetId/center/analytics", async (req, res): Promise<void> => {
+  await sendBusinessAnalytics(req, res);
+});
+
+router.get("/business/:targetId/center/analytics/:period", async (req, res): Promise<void> => {
+  await sendBusinessAnalytics(req, res, req.params.period);
 });
 
 export default router;

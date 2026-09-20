@@ -1589,6 +1589,14 @@ paths:
         - { name: targetId, in: path, required: true, schema: { type: string } }
       responses:
         "200": { description: Business analytics, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessAnalytics" } } } }
+  /business/{targetId}/center/analytics/{period}:
+    get:
+      operationId: getBusinessAnalyticsByPeriod
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+        - { name: period, in: path, required: true, schema: { type: string, enum: [7d, 30d, 90d, 12m] } }
+      responses:
+        "200": { description: Business analytics for a selected period, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessAnalytics" } } } }
   /business/{targetId}/pro:
     get:
       operationId: getBusinessProStatus
@@ -1628,6 +1636,46 @@ paths:
         - { name: targetId, in: path, required: true, schema: { type: string } }
       responses:
         "200": { description: Stripe Customer Portal session, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessProPortal" } } } }
+  /business/{targetId}/pro/team:
+    get:
+      operationId: listBusinessProTeam
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Business Pro team, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessProTeamResponse" } } } }
+    post:
+      operationId: addBusinessProTeamMember
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/BusinessProTeamMemberInput" } }
+      responses:
+        "201": { description: Team member added, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessProTeamMember" } } } }
+  /business/{targetId}/pro/team/{userId}:
+    patch:
+      operationId: updateBusinessProTeamMember
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/BusinessProTeamRoleInput" } }
+      responses:
+        "200": { description: Team member updated, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessProTeamMember" } } } }
+    delete:
+      operationId: removeBusinessProTeamMember
+      security: [{ clerkSession: [] }]
+      parameters:
+        - { name: targetId, in: path, required: true, schema: { type: string } }
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Team member removed, content: { application/json: { schema: { $ref: "#/components/schemas/BusinessProTeamMember" } } } }
   /admin/business:
     get:
       operationId: listAdminBusinesses
@@ -3230,6 +3278,11 @@ components:
         reactionCount: { type: number }
         followerCount: { type: number }
         engagementRate: { type: number }
+        period: { type: string, enum: [7d, 30d, 90d, 12m] }
+        periodBlastCount: { type: number }
+        periodCommentCount: { type: number }
+        periodReactionCount: { type: number }
+        newFollowerCount: { type: number }
     BusinessProStatus:
       type: object
       required: [planId, priceCents, currency, status, hasAccess, isOwner, canUpgrade, cancelAtPeriodEnd]
@@ -3258,6 +3311,32 @@ components:
       required: [url]
       properties:
         url: { type: string }
+    BusinessProTeamRoleInput:
+      type: object
+      required: [role]
+      properties:
+        role: { type: string, enum: [manager, response_only, analytics_only] }
+    BusinessProTeamMemberInput:
+      allOf:
+        - $ref: "#/components/schemas/BusinessProTeamRoleInput"
+        - type: object
+          required: [email]
+          properties:
+            email: { type: string, maxLength: 320 }
+    BusinessProTeamMember:
+      type: object
+      required: [userId, displayName, email, role, status]
+      properties:
+        userId: { type: string }
+        displayName: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [owner, manager, response_only, analytics_only, analyst] }
+        status: { type: string, enum: [active, revoked] }
+    BusinessProTeamResponse:
+      type: object
+      required: [members]
+      properties:
+        members: { type: array, items: { $ref: "#/components/schemas/BusinessProTeamMember" } }
     AdminBusinessInput:
       type: object
       required: [name, location, category]

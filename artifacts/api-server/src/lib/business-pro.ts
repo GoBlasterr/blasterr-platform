@@ -5,6 +5,7 @@ import {
   businessProSubscriptionsTable,
   db,
   targetsTable,
+  usersTable,
 } from "@workspace/db";
 import Stripe from "stripe";
 import { getStripeClient, getStripeSync } from "./stripe-client";
@@ -12,6 +13,8 @@ import { getStripeClient, getStripeSync } from "./stripe-client";
 export const BUSINESS_PRO_PLAN_ID = "business_pro_monthly";
 export const BUSINESS_PRO_PRICE_ID = "price_1UHsRnDA38rGKJNoer0HVRUx";
 export const BUSINESS_PRO_PRICE_CENTS = 4900;
+export const BUSINESS_PRO_TEAM_ROLES = ["manager", "response_only", "analytics_only"] as const;
+export type BusinessProTeamRole = typeof BUSINESS_PRO_TEAM_ROLES[number];
 
 const ACCESSIBLE_STATUSES = new Set(["active", "trialing", "past_due"]);
 
@@ -75,6 +78,84 @@ export async function requireBusinessProOwner(targetId: string, userId: string) 
   if (membership[0]?.role !== "owner") return { error: "forbidden" as const };
   if (!target[0].verified) return { error: "unverified" as const };
   return { target: target[0] };
+}
+
+export async function requireBusinessProMember(targetId: string, userId: string) {
+  const [target, membership, subscription] = await Promise.all([
+    db.select({ id: targetsTable.id, verified: targetsTable.verified, slug: targetsTable.slug })
+      .from(targetsTable)
+      .where(and(eq(targetsTable.id, targetId), eq(targetsTable.type, "business"))).limit(1),
+    db.select({ role: businessMembershipsTable.role })
+      .from(businessMembershipsTable)
+      .where(and(eq(businessMembershipsTable.targetId, targetId), eq(businessMembershipsTable.userId, userId), eq(businessMembershipsTable.status, "active"))).limit(1),
+    db.select({ status: businessProSubscriptionsTable.status, suspendedAt: businessProSubscriptionsTable.suspendedAt })
+      .from(businessProSubscriptionsTable)
+      .where(eq(businessProSubscriptionsTable.targetId, targetId)).limit(1),
+  ]);
+  if (!target[0]) return { error: "not_found" as const };
+  if (!membership[0]) return { error: "forbidden" as const };
+  if (!target[0].verified) return { error: "unverified" as const };
+  if (!subscription[0] || !ACCESSIBLE_STATUSES.has(subscription[0].status) || subscription[0].suspendedAt) {
+    return { error: "inactive" as const };
+  }
+  return { target: target[0], membership: membership[0] };
+}
+
+export async function listBusinessProTeam(targetId: string, userId: string) {
+  const access = await requireBusinessProMember(targetId, userId);
+  if ("error" in access) return access;
+  const members = await db.select({
+    userId: businessMembershipsTable.userId,
+    role: businessMembershipsTable.role,
+    status: businessMembershipsTable.status,
+    displayName: usersTable.displayName,
+    email: usersTable.email,
+  }).from(businessMembershipsTable)
+    .innerJoin(usersTable, eq(usersTable.id, businessMembershipsTable.userId))
+    .where(eq(businessMembershipsTable.targetId, targetId))
+    .orderBy(desc(businessMembershipsTable.createdAt));
+  return { members };
+}
+
+export async function addBusinessProTeamMember(targetId: string, ownerUserId: string, email: string, role: BusinessProTeamRole) {
+  const access = await requireBusinessProOwner(targetId, ownerUserId);
+  if ("error" in access) return access;
+  if (!BUSINESS_PRO_TEAM_ROLES.includes(role)) return { error: "invalid_role" as const };
+  const invited = (await db.select({ id: usersTable.id, displayName: usersTable.displayName, email: usersTable.email })
+    .from(usersTable).where(sql`lower(${usersTable.email}) = lower(${email.trim()})`).limit(1))[0];
+  if (!invited) return { error: "user_not_found" as const };
+  if (invited.id === ownerUserId) return { error: "owner_cannot_be_team_member" as const };
+  return db.transaction(async (tx) => {
+    const activeCount = (await tx.select({ count: sql<number>`count(*)::int` }).from(businessMembershipsTable)
+      .where(and(eq(businessMembershipsTable.targetId, targetId), eq(businessMembershipsTable.status, "active"))))[0]?.count ?? 0;
+    if (activeCount >= 3) return { error: "team_limit" as const };
+    const [member] = await tx.insert(businessMembershipsTable).values({
+      targetId, userId: invited.id, role, status: "active",
+    }).onConflictDoUpdate({
+      target: [businessMembershipsTable.targetId, businessMembershipsTable.userId],
+      set: { role, status: "active", updatedAt: new Date() },
+    }).returning();
+    return { member: { userId: invited.id, displayName: invited.displayName, email: invited.email, role: member?.role ?? role, status: "active" as const } };
+  });
+}
+
+export async function updateBusinessProTeamMember(targetId: string, ownerUserId: string, memberUserId: string, role: BusinessProTeamRole) {
+  const access = await requireBusinessProOwner(targetId, ownerUserId);
+  if ("error" in access) return access;
+  if (!BUSINESS_PRO_TEAM_ROLES.includes(role)) return { error: "invalid_role" as const };
+  const [updated] = await db.update(businessMembershipsTable).set({ role, status: "active", updatedAt: new Date() })
+    .where(and(eq(businessMembershipsTable.targetId, targetId), eq(businessMembershipsTable.userId, memberUserId), eq(businessMembershipsTable.status, "active"))).returning();
+  if (!updated) return { error: "not_found" as const };
+  return { member: updated };
+}
+
+export async function removeBusinessProTeamMember(targetId: string, ownerUserId: string, memberUserId: string) {
+  const access = await requireBusinessProOwner(targetId, ownerUserId);
+  if ("error" in access) return access;
+  const [updated] = await db.update(businessMembershipsTable).set({ status: "revoked", updatedAt: new Date() })
+    .where(and(eq(businessMembershipsTable.targetId, targetId), eq(businessMembershipsTable.userId, memberUserId), eq(businessMembershipsTable.status, "active"), sql`${businessMembershipsTable.role} <> 'owner'`)).returning();
+  if (!updated) return { error: "not_found" as const };
+  return { member: updated };
 }
 
 export async function createBusinessProCheckout(input: {

@@ -1,5 +1,5 @@
 import { useLocation, useParams } from "wouter";
-import { useGetBusinessCenter, useGetBusinessAnalytics, getGetBusinessCenterQueryKey, getGetBusinessAnalyticsQueryKey, getGetBusinessQueryKey, getListOwnedBusinessesQueryKey, useUpdateBusinessProfile, useOpenBusinessProPortal, useSyncBusinessProCheckout, BusinessProfileUpdateCategory } from "@workspace/api-client-react";
+import { useGetBusinessCenter, useGetBusinessAnalytics, useGetBusinessAnalyticsByPeriod, getGetBusinessCenterQueryKey, getGetBusinessAnalyticsQueryKey, getGetBusinessAnalyticsByPeriodQueryKey, getGetBusinessQueryKey, getListOwnedBusinessesQueryKey, getListBusinessProTeamQueryKey, useUpdateBusinessProfile, useOpenBusinessProPortal, useSyncBusinessProCheckout, useListBusinessProTeam, useAddBusinessProTeamMember, useUpdateBusinessProTeamMember, useRemoveBusinessProTeamMember, BusinessProfileUpdateCategory } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +23,9 @@ export default function BusinessCenter() {
   const updateBusiness = useUpdateBusinessProfile();
   const openPortal = useOpenBusinessProPortal();
   const syncCheckout = useSyncBusinessProCheckout();
+  const addTeamMember = useAddBusinessProTeamMember();
+  const updateTeamMember = useUpdateBusinessProTeamMember();
+  const removeTeamMember = useRemoveBusinessProTeamMember();
   const [editing, setEditing] = useState(false);
   type BusinessForm = { name: string; location: string; category: typeof BusinessProfileUpdateCategory[keyof typeof BusinessProfileUpdateCategory]; description: string; website: string; email: string; phone: string; imageUrl: string; bannerImageUrl: string };
   const [form, setForm] = useState<BusinessForm>({ name: "", location: "", category: BusinessProfileUpdateCategory.Services, description: "", website: "", email: "", phone: "", imageUrl: "", bannerImageUrl: "" });
@@ -30,6 +33,9 @@ export default function BusinessCenter() {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [bannerPreview, setBannerPreview] = useState("");
+  const [teamEmail, setTeamEmail] = useState("");
+  const [teamRole, setTeamRole] = useState<"manager" | "response_only" | "analytics_only">("manager");
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<"7d" | "30d" | "90d" | "12m">("30d");
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,8 +43,16 @@ export default function BusinessCenter() {
     query: { enabled: !!currentUser, retry: false, queryKey: [...getGetBusinessCenterQueryKey(targetId), currentUser?.id ?? "guest"] }
   });
   
-  const { data: analytics, isLoading: isAnalyticsLoading } = useGetBusinessAnalytics(targetId, {
-    query: { enabled: !!center && !!currentUser, queryKey: [...getGetBusinessAnalyticsQueryKey(targetId), currentUser?.id ?? "guest"] }
+  const { data: overviewAnalytics } = useGetBusinessAnalytics(targetId, {
+    query: { enabled: !!center && !!currentUser && !center?.businessPro?.hasAccess, queryKey: [...getGetBusinessAnalyticsQueryKey(targetId), currentUser?.id ?? "guest"] }
+  });
+  const { data: premiumAnalytics, isLoading: isPremiumAnalyticsLoading } = useGetBusinessAnalyticsByPeriod(targetId, analyticsPeriod, {
+    query: { enabled: !!center?.businessPro?.hasAccess && !!currentUser, queryKey: [...getGetBusinessAnalyticsByPeriodQueryKey(targetId, analyticsPeriod), currentUser?.id ?? "guest"] }
+  });
+  const analytics = premiumAnalytics ?? overviewAnalytics;
+  const isAnalyticsLoading = isPremiumAnalyticsLoading || (!center?.businessPro?.hasAccess && !overviewAnalytics);
+  const { data: team } = useListBusinessProTeam(targetId, {
+    query: { enabled: !!center?.businessPro?.hasAccess && !!currentUser, queryKey: [...getListBusinessProTeamQueryKey(targetId), currentUser?.id ?? "guest"] }
   });
 
   useEffect(() => {
@@ -47,7 +61,7 @@ export default function BusinessCenter() {
     syncCheckout.mutate({ targetId, data: { sessionId } }, {
       onSuccess: async () => {
         await queryClient.invalidateQueries({ queryKey: getGetBusinessCenterQueryKey(targetId) });
-        await queryClient.invalidateQueries({ queryKey: getGetBusinessAnalyticsQueryKey(targetId) });
+        await queryClient.invalidateQueries({ queryKey: getGetBusinessAnalyticsByPeriodQueryKey(targetId, analyticsPeriod) });
         window.history.replaceState({}, "", window.location.pathname);
         toast({ title: "Business Pro is active." });
       },
@@ -110,6 +124,15 @@ export default function BusinessCenter() {
     openPortal.mutate({ targetId }, {
       onSuccess: ({ url }) => window.location.assign(url),
       onError: () => toast({ title: "Subscription management is not available yet.", variant: "destructive" }),
+    });
+  };
+
+  const invalidateTeam = () => queryClient.invalidateQueries({ queryKey: getListBusinessProTeamQueryKey(targetId) });
+  const addTeam = () => {
+    if (!teamEmail.trim()) return;
+    addTeamMember.mutate({ targetId, data: { email: teamEmail.trim(), role: teamRole } }, {
+      onSuccess: async () => { setTeamEmail(""); await invalidateTeam(); toast({ title: "Team member added." }); },
+      onError: (error) => toast({ title: error instanceof Error ? error.message : "Team member could not be added.", variant: "destructive" }),
     });
   };
 
@@ -234,11 +257,71 @@ export default function BusinessCenter() {
             <p className="mt-3 text-xs text-muted-foreground">Advertising budget is separate from your Business Pro subscription.</p>
           </section>
 
+          {center.businessPro?.hasAccess && (
+            <section className="rounded-3xl border border-primary/20 bg-card p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Team access</p>
+                  <h3 className="mt-1 text-xl font-bold text-white">Work together on this Business Target</h3>
+                  <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Business Pro includes the owner plus up to two additional members. Each member only receives the role you assign.</p>
+                </div>
+                <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-muted-foreground">{team?.members.length ?? 0}/3 seats</span>
+              </div>
+              <div className="mt-5 space-y-3">
+                {team?.members.map((member) => (
+                  <div key={member.userId} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-background/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-semibold text-white">{member.displayName}</p>
+                      <p className="text-xs text-muted-foreground">{member.email} · <span className="capitalize">{member.role.replace("_", " ")}</span></p>
+                    </div>
+                    {center.membershipRole === "owner" && member.role !== "owner" && (
+                      <div className="flex items-center gap-2">
+                        <select
+                          aria-label={`Role for ${member.displayName}`}
+                          value={member.role}
+                          onChange={(event) => updateTeamMember.mutate({ targetId, userId: member.userId, data: { role: event.target.value as "manager" | "response_only" | "analytics_only" } }, { onSuccess: invalidateTeam, onError: () => toast({ title: "Role could not be updated.", variant: "destructive" }) })}
+                          className="rounded-lg border border-white/10 bg-background px-3 py-2 text-sm text-white"
+                        >
+                          <option value="manager">Manager</option>
+                          <option value="response_only">Response only</option>
+                          <option value="analytics_only">Analytics only</option>
+                        </select>
+                        <Button variant="ghost" size="sm" className="text-red-300 hover:bg-red-500/10 hover:text-red-200" onClick={() => removeTeamMember.mutate({ targetId, userId: member.userId }, { onSuccess: invalidateTeam, onError: () => toast({ title: "Team member could not be removed.", variant: "destructive" }) })}>Remove</Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {!team?.members.length && <p className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-muted-foreground">Only the owner has access right now.</p>}
+              </div>
+              {center.membershipRole === "owner" && (team?.members.length ?? 0) < 3 && (
+                <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_auto]">
+                  <Input value={teamEmail} onChange={(event) => setTeamEmail(event.target.value)} placeholder="Existing BLASTERR account email" type="email" />
+                  <select value={teamRole} onChange={(event) => setTeamRole(event.target.value as typeof teamRole)} className="rounded-lg border border-white/10 bg-background px-3 py-2 text-sm text-white">
+                    <option value="manager">Manager</option>
+                    <option value="response_only">Response only</option>
+                    <option value="analytics_only">Analytics only</option>
+                  </select>
+                  <Button onClick={addTeam} disabled={addTeamMember.isPending || !teamEmail.trim()} className="bg-primary text-primary-foreground">{addTeamMember.isPending ? "Adding…" : "Add member"}</Button>
+                </div>
+              )}
+            </section>
+          )}
+
           {/* Analytics Grid */}
           <div>
-             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-primary" /> Performance Analytics
-            </h3>
+             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+               <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                 <Activity className="w-5 h-5 text-primary" /> Performance Analytics
+               </h3>
+               {center.businessPro?.hasAccess && (
+                 <select value={analyticsPeriod} onChange={(event) => setAnalyticsPeriod(event.target.value as typeof analyticsPeriod)} className="rounded-lg border border-white/10 bg-card px-3 py-2 text-sm text-white" aria-label="Analytics period">
+                   <option value="7d">Last 7 days</option>
+                   <option value="30d">Last 30 days</option>
+                   <option value="90d">Last 90 days</option>
+                   <option value="12m">Last 12 months</option>
+                 </select>
+               )}
+             </div>
              {!center.businessPro?.hasAccess && <p className="mb-4 text-sm text-muted-foreground">Advanced analytics are locked. The totals below are the existing Business Center overview.</p>}
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -278,6 +361,18 @@ export default function BusinessCenter() {
                 </div>
               </div>
             )}
+             {center.businessPro?.hasAccess && analytics && (
+               <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                 <p className="text-xs font-bold uppercase tracking-wider text-primary">{analytics.period ?? analyticsPeriod} activity</p>
+                 <div className="mt-3 grid grid-cols-2 gap-4 md:grid-cols-4">
+                   <div><span className="block text-2xl font-bold text-white">{analytics.periodBlastCount ?? 0}</span><span className="text-xs text-muted-foreground">New Blasts</span></div>
+                   <div><span className="block text-2xl font-bold text-white">{analytics.periodCommentCount ?? 0}</span><span className="text-xs text-muted-foreground">Comments</span></div>
+                   <div><span className="block text-2xl font-bold text-white">{analytics.periodReactionCount ?? 0}</span><span className="text-xs text-muted-foreground">Reactions</span></div>
+                   <div><span className="block text-2xl font-bold text-white">{analytics.newFollowerCount ?? 0}</span><span className="text-xs text-muted-foreground">New Followers</span></div>
+                 </div>
+                 <p className="mt-3 text-xs text-muted-foreground">Profile views are shown as the recorded all-time total because BLASTERR does not yet retain historical view snapshots.</p>
+               </div>
+             )}
           </div>
 
           {/* Respond Guidance / Activity */}

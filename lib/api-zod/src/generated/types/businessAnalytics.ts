@@ -5,6 +5,7 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { BusinessAnalyticsPeriod } from './businessAnalyticsPeriod';
 
 export interface BusinessAnalytics {
   blastCount: number;
@@ -13,4 +14,9 @@ export interface BusinessAnalytics {
   reactionCount: number;
   followerCount: number;
   engagementRate: number;
+  period?: BusinessAnalyticsPeriod;
+  periodBlastCount?: number;
+  periodCommentCount?: number;
+  periodReactionCount?: number;
+  newFollowerCount?: number;
 }

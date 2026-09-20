@@ -2796,6 +2796,16 @@ export type BusinessCenter = BusinessDetail & {
   membershipRole: string;
 };
 
+export type BusinessAnalyticsPeriod = typeof BusinessAnalyticsPeriod[keyof typeof BusinessAnalyticsPeriod];
+
+
+export const BusinessAnalyticsPeriod = {
+  '7d': '7d',
+  '30d': '30d',
+  '90d': '90d',
+  '12m': '12m',
+} as const;
+
 export interface BusinessAnalytics {
   blastCount: number;
   viewCount: number;
@@ -2803,6 +2813,11 @@ export interface BusinessAnalytics {
   reactionCount: number;
   followerCount: number;
   engagementRate: number;
+  period?: BusinessAnalyticsPeriod;
+  periodBlastCount?: number;
+  periodCommentCount?: number;
+  periodReactionCount?: number;
+  newFollowerCount?: number;
 }
 
 export interface BusinessProCheckout {
@@ -2816,6 +2831,55 @@ export interface BusinessProCheckoutInput {
 
 export interface BusinessProPortal {
   url: string;
+}
+
+export type BusinessProTeamRoleInputRole = typeof BusinessProTeamRoleInputRole[keyof typeof BusinessProTeamRoleInputRole];
+
+
+export const BusinessProTeamRoleInputRole = {
+  manager: 'manager',
+  response_only: 'response_only',
+  analytics_only: 'analytics_only',
+} as const;
+
+export interface BusinessProTeamRoleInput {
+  role: BusinessProTeamRoleInputRole;
+}
+
+export type BusinessProTeamMemberInput = BusinessProTeamRoleInput & {
+  /** @maxLength 320 */
+  email: string;
+};
+
+export type BusinessProTeamMemberRole = typeof BusinessProTeamMemberRole[keyof typeof BusinessProTeamMemberRole];
+
+
+export const BusinessProTeamMemberRole = {
+  owner: 'owner',
+  manager: 'manager',
+  response_only: 'response_only',
+  analytics_only: 'analytics_only',
+  analyst: 'analyst',
+} as const;
+
+export type BusinessProTeamMemberStatus = typeof BusinessProTeamMemberStatus[keyof typeof BusinessProTeamMemberStatus];
+
+
+export const BusinessProTeamMemberStatus = {
+  active: 'active',
+  revoked: 'revoked',
+} as const;
+
+export interface BusinessProTeamMember {
+  userId: string;
+  displayName: string;
+  email: string;
+  role: BusinessProTeamMemberRole;
+  status: BusinessProTeamMemberStatus;
+}
+
+export interface BusinessProTeamResponse {
+  members: BusinessProTeamMember[];
 }
 
 export type AdminBusinessInputCategory = typeof AdminBusinessInputCategory[keyof typeof AdminBusinessInputCategory];

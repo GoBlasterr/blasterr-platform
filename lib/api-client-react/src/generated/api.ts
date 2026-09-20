@@ -113,6 +113,10 @@ import type {
   BusinessProCheckoutInput,
   BusinessProPortal,
   BusinessProStatus,
+  BusinessProTeamMember,
+  BusinessProTeamMemberInput,
+  BusinessProTeamResponse,
+  BusinessProTeamRoleInput,
   BusinessProfileInput,
   BusinessProfileUpdate,
   Campaign,
@@ -9104,6 +9108,82 @@ export function useGetBusinessAnalytics<TData = Awaited<ReturnType<typeof getBus
 
 
 
+export const getGetBusinessAnalyticsByPeriodUrl = (targetId: string,
+    period: '7d' | '30d' | '90d' | '12m',) => {
+
+
+
+
+  return `/api/business/${targetId}/center/analytics/${period}`
+}
+
+export const getBusinessAnalyticsByPeriod = async (targetId: string,
+    period: '7d' | '30d' | '90d' | '12m', options?: Parameters<typeof customFetch>[1]): Promise<BusinessAnalytics> => {
+
+  return customFetch<BusinessAnalytics>(getGetBusinessAnalyticsByPeriodUrl(targetId,period),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBusinessAnalyticsByPeriodQueryKey = (targetId: string,
+    period: '7d' | '30d' | '90d' | '12m',) => {
+    return [
+    `/api/business/${targetId}/center/analytics/${period}`
+    ] as const;
+    }
+
+
+export const getGetBusinessAnalyticsByPeriodQueryOptions = <TData = Awaited<ReturnType<typeof getBusinessAnalyticsByPeriod>>, TError = ErrorType<unknown>>(targetId: string,
+    period: '7d' | '30d' | '90d' | '12m', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBusinessAnalyticsByPeriod>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBusinessAnalyticsByPeriodQueryKey(targetId,period);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBusinessAnalyticsByPeriod>>> = ({ signal }) => getBusinessAnalyticsByPeriod(targetId,period, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: targetId !== null && targetId !== undefined && period !== null && period !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBusinessAnalyticsByPeriod>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBusinessAnalyticsByPeriodQueryResult = NonNullable<Awaited<ReturnType<typeof getBusinessAnalyticsByPeriod>>>
+export type GetBusinessAnalyticsByPeriodQueryError = ErrorType<unknown>
+
+
+
+export function useGetBusinessAnalyticsByPeriod<TData = Awaited<ReturnType<typeof getBusinessAnalyticsByPeriod>>, TError = ErrorType<unknown>>(
+ targetId: string,
+    period: '7d' | '30d' | '90d' | '12m', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBusinessAnalyticsByPeriod>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBusinessAnalyticsByPeriodQueryOptions(targetId,period,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetBusinessProStatusUrl = (targetId: string,) => {
 
 
@@ -9369,6 +9449,278 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getOpenBusinessProPortalMutationOptions(options));
+    }
+
+export const getListBusinessProTeamUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/business/${targetId}/pro/team`
+}
+
+export const listBusinessProTeam = async (targetId: string, options?: Parameters<typeof customFetch>[1]): Promise<BusinessProTeamResponse> => {
+
+  return customFetch<BusinessProTeamResponse>(getListBusinessProTeamUrl(targetId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBusinessProTeamQueryKey = (targetId: string,) => {
+    return [
+    `/api/business/${targetId}/pro/team`
+    ] as const;
+    }
+
+
+export const getListBusinessProTeamQueryOptions = <TData = Awaited<ReturnType<typeof listBusinessProTeam>>, TError = ErrorType<unknown>>(targetId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBusinessProTeam>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBusinessProTeamQueryKey(targetId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBusinessProTeam>>> = ({ signal }) => listBusinessProTeam(targetId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: targetId !== null && targetId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBusinessProTeam>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListBusinessProTeamQueryResult = NonNullable<Awaited<ReturnType<typeof listBusinessProTeam>>>
+export type ListBusinessProTeamQueryError = ErrorType<unknown>
+
+
+
+export function useListBusinessProTeam<TData = Awaited<ReturnType<typeof listBusinessProTeam>>, TError = ErrorType<unknown>>(
+ targetId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBusinessProTeam>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListBusinessProTeamQueryOptions(targetId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddBusinessProTeamMemberUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/business/${targetId}/pro/team`
+}
+
+export const addBusinessProTeamMember = async (targetId: string,
+    businessProTeamMemberInput: BusinessProTeamMemberInput, options?: Parameters<typeof customFetch>[1]): Promise<BusinessProTeamMember> => {
+
+  return customFetch<BusinessProTeamMember>(getAddBusinessProTeamMemberUrl(targetId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(businessProTeamMemberInput)
+  }
+);}
+
+
+
+
+
+export const getAddBusinessProTeamMemberMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addBusinessProTeamMember>>, TError,{targetId: string;data: BodyType<BusinessProTeamMemberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addBusinessProTeamMember>>, TError,{targetId: string;data: BodyType<BusinessProTeamMemberInput>}, TContext> => {
+
+const mutationKey = ['addBusinessProTeamMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addBusinessProTeamMember>>, {targetId: string;data: BodyType<BusinessProTeamMemberInput>}> = (props) => {
+          const {targetId,data} = props ?? {};
+
+          return  addBusinessProTeamMember(targetId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddBusinessProTeamMemberMutationResult = NonNullable<Awaited<ReturnType<typeof addBusinessProTeamMember>>>
+    export type AddBusinessProTeamMemberMutationBody = BodyType<BusinessProTeamMemberInput>
+    export type AddBusinessProTeamMemberMutationError = ErrorType<unknown>
+
+    export const useAddBusinessProTeamMember = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addBusinessProTeamMember>>, TError,{targetId: string;data: BodyType<BusinessProTeamMemberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addBusinessProTeamMember>>,
+        TError,
+        {targetId: string;data: BodyType<BusinessProTeamMemberInput>},
+        TContext
+      > => {
+      return useMutation(getAddBusinessProTeamMemberMutationOptions(options));
+    }
+
+export const getUpdateBusinessProTeamMemberUrl = (targetId: string,
+    userId: string,) => {
+
+
+
+
+  return `/api/business/${targetId}/pro/team/${userId}`
+}
+
+export const updateBusinessProTeamMember = async (targetId: string,
+    userId: string,
+    businessProTeamRoleInput: BusinessProTeamRoleInput, options?: Parameters<typeof customFetch>[1]): Promise<BusinessProTeamMember> => {
+
+  return customFetch<BusinessProTeamMember>(getUpdateBusinessProTeamMemberUrl(targetId,userId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(businessProTeamRoleInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateBusinessProTeamMemberMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBusinessProTeamMember>>, TError,{targetId: string;userId: string;data: BodyType<BusinessProTeamRoleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateBusinessProTeamMember>>, TError,{targetId: string;userId: string;data: BodyType<BusinessProTeamRoleInput>}, TContext> => {
+
+const mutationKey = ['updateBusinessProTeamMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBusinessProTeamMember>>, {targetId: string;userId: string;data: BodyType<BusinessProTeamRoleInput>}> = (props) => {
+          const {targetId,userId,data} = props ?? {};
+
+          return  updateBusinessProTeamMember(targetId,userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateBusinessProTeamMemberMutationResult = NonNullable<Awaited<ReturnType<typeof updateBusinessProTeamMember>>>
+    export type UpdateBusinessProTeamMemberMutationBody = BodyType<BusinessProTeamRoleInput>
+    export type UpdateBusinessProTeamMemberMutationError = ErrorType<unknown>
+
+    export const useUpdateBusinessProTeamMember = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBusinessProTeamMember>>, TError,{targetId: string;userId: string;data: BodyType<BusinessProTeamRoleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateBusinessProTeamMember>>,
+        TError,
+        {targetId: string;userId: string;data: BodyType<BusinessProTeamRoleInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateBusinessProTeamMemberMutationOptions(options));
+    }
+
+export const getRemoveBusinessProTeamMemberUrl = (targetId: string,
+    userId: string,) => {
+
+
+
+
+  return `/api/business/${targetId}/pro/team/${userId}`
+}
+
+export const removeBusinessProTeamMember = async (targetId: string,
+    userId: string, options?: Parameters<typeof customFetch>[1]): Promise<BusinessProTeamMember> => {
+
+  return customFetch<BusinessProTeamMember>(getRemoveBusinessProTeamMemberUrl(targetId,userId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveBusinessProTeamMemberMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeBusinessProTeamMember>>, TError,{targetId: string;userId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeBusinessProTeamMember>>, TError,{targetId: string;userId: string}, TContext> => {
+
+const mutationKey = ['removeBusinessProTeamMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeBusinessProTeamMember>>, {targetId: string;userId: string}> = (props) => {
+          const {targetId,userId} = props ?? {};
+
+          return  removeBusinessProTeamMember(targetId,userId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveBusinessProTeamMemberMutationResult = NonNullable<Awaited<ReturnType<typeof removeBusinessProTeamMember>>>
+
+    export type RemoveBusinessProTeamMemberMutationError = ErrorType<unknown>
+
+    export const useRemoveBusinessProTeamMember = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeBusinessProTeamMember>>, TError,{targetId: string;userId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeBusinessProTeamMember>>,
+        TError,
+        {targetId: string;userId: string},
+        TContext
+      > => {
+      return useMutation(getRemoveBusinessProTeamMemberMutationOptions(options));
     }
 
 export const getListAdminBusinessesUrl = (params?: ListAdminBusinessesParams,) => {
