@@ -192,26 +192,26 @@
   --sidebar: 220 20% 97%;
   --sidebar-foreground: 222 47% 11%;
   --sidebar-border: 220 13% 84%;
-  --sidebar-primary: 64 98% 42%;
-  --sidebar-primary-foreground: 222 47% 11%;
+  --sidebar-primary: 45 100% 28%;
+  --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 220 14% 92%;
   --sidebar-accent-foreground: 222 47% 11%;
-  --sidebar-ring: 64 98% 42%;
+  --sidebar-ring: 45 100% 28%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
   --popover-border: 220 13% 84%;
-  --primary: 64 98% 42%;
-  --primary-foreground: 222 47% 11%;
+  --primary: 45 100% 28%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 220 14% 92%;
   --secondary-foreground: 222 47% 11%;
-  --accent: 64 98% 42%;
-  --accent-foreground: 222 47% 11%;
+  --accent: 45 100% 28%;
+  --accent-foreground: 0 0% 100%;
   --muted: 220 14% 93%;
   --muted-foreground: 222 30% 20%;
   --destructive: 0 72% 48%;
   --destructive-foreground: 0 0% 100%;
   --input: 220 13% 88%;
-  --ring: 64 98% 42%;
+  --ring: 45 100% 28%;
 }
 
 @layer base {
@@ -245,6 +245,31 @@
 
 .light .glass-panel {
   @apply bg-card/90 border-card-border shadow-[0_4px_24px_-8px_rgba(15,23,42,0.14)];
+}
+
+.light .neon-border {
+  border-color: hsl(var(--primary) / 0.7);
+  box-shadow: 0 0 10px hsl(var(--primary) / 0.18), inset 0 0 5px hsl(var(--primary) / 0.08);
+}
+
+.light .neon-glow {
+  text-shadow: 0 0 10px hsl(var(--primary) / 0.28);
+}
+
+.light [class~="text-yellow-400"] {
+  color: hsl(var(--primary)) !important;
+}
+
+.light [class~="bg-yellow-400"] {
+  background-color: hsl(var(--primary)) !important;
+}
+
+.light [class~="bg-[#e5f403]"] {
+  background-color: hsl(var(--primary)) !important;
+}
+
+.light [class~="bg-[#e5f403]"][class~="text-black"] {
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 .light [class~="text-white"],
