@@ -96,7 +96,7 @@ export default function BusinessDetailScreen() {
         {/* Banner */}
         <View style={[styles.banner, { backgroundColor: colors.secondary }]}>
           {business.bannerImageUrl && (
-            <Image source={{ uri: apiUrl(business.bannerImageUrl) }} style={StyleSheet.absoluteFill} contentFit="cover" />
+            <Image source={{ uri: apiUrl(business.bannerImageUrl) }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" />
           )}
         </View>
 
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   navTitle: { fontFamily: 'Inter_700Bold', fontSize: 16, flex: 1, textAlign: 'center' },
 
   content: { paddingBottom: 40 },
-  banner: { height: 120, width: '100%' },
+  banner: { width: '100%', aspectRatio: 3 },
   
   profileSection: { paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: -32, marginBottom: 12 },
   avatarWrapper: { width: 80, height: 80, borderRadius: 40, borderWidth: 4, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
@@ -268,8 +268,8 @@ const styles = StyleSheet.create({
   bio: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22, marginTop: 12 },
   
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 12 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  metaText: { fontFamily: 'Inter_400Regular', fontSize: 13 },
+  metaItem: { minWidth: 0, flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  metaText: { minWidth: 0, flexShrink: 1, fontFamily: 'Inter_400Regular', fontSize: 13 },
   
   statsRow: { flexDirection: 'row', gap: 20, marginTop: 16 },
   stat: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },

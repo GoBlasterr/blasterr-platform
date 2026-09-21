@@ -110,7 +110,7 @@ export default function BusinessDetail() {
             <ArrowLeft aria-hidden="true" className="h-5 w-5 shrink-0 overflow-visible" strokeWidth={2.25} />
           </button>
 
-          <div className="h-48 md:h-64 w-full bg-gradient-to-br from-card to-background relative overflow-hidden">
+           <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-card to-background">
             {(business.bannerImageUrl || business.imageUrl) && (
               <img src={business.bannerImageUrl || business.imageUrl} alt={business.name} className="h-full w-full object-cover opacity-75 object-center" />
             )}
@@ -162,20 +162,26 @@ export default function BusinessDetail() {
               <p className="text-white/80 leading-relaxed mb-6 max-w-2xl">{business.description}</p>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+            <div
+              className="grid gap-3 mb-6"
+              style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))" }}
+            >
               {business.website && (
-                <a href={business.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline bg-primary/10 p-3 rounded-xl border border-primary/20">
-                  <Globe className="w-4 h-4" /> {business.website.replace(/^https?:\/\//, '')}
+                <a href={business.website} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-start gap-2 text-sm text-primary hover:underline bg-primary/10 p-3 rounded-xl border border-primary/20">
+                  <Globe className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="min-w-0 break-words">{business.website.replace(/^https?:\/\//, '')}</span>
                 </a>
               )}
               {business.phone && (
-                <div className="flex items-center justify-center gap-2 text-center text-sm text-primary bg-primary/10 p-3 rounded-xl border border-primary/20">
-                  <Phone className="w-4 h-4" /> {business.phone}
+                <div className="flex min-w-0 items-start gap-2 text-sm text-primary bg-primary/10 p-3 rounded-xl border border-primary/20">
+                  <Phone className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="min-w-0 break-words">{business.phone}</span>
                 </div>
               )}
               {business.email && (
-                <a href={`mailto:${business.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline bg-primary/10 p-3 rounded-xl border border-primary/20">
-                  <Mail className="w-4 h-4" /> {business.email}
+                <a href={`mailto:${business.email}`} className="flex min-w-0 items-start gap-2 text-sm text-primary hover:underline bg-primary/10 p-3 rounded-xl border border-primary/20">
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="min-w-0 break-words">{business.email}</span>
                 </a>
               )}
             </div>

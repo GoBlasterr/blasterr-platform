@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search as SearchIcon, Users, Target, FileText } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Seo } from "@/components/seo";
+import { preloadProfileMedia } from "@/components/shared/profile-media-image";
 
 export default function Search() {
   const [, setLocation] = useLocation();
@@ -114,7 +115,9 @@ export default function Search() {
                 {people.map((person) => (
                   <div 
                     key={person.id}
-                    onClick={() => setLocation(`/profile/${person.username}`)}
+                    onMouseEnter={() => preloadProfileMedia(person.coverUrl)}
+                    onPointerDown={() => preloadProfileMedia(person.coverUrl)}
+                    onClick={() => { preloadProfileMedia(person.coverUrl); setLocation(`/profile/${person.username}`); }}
                     className="p-4 flex items-center gap-4 hover:bg-white/[0.02] cursor-pointer transition-colors"
                   >
                     <Avatar className="w-12 h-12 border border-white/10 shrink-0">

@@ -226,7 +226,7 @@ export default function Settings() {
           <div className="space-y-6">
             <div className="space-y-3">
               <Label className="text-muted-foreground uppercase text-xs tracking-wider">Profile Banner</Label>
-              <div className="relative h-36 overflow-hidden rounded-2xl border border-white/10 bg-card">
+              <div className="relative aspect-[3/1] w-full overflow-hidden rounded-2xl border border-white/10 bg-card">
                 {bannerPreview ? (
                   <ProfileMediaImage
                     src={bannerPreview}

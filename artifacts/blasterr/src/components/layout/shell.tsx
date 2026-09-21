@@ -20,7 +20,7 @@ import { useClerk } from "@clerk/react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { FeedAdPlacement } from "@/components/shared/sponsored-blast-card";
 import { AnnouncementsSurface } from "@/components/shared/announcements";
-import { ProfileMediaImage } from "@/components/shared/profile-media-image";
+import { preloadProfileMedia, ProfileMediaImage } from "@/components/shared/profile-media-image";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -79,7 +79,14 @@ export function Shell({ children }: ShellProps) {
               const isActive = location === item.href ||
                 (item.href === "/trending" && location === "/trending/targets");
               return (
-                <Link key={item.href} href={item.href} className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive ? 'bg-primary/10 text-primary neon-border' : 'hover:bg-white/5 text-muted-foreground hover:text-white'}`}>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onMouseEnter={item.label === "Profile" ? () => preloadProfileMedia(user?.coverUrl) : undefined}
+                  onFocus={item.label === "Profile" ? () => preloadProfileMedia(user?.coverUrl) : undefined}
+                  onPointerDown={item.label === "Profile" ? () => preloadProfileMedia(user?.coverUrl) : undefined}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive ? 'bg-primary/10 text-primary neon-border' : 'hover:bg-white/5 text-muted-foreground hover:text-white'}`}
+                >
                   <item.icon className={`w-6 h-6 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : ''}`} />
                   <span className="font-medium text-sm">{item.label}</span>
                 </Link>

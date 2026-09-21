@@ -7,8 +7,8 @@ import { ArrowLeft, MapPin, Calendar, UserPlus, UserMinus, BriefcaseBusiness, Ch
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
-import { ProfileMediaImage } from "@/components/shared/profile-media-image";
+import { useEffect, useState } from "react";
+import { preloadProfileMedia, ProfileMediaImage } from "@/components/shared/profile-media-image";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Seo, absoluteUrl, canonicalUrl } from "@/components/seo";
 import { TranslatedText } from "@/components/shared/translated-text";
@@ -30,6 +30,10 @@ export default function Profile() {
     query: { enabled: isOwnProfileCandidate, queryKey: [...getListOwnedBusinessesQueryKey(), currentUser?.id ?? "guest"] },
   });
   const followMutation = useToggleFollow();
+
+  useEffect(() => {
+    preloadProfileMedia(profile?.coverUrl);
+  }, [profile?.coverUrl]);
 
   const handleFollow = () => {
     followMutation.mutate(
@@ -117,7 +121,7 @@ export default function Profile() {
       </div>
 
       {/* Cover */}
-      <div className="h-32 sm:h-48 w-full bg-card relative">
+      <div className="relative aspect-[3/1] w-full overflow-hidden bg-card">
         {profile.coverUrl && (
           <ProfileMediaImage
             src={profile.coverUrl}
@@ -125,7 +129,7 @@ export default function Profile() {
             className="w-full h-full object-cover opacity-80"
             loading="eager"
             fetchPriority="high"
-            decoding="async"
+            decoding="sync"
           />
         )}
       </div>

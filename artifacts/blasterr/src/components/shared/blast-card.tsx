@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { TranslatedText } from "@/components/shared/translated-text";
+import { preloadProfileMedia } from "@/components/shared/profile-media-image";
 
 import { 
   MessageSquare, 
@@ -155,12 +156,18 @@ export function BlastCard({ blast, showTarget = true, showMedia = false }: { bla
 
   // Safe fallback for parsing dates
   const timeAgo = blast.createdAt ? formatDistanceToNow(new Date(blast.createdAt), { addSuffix: true }) : '';
+  const warmProfileMedia = () => preloadProfileMedia(blast.author?.coverUrl);
 
   return (
     <div className="p-5 border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={() => setLocation(`/target/${blast.target.slug}`)}>
       <div className="flex gap-4">
         {/* Avatar */}
-        <div className="shrink-0 pt-1" onClick={(e) => { e.stopPropagation(); setLocation(`/profile/${blast.author.username}`); }}>
+        <div
+          className="shrink-0 pt-1"
+          onMouseEnter={warmProfileMedia}
+          onPointerDown={warmProfileMedia}
+          onClick={(e) => { e.stopPropagation(); warmProfileMedia(); setLocation(`/profile/${blast.author.username}`); }}
+        >
           <Avatar className="w-12 h-12 border border-white/10 hover:border-primary/50 transition-colors">
             <AvatarImage src={blast.author.avatarUrl || undefined} alt={blast.author.username} />
             <AvatarFallback className="bg-white/5 text-primary">{blast.author.displayName.substring(0, 2).toUpperCase()}</AvatarFallback>
@@ -174,7 +181,9 @@ export function BlastCard({ blast, showTarget = true, showMedia = false }: { bla
               <div className="flex flex-wrap items-center gap-1.5 text-sm">
                 <span 
                   className="font-bold text-white hover:underline truncate"
-                  onClick={(e) => { e.stopPropagation(); setLocation(`/profile/${blast.author.username}`); }}
+                  onMouseEnter={warmProfileMedia}
+                  onPointerDown={warmProfileMedia}
+                  onClick={(e) => { e.stopPropagation(); warmProfileMedia(); setLocation(`/profile/${blast.author.username}`); }}
                 >
                   {blast.author.displayName}
                 </span>

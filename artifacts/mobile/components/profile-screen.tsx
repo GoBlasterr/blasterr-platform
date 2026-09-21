@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -13,6 +14,9 @@ export default function ProfileScreen() {
   const colors = useColors();
   const user = useGetCurrentUser();
   const businesses = useListOwnedBusinesses({ query: { enabled: !!user.data, queryKey: [...getListOwnedBusinessesQueryKey(), user.data?.id ?? 'guest'] } });
+  useEffect(() => {
+    if (user.data?.coverUrl) void Image.prefetch(apiUrl(user.data.coverUrl));
+  }, [user.data?.coverUrl]);
   if (user.isLoading) return <View style={[styles.center, { backgroundColor: colors.background }]}><CosmicBackground /><ActivityIndicator color={colors.primary} accessibilityLabel="Loading profile" /></View>;
   if (user.isError || !user.data) return <View style={[styles.screen, { backgroundColor: colors.background }]}><CosmicBackground /><EmptyState icon="user" title="Profile" message="Sign in to see your profile, saved Blasts, and settings." actionLabel="Sign In" onAction={() => router.replace('/sign-in' as never)} /></View>;
   const profile = user.data;
@@ -21,7 +25,7 @@ export default function ProfileScreen() {
     <ScrollView style={[styles.screen, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       <CosmicBackground />
       <View style={[styles.cover, { backgroundColor: colors.secondary }]}>
-        {profile.coverUrl ? <Image source={{ uri: apiUrl(profile.coverUrl) }} style={styles.coverImage} contentFit="cover" accessibilityLabel="Profile banner" /> : <View style={[styles.coverGlow, { backgroundColor: colors.primary }]} />}
+        {profile.coverUrl ? <Image source={{ uri: apiUrl(profile.coverUrl) }} style={styles.coverImage} contentFit="cover" cachePolicy="memory-disk" accessibilityLabel="Profile banner" /> : <View style={[styles.coverGlow, { backgroundColor: colors.primary }]} />}
       </View>
       <View style={styles.profileTop}>
         {profile.avatarUrl ? <Image source={{ uri: apiUrl(profile.avatarUrl) }} style={[styles.avatar, { borderColor: colors.background }]} contentFit="cover" accessibilityLabel={`${profile.displayName}'s avatar`} /> : <View style={[styles.avatar, styles.avatarFallback, { backgroundColor: colors.accent, borderColor: colors.background }]}><Feather name="user" size={27} color={colors.primary} /></View>}
@@ -53,7 +57,7 @@ export default function ProfileScreen() {
 function Stat({ value, label, colors }: { value: number; label: string; colors: ReturnType<typeof useColors> }) { return <View style={styles.stat}><Text style={[styles.statValue, { color: colors.foreground }]}>{value}</Text><Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{label}</Text></View>; }
 const styles = StyleSheet.create({
   screen: { flex: 1 }, content: { paddingBottom: 40 }, center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  cover: { height: 150, overflow: 'hidden' }, coverImage: { width: '100%', height: '100%' }, coverGlow: { width: 220, height: 220, borderRadius: 110, opacity: 0.15, position: 'absolute', right: -40, top: -80 },
+  cover: { width: '100%', aspectRatio: 3, overflow: 'hidden' }, coverImage: { width: '100%', height: '100%' }, coverGlow: { width: 220, height: 220, borderRadius: 110, opacity: 0.15, position: 'absolute', right: -40, top: -80 },
   profileTop: { paddingHorizontal: 20, marginTop: -35, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }, avatar: { width: 76, height: 76, borderRadius: 38, borderWidth: 4 }, avatarFallback: { alignItems: 'center', justifyContent: 'center' },
   edit: { flexDirection: 'row', gap: 7, alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 99, borderWidth: 1 }, editText: { fontFamily: 'Inter_600SemiBold', fontSize: 12 },
   name: { fontFamily: 'Inter_700Bold', fontSize: 24, paddingHorizontal: 20, marginTop: 14 }, handle: { fontFamily: 'Inter_400Regular', fontSize: 13, paddingHorizontal: 20, marginTop: 3 }, bio: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 21, paddingHorizontal: 20, marginTop: 14 },

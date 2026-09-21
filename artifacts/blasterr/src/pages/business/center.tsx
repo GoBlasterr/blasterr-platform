@@ -419,7 +419,7 @@ function BusinessImagePicker({ label, preview, file, inputRef, onPick, banner = 
   return (
     <div className="space-y-2">
       <span className="text-sm font-semibold text-white">{label}</span>
-      <div className={`overflow-hidden rounded-xl border border-white/10 bg-black/20 ${banner ? "h-28" : "h-28 w-28"}`}>
+      <div className={`overflow-hidden rounded-xl border border-white/10 bg-black/20 ${banner ? "aspect-[3/1] w-full" : "h-28 w-28"}`}>
         {preview ? <img src={preview} alt={`${label} preview`} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No image selected</div>}
       </div>
       <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} className="rounded-full border-white/20">

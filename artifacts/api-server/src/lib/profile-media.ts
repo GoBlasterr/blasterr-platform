@@ -17,6 +17,10 @@ function canonicalObjectUrl(objectKey: string): string {
   return `/api/storage${objectPathForKey(objectKey)}`;
 }
 
+const readableMediaCache = new Map<string, { expiresAt: number; value: string }>();
+const readableMediaInFlight = new Map<string, Promise<string>>();
+const READABLE_MEDIA_CACHE_TTL_MS = 30_000;
+
 async function readyOwnedAsset(value: string, ownerId: string, purpose: ProfileMediaPurpose) {
   const objectKey = keyFromObjectPath(value);
   if (!objectKey) return null;
@@ -32,14 +36,30 @@ export async function readableProfileMedia(
 ): Promise<string> {
   if (!value) return "";
   if (!isR2ObjectPath(value)) return isSafeExternalProfileImage(value) ? value : "";
-  const ready = await readyOwnedAsset(value, ownerId, purpose);
-  if (!ready) return "";
-  try {
-    await confirmR2ObjectExists(ready.objectKey);
-    return canonicalObjectUrl(ready.objectKey);
-  } catch {
-    return "";
-  }
+  const cacheKey = `${ownerId}:${purpose}:${value}`;
+  const cached = readableMediaCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  readableMediaCache.delete(cacheKey);
+
+  const existing = readableMediaInFlight.get(cacheKey);
+  if (existing) return existing;
+
+  const verification = (async () => {
+    try {
+      const ready = await readyOwnedAsset(value, ownerId, purpose);
+      if (!ready) return "";
+      await confirmR2ObjectExists(ready.objectKey);
+      const result = canonicalObjectUrl(ready.objectKey);
+      readableMediaCache.set(cacheKey, { expiresAt: Date.now() + READABLE_MEDIA_CACHE_TTL_MS, value: result });
+      return result;
+    } catch {
+      return "";
+    } finally {
+      readableMediaInFlight.delete(cacheKey);
+    }
+  })();
+  readableMediaInFlight.set(cacheKey, verification);
+  return verification;
 }
 
 export async function validateProfileMediaUpdate(input: {
