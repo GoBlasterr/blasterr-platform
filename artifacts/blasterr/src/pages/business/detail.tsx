@@ -162,26 +162,23 @@ export default function BusinessDetail() {
               <p className="text-white/80 leading-relaxed mb-6 max-w-2xl">{business.description}</p>
             )}
 
-            <div
-              className="grid gap-3 mb-6"
-              style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))" }}
-            >
+            <div className="mb-6 flex flex-wrap items-start gap-3">
               {business.website && (
-                <a href={business.website} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-start gap-2 text-sm text-primary hover:underline bg-primary/10 p-3 rounded-xl border border-primary/20">
+                <a href={business.website} target="_blank" rel="noopener noreferrer" className="inline-flex w-fit max-w-full min-w-0 items-start gap-2 rounded-xl border border-primary/20 bg-primary/10 p-3 text-sm text-primary hover:underline">
                   <Globe className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span className="min-w-0 break-words">{business.website.replace(/^https?:\/\//, '')}</span>
+                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">{business.website.replace(/^https?:\/\//, '')}</span>
                 </a>
               )}
               {business.phone && (
-                <div className="flex min-w-0 items-start gap-2 text-sm text-primary bg-primary/10 p-3 rounded-xl border border-primary/20">
+                <div className="inline-flex w-fit max-w-full min-w-0 items-start gap-2 rounded-xl border border-primary/20 bg-primary/10 p-3 text-sm text-primary">
                   <Phone className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span className="min-w-0 break-words">{business.phone}</span>
+                  <span className="min-w-0 whitespace-nowrap">{business.phone}</span>
                 </div>
               )}
               {business.email && (
-                <a href={`mailto:${business.email}`} className="flex min-w-0 items-start gap-2 text-sm text-primary hover:underline bg-primary/10 p-3 rounded-xl border border-primary/20">
+                <a href={`mailto:${business.email}`} className="inline-flex w-fit max-w-full min-w-0 items-start gap-2 rounded-xl border border-primary/20 bg-primary/10 p-3 text-sm text-primary hover:underline">
                   <Mail className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span className="min-w-0 break-words">{business.email}</span>
+                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">{business.email}</span>
                 </a>
               )}
             </div>
