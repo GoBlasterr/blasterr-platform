@@ -54,7 +54,7 @@ const blastSchema = z.object({
 
 // --- Components ---
 
-export function BlastCard({ blast, showTarget = true, showMedia = false, isThreadReply = false }: { blast: any, showTarget?: boolean, showMedia?: boolean, isThreadReply?: boolean }) {
+export function BlastCard({ blast, showTarget = true, showMedia = false, isThreadReply = false, threadContext }: { blast: any, showTarget?: boolean, showMedia?: boolean, isThreadReply?: boolean, threadContext?: string }) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -163,10 +163,15 @@ export function BlastCard({ blast, showTarget = true, showMedia = false, isThrea
   return (
     <div
       className={isThreadReply
-        ? "mb-2 rounded-xl border border-white/10 bg-card/80 p-3 transition-colors hover:bg-white/[0.04] sm:p-4"
-        : "border-b border-white/5 p-5 transition-colors hover:bg-white/[0.02]"}
+        ? "mb-2 cursor-pointer rounded-xl border border-white/10 bg-card/80 p-3 transition-colors hover:bg-white/[0.04] sm:p-4"
+        : "cursor-pointer border-b border-white/5 p-5 transition-colors hover:bg-white/[0.02]"}
       onClick={() => setLocation(`/target/${blast.target.slug}`)}
     >
+      {threadContext && (
+        <div className="mb-2 text-xs font-medium text-muted-foreground">
+          {threadContext}
+        </div>
+      )}
       <div className="flex gap-4">
         {/* Avatar */}
         <div
