@@ -119,7 +119,7 @@ function BlastThread({
       className="border-b border-white/10"
       aria-label={`Conversation started by @${thread.root.author.username}`}
     >
-      <BlastCard blast={thread.root} showTarget={false} showMedia />
+      <BlastCard blast={thread.root} showTarget={false} showMedia isThreadRoot />
       {thread.replies.length > 0 && (
         <div className="mb-5 ml-3 border-l-2 border-primary/30 pl-3 sm:ml-6 sm:pl-4">
           <div className="pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
