@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Seo } from "@/components/seo";
+import { markIntroVisited } from "@/lib/intro-visit";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -56,6 +57,7 @@ function SignUpForm() {
       throw new Error("Your account was created, but the session is not ready yet.");
     }
     await setActive({ session: sessionId });
+    markIntroVisited();
     window.location.assign(`${basePath}/settings`);
   }
 
@@ -112,6 +114,7 @@ function SignUpForm() {
     setError("");
     setIsGoogleSubmitting(true);
     try {
+      markIntroVisited();
       await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: absoluteUrl(`${basePath}/sign-up/sso-callback`),

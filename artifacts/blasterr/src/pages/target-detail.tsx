@@ -1,4 +1,5 @@
 import { useLocation, useParams } from "wouter";
+import { useMemo } from "react";
 import { useGetTarget } from "@workspace/api-client-react";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
 import { Button } from "@/components/ui/button";
@@ -6,12 +7,96 @@ import { ArrowLeft, Target as TargetIcon, MapPin, Activity, ThumbsUp, ThumbsDown
 import { Skeleton } from "@/components/ui/skeleton";
 import { Seo, absoluteUrl, canonicalUrl } from "@/components/seo";
 
+type ThreadBlast = {
+  id: string;
+  originalBlastId?: string | null;
+  [key: string]: any;
+};
+
+function organizeBlastThreads(blasts: ThreadBlast[]) {
+  const blastsById = new Map(blasts.map((blast) => [blast.id, blast]));
+  const repliesByParent = new Map<string, ThreadBlast[]>();
+  const roots: ThreadBlast[] = [];
+
+  for (const blast of blasts) {
+    const parentId = blast.originalBlastId;
+    if (!parentId || parentId === blast.id || !blastsById.has(parentId)) {
+      roots.push(blast);
+      continue;
+    }
+    const replies = repliesByParent.get(parentId) ?? [];
+    replies.push(blast);
+    repliesByParent.set(parentId, replies);
+  }
+
+  const visited = new Set<string>();
+  const markThread = (blast: ThreadBlast, ancestors: Set<string>) => {
+    if (ancestors.has(blast.id) || visited.has(blast.id)) return;
+    visited.add(blast.id);
+    const nextAncestors = new Set(ancestors).add(blast.id);
+    for (const reply of repliesByParent.get(blast.id) ?? []) {
+      markThread(reply, nextAncestors);
+    }
+  };
+  roots.forEach((blast) => markThread(blast, new Set()));
+
+  // Keep malformed or cyclic reply chains visible instead of dropping them.
+  for (const blast of blasts) {
+    if (!visited.has(blast.id)) {
+      roots.push(blast);
+      markThread(blast, new Set());
+    }
+  }
+
+  return { roots, repliesByParent };
+}
+
+function BlastThread({
+  blast,
+  repliesByParent,
+  depth = 0,
+  ancestors = new Set<string>(),
+}: {
+  blast: ThreadBlast;
+  repliesByParent: Map<string, ThreadBlast[]>;
+  depth?: number;
+  ancestors?: Set<string>;
+}) {
+  if (ancestors.has(blast.id)) return null;
+  const nextAncestors = new Set(ancestors).add(blast.id);
+  const replies = (repliesByParent.get(blast.id) ?? [])
+    .filter((reply) => !nextAncestors.has(reply.id));
+
+  return (
+    <div>
+      <BlastCard blast={blast} showTarget={false} showMedia isThreadReply={depth > 0} />
+      {replies.length > 0 && (
+        <div className="mb-3 ml-3 border-l-2 border-primary/20 pl-2 sm:ml-6 sm:pl-3">
+          {replies.map((reply) => (
+            <BlastThread
+              key={reply.id}
+              blast={reply}
+              repliesByParent={repliesByParent}
+              depth={depth + 1}
+              ancestors={nextAncestors}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TargetDetail() {
   const [, setLocation] = useLocation();
   const params = useParams();
   const slug = params.slug || "";
   
   const { data: detailData, isLoading } = useGetTarget(slug);
+  const { roots, repliesByParent } = useMemo(
+    () => organizeBlastThreads((detailData?.blasts ?? []) as ThreadBlast[]),
+    [detailData?.blasts],
+  );
 
   if (isLoading) {
     return (
@@ -155,9 +240,9 @@ export default function TargetDetail() {
           Blasts about {target.name}
         </div>
         
-        {blasts?.length ? (
-          blasts.map((blast: any) => (
-            <BlastCard key={blast.id} blast={blast} showTarget={false} showMedia />
+        {roots.length ? (
+          roots.map((blast) => (
+            <BlastThread key={blast.id} blast={blast} repliesByParent={repliesByParent} />
           ))
         ) : (
           <div className="p-12 text-center text-muted-foreground">

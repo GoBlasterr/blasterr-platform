@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@clerk/react";
+import { hasVisitedIntro, markIntroVisited } from "@/lib/intro-visit";
 
 const assetUrl = (fileName: string) => `${import.meta.env.BASE_URL}${fileName}`;
 const INTRO_VIDEO_URL = assetUrl("blasterr-intro-1788235644459.mp4");
 const INTRO_VIDEO_WEB_URL = assetUrl("blasterr-intro-1788235644459.webm");
-const HAS_VISITED_KEY = "blasterr:has-visited:v1";
 const MOBILE_BROWSER_KEY = "blasterr:continue-in-browser:v1";
 const MOBILE_APP_URL = "blasterr://";
 
@@ -22,9 +22,7 @@ export default function Splash() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const finishTimerRef = useRef<number | null>(null);
   const { isLoaded, isSignedIn } = useAuth();
-  const [hasSeenIntro] = useState(
-    () => window.localStorage.getItem(HAS_VISITED_KEY) === "true",
-  );
+  const [hasSeenIntro] = useState(hasVisitedIntro);
   const [hasFinished, setHasFinished] = useState(false);
   const [needsSoundGesture, setNeedsSoundGesture] = useState(false);
   const [isMobileBrowser] = useState(detectMobileBrowser);
@@ -60,7 +58,7 @@ export default function Splash() {
   }, []);
 
   useEffect(() => {
-    if (hasSeenIntro) return;
+    if (!isLoaded || hasSeenIntro || isSignedIn) return;
     if (isMobileBrowser && !continueInBrowser) return;
     const video = videoRef.current;
     if (!video) return;
@@ -92,17 +90,17 @@ export default function Splash() {
         window.clearTimeout(finishTimerRef.current);
       }
     };
-  }, [continueInBrowser, hasSeenIntro, isMobileBrowser, playWithSound]);
+  }, [continueInBrowser, hasSeenIntro, isLoaded, isMobileBrowser, isSignedIn, playWithSound]);
 
   useEffect(() => {
-    if (hasSeenIntro) {
+    if (hasSeenIntro || isSignedIn) {
       if (isLoaded) setLocation(isSignedIn ? "/home" : "/sign-in");
       return;
     }
     if (!isLoaded || !hasFinished) return;
 
-    const hasVisited = window.localStorage.getItem(HAS_VISITED_KEY) === "true";
-    window.localStorage.setItem(HAS_VISITED_KEY, "true");
+    const hasVisited = hasVisitedIntro();
+    markIntroVisited();
     setLocation(isSignedIn ? "/home" : hasVisited ? "/sign-in" : "/sign-up");
   }, [hasFinished, hasSeenIntro, isLoaded, isSignedIn, setLocation]);
 
@@ -112,6 +110,14 @@ export default function Splash() {
       setHasFinished(true);
     }, 2000);
   };
+
+  if (!isLoaded || hasSeenIntro || isSignedIn) {
+    return (
+      <main className="flex h-[100dvh] w-full items-center justify-center bg-black" aria-busy="true">
+        <span className="text-sm text-white/70">Loading BLASTERR…</span>
+      </main>
+    );
+  }
 
   if (isMobileBrowser && !continueInBrowser) {
     return (

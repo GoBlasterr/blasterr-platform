@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Seo } from "@/components/seo";
+import { markIntroVisited } from "@/lib/intro-visit";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -63,6 +64,7 @@ export default function SignIn() {
       }
 
       await setActive({ session: result.createdSessionId });
+      markIntroVisited();
       window.location.assign(`${basePath}/home`);
     } catch (cause) {
       setError(messageFromError(cause));
@@ -77,6 +79,7 @@ export default function SignIn() {
     setError("");
     setIsGoogleSubmitting(true);
     try {
+      markIntroVisited();
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: absoluteUrl(`${basePath}/sign-in/sso-callback`),
