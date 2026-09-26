@@ -29,10 +29,14 @@ function flagEnabled(key: string) {
 
 async function detailPayload(value: Awaited<ReturnType<typeof business.getBusinessBySlug>>, userId?: string) {
   if (!value) return null;
+  const [blasts, businessPro] = await Promise.all([
+    social.publicBlastsForTarget(value.id, userId),
+    getBusinessProSummary(value.id, userId),
+  ]);
   return {
     ...value,
-    blasts: value.blasts.map((blast) => ({ ...blast, createdAt: blast.createdAt.toISOString(), updatedAt: blast.updatedAt.toISOString() })),
-    businessPro: await getBusinessProSummary(value.id, userId),
+    blasts,
+    businessPro,
   };
 }
 

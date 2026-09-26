@@ -301,15 +301,15 @@ export async function nearbyBlasts(
     return distance <= radiusMiles;
   });
 }
-export async function blasts(viewerId?: string) {
-  await ensureSocialBootstrap();
-  const rows = await db.select().from(blastsTable).orderBy(desc(blastsTable.createdAt));
+type BlastRow = typeof blastsTable.$inferSelect;
+
+async function hydrateBlastRows(rows: BlastRow[], viewerId?: string) {
   if (!rows.length) return [];
   const blastIds = rows.map((row) => row.id);
   const authorIds = [...new Set(rows.map((row) => row.userId))];
   const targetIds = [...new Set(rows.map((row) => row.targetId))];
   const [
-    authors, targetRows, targetCounts, reactions, commentCounts, followerCounts,
+    authors, targetRows, targetCounts, reactions, commentCounts, blastBackCounts, followerCounts,
     followingCounts, authorBlastCounts, viewerReactions, viewerBookmarks, viewerFollows,
   ] = await Promise.all([
     db.select().from(usersTable).where(inArray(usersTable.id, authorIds)),
@@ -317,6 +317,7 @@ export async function blasts(viewerId?: string) {
     db.select({ id: blastsTable.targetId, count: sql<number>`count(*)::int` }).from(blastsTable).where(inArray(blastsTable.targetId, targetIds)).groupBy(blastsTable.targetId),
     db.select({ id: reactionsTable.blastId, type: reactionsTable.reactionType, count: sql<number>`count(*)::int` }).from(reactionsTable).where(inArray(reactionsTable.blastId, blastIds)).groupBy(reactionsTable.blastId, reactionsTable.reactionType),
     db.select({ id: commentsTable.blastId, count: sql<number>`count(*)::int` }).from(commentsTable).where(inArray(commentsTable.blastId, blastIds)).groupBy(commentsTable.blastId),
+    db.select({ id: blastsTable.originalBlastId, count: sql<number>`count(*)::int` }).from(blastsTable).where(inArray(blastsTable.originalBlastId, blastIds)).groupBy(blastsTable.originalBlastId),
     db.select({ id: followsTable.followingId, count: sql<number>`count(*)::int` }).from(followsTable).where(inArray(followsTable.followingId, authorIds)).groupBy(followsTable.followingId),
     db.select({ id: followsTable.followerId, count: sql<number>`count(*)::int` }).from(followsTable).where(inArray(followsTable.followerId, authorIds)).groupBy(followsTable.followerId),
     db.select({ id: blastsTable.userId, count: sql<number>`count(*)::int` }).from(blastsTable).where(inArray(blastsTable.userId, authorIds)).groupBy(blastsTable.userId),
@@ -329,15 +330,10 @@ export async function blasts(viewerId?: string) {
   const targetById = map(targetRows);
   const targetCountById = new Map(targetCounts.map((row) => [row.id, row.count]));
   const commentsById = new Map(commentCounts.map((row) => [row.id, row.count]));
+  const blastBackCountById = new Map(blastBackCounts.flatMap((row) => row.id ? [[row.id, row.count] as const] : []));
   const followersById = new Map(followerCounts.map((row) => [row.id, row.count]));
   const followingById = new Map(followingCounts.map((row) => [row.id, row.count]));
   const blastCountById = new Map(authorBlastCounts.map((row) => [row.id, row.count]));
-  const blastBackCountById = new Map<string, number>();
-  for (const row of rows) {
-    if (row.originalBlastId) {
-      blastBackCountById.set(row.originalBlastId, (blastBackCountById.get(row.originalBlastId) ?? 0) + 1);
-    }
-  }
   const reactionsByBlast = new Map<string, Record<Reaction, number>>();
   for (const row of reactions) {
     const reaction = reactionsByBlast.get(row.id) ?? { blast: 0, facts: 0, cap: 0, funny: 0, watching: 0 };
@@ -371,6 +367,22 @@ export async function blasts(viewerId?: string) {
       allowClipCreation: blast.allowClipCreation, allowExternalSharing: blast.allowExternalSharing, allowPromotionalUse: blast.allowPromotionalUse,
     };
   });
+}
+
+export async function blasts(viewerId?: string) {
+  await ensureSocialBootstrap();
+  const rows = await db.select().from(blastsTable).orderBy(desc(blastsTable.createdAt));
+  return hydrateBlastRows(rows, viewerId);
+}
+
+export async function publicBlastsForTarget(targetId: string, viewerId?: string) {
+  await ensureSocialBootstrap();
+  const rows = await db.select().from(blastsTable).where(and(
+    eq(blastsTable.targetId, targetId),
+    eq(blastsTable.status, "active"),
+    eq(blastsTable.visibility, "public"),
+  )).orderBy(desc(blastsTable.createdAt)).limit(20);
+  return hydrateBlastRows(rows, viewerId);
 }
 export async function blastById(id: string, viewerId?: string) {
   return (await blasts(viewerId)).find((blast) => blast.id === id);
