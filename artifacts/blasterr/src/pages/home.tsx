@@ -170,7 +170,7 @@ export default function Home() {
                 <PenSquare className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">No blasts found</h3>
-              <p className="max-w-xs">Your feed is empty. Start following people or targets to see content here.</p>
+              <p className="max-w-xs">There are no Blasts to show right now.</p>
             </div>
           )
         ) : feedData?.items?.length ? (
