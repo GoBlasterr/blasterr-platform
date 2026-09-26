@@ -22,6 +22,9 @@ export default function Splash() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const finishTimerRef = useRef<number | null>(null);
   const { isLoaded, isSignedIn } = useAuth();
+  const [hasSeenIntro] = useState(
+    () => window.localStorage.getItem(HAS_VISITED_KEY) === "true",
+  );
   const [hasFinished, setHasFinished] = useState(false);
   const [needsSoundGesture, setNeedsSoundGesture] = useState(false);
   const [isMobileBrowser] = useState(detectMobileBrowser);
@@ -57,6 +60,7 @@ export default function Splash() {
   }, []);
 
   useEffect(() => {
+    if (hasSeenIntro) return;
     if (isMobileBrowser && !continueInBrowser) return;
     const video = videoRef.current;
     if (!video) return;
@@ -88,15 +92,19 @@ export default function Splash() {
         window.clearTimeout(finishTimerRef.current);
       }
     };
-  }, [continueInBrowser, isMobileBrowser, playWithSound]);
+  }, [continueInBrowser, hasSeenIntro, isMobileBrowser, playWithSound]);
 
   useEffect(() => {
+    if (hasSeenIntro) {
+      if (isLoaded) setLocation(isSignedIn ? "/home" : "/sign-in");
+      return;
+    }
     if (!isLoaded || !hasFinished) return;
 
     const hasVisited = window.localStorage.getItem(HAS_VISITED_KEY) === "true";
     window.localStorage.setItem(HAS_VISITED_KEY, "true");
     setLocation(isSignedIn ? "/home" : hasVisited ? "/sign-in" : "/sign-up");
-  }, [hasFinished, isLoaded, isSignedIn, setLocation]);
+  }, [hasFinished, hasSeenIntro, isLoaded, isSignedIn, setLocation]);
 
   const finish = () => {
     if (finishTimerRef.current !== null) return;

@@ -56,7 +56,7 @@ function SignUpForm() {
       throw new Error("Your account was created, but the session is not ready yet.");
     }
     await setActive({ session: sessionId });
-    window.location.assign(`${basePath}/home`);
+    window.location.assign(`${basePath}/settings`);
   }
 
   async function createAccount(event: FormEvent<HTMLFormElement>) {
@@ -115,7 +115,7 @@ function SignUpForm() {
       await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: absoluteUrl(`${basePath}/sign-up/sso-callback`),
-        redirectUrlComplete: absoluteUrl(`${basePath}/home`),
+        redirectUrlComplete: absoluteUrl(`${basePath}/settings`),
       });
     } catch (cause) {
       setError(messageFromError(cause));
