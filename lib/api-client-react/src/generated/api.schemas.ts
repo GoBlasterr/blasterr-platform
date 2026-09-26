@@ -287,6 +287,7 @@ export interface Blast {
   mediaType?: BlastMediaType;
   reactions: ReactionSummary;
   commentCount: number;
+  blastBackCount?: number;
   shareCount: number;
   viewCount: number;
   isBookmarked: boolean;
@@ -555,6 +556,16 @@ export interface PreloadedImportPreview {
   duplicateCount: number;
   invalidCount: number;
   rows: PreloadedImportPreviewRowsItem[];
+}
+
+export interface BlastViewCountResponse {
+  /** @minimum 0 */
+  viewCount: number;
+}
+
+export interface BlastShareCountResponse {
+  /** @minimum 0 */
+  shareCount: number;
 }
 
 export interface FeedResponse {

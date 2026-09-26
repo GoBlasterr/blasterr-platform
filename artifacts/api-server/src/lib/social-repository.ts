@@ -332,6 +332,12 @@ export async function blasts(viewerId?: string) {
   const followersById = new Map(followerCounts.map((row) => [row.id, row.count]));
   const followingById = new Map(followingCounts.map((row) => [row.id, row.count]));
   const blastCountById = new Map(authorBlastCounts.map((row) => [row.id, row.count]));
+  const blastBackCountById = new Map<string, number>();
+  for (const row of rows) {
+    if (row.originalBlastId) {
+      blastBackCountById.set(row.originalBlastId, (blastBackCountById.get(row.originalBlastId) ?? 0) + 1);
+    }
+  }
   const reactionsByBlast = new Map<string, Record<Reaction, number>>();
   for (const row of reactions) {
     const reaction = reactionsByBlast.get(row.id) ?? { blast: 0, facts: 0, cap: 0, funny: 0, watching: 0 };
@@ -359,7 +365,8 @@ export async function blasts(viewerId?: string) {
       target: { ...target, type: target.type as SocialTarget["type"], blastCount: targetCountById.get(target.id) ?? 0 },
       location: blast.location, mediaUrl: blast.mediaUrl, mediaType: blast.mediaType as "image" | "video" | null,
       reactions: { ...(reactionsByBlast.get(blast.id) ?? { blast: 0, facts: 0, cap: 0, funny: 0, watching: 0 }), currentUserReaction: reactionByBlast.get(blast.id) ?? null },
-      commentCount: commentsById.get(blast.id) ?? 0, shareCount: blast.shareCount, viewCount: blast.viewCount,
+      commentCount: commentsById.get(blast.id) ?? 0, blastBackCount: blastBackCountById.get(blast.id) ?? 0,
+      shareCount: blast.shareCount, viewCount: blast.viewCount,
       isBookmarked: bookmarked.has(blast.id), isBlastBack: !!blast.originalBlastId, originalBlastId: blast.originalBlastId,
       allowClipCreation: blast.allowClipCreation, allowExternalSharing: blast.allowExternalSharing, allowPromotionalUse: blast.allowPromotionalUse,
     };
@@ -368,13 +375,27 @@ export async function blasts(viewerId?: string) {
 export async function blastById(id: string, viewerId?: string) {
   return (await blasts(viewerId)).find((blast) => blast.id === id);
 }
-export async function createBlast(input: { userId: string; targetId: string; content: string; location: string; mediaUrl?: string; mediaType?: "image" | "video"; originalBlastId?: string }) { const [row] = await db.insert(blastsTable).values({ id: randomUUID(), ...input, mediaUrl: input.mediaUrl ?? "", mediaType: input.mediaType ?? null, viewCount: 1 }).returning(); if (!row) throw new Error("Unable to create Blast"); return row; }
+export async function createBlast(input: { userId: string; targetId: string; content: string; location: string; mediaUrl?: string; mediaType?: "image" | "video"; originalBlastId?: string }) { const [row] = await db.insert(blastsTable).values({ id: randomUUID(), ...input, mediaUrl: input.mediaUrl ?? "", mediaType: input.mediaType ?? null, viewCount: 0 }).returning(); if (!row) throw new Error("Unable to create Blast"); return row; }
 async function lockToggle(tx: Parameters<Parameters<typeof db.transaction>[0]>[0], key: string) {
   await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${key}))`);
 }
 export async function toggleFollow(followerId: string, followingId: string) { return db.transaction(async tx => { await lockToggle(tx, `follow:${followerId}:${followingId}`); const existing = await tx.select().from(followsTable).where(and(eq(followsTable.followerId, followerId), eq(followsTable.followingId, followingId))); if (existing.length) { await tx.delete(followsTable).where(and(eq(followsTable.followerId, followerId), eq(followsTable.followingId, followingId))); return false; } await tx.insert(followsTable).values({ followerId, followingId }); return true; }); }
 export async function toggleBookmark(userId: string, blastId: string) { return db.transaction(async tx => { await lockToggle(tx, `bookmark:${userId}:${blastId}`); const x = await tx.select().from(bookmarksTable).where(and(eq(bookmarksTable.userId, userId), eq(bookmarksTable.blastId, blastId))); if (x.length) { await tx.delete(bookmarksTable).where(and(eq(bookmarksTable.userId, userId), eq(bookmarksTable.blastId, blastId))); return false; } await tx.insert(bookmarksTable).values({ userId, blastId }); return true; }); }
 export async function toggleReaction(userId: string, blastId: string, type: Reaction) { await db.transaction(async tx => { await lockToggle(tx, `reaction:${userId}:${blastId}`); const [old] = await tx.select().from(reactionsTable).where(and(eq(reactionsTable.userId, userId), eq(reactionsTable.blastId, blastId))); if (old?.reactionType === type) await tx.delete(reactionsTable).where(and(eq(reactionsTable.userId, userId), eq(reactionsTable.blastId, blastId))); else if (old) await tx.update(reactionsTable).set({ reactionType: type }).where(and(eq(reactionsTable.userId, userId), eq(reactionsTable.blastId, blastId))); else await tx.insert(reactionsTable).values({ userId, blastId, reactionType: type }); }); return (await blasts(userId)).find(b => b.id === blastId)?.reactions; }
+export async function recordBlastView(blastId: string) {
+  const [row] = await db.update(blastsTable)
+    .set({ viewCount: sql`${blastsTable.viewCount} + 1` })
+    .where(eq(blastsTable.id, blastId))
+    .returning({ viewCount: blastsTable.viewCount });
+  return row?.viewCount;
+}
+export async function recordBlastShare(blastId: string) {
+  const [row] = await db.update(blastsTable)
+    .set({ shareCount: sql`${blastsTable.shareCount} + 1` })
+    .where(eq(blastsTable.id, blastId))
+    .returning({ shareCount: blastsTable.shareCount });
+  return row?.shareCount;
+}
 export async function addComment(userId: string, blastId: string, content: string) { const [row] = await db.insert(commentsTable).values({ id: randomUUID(), userId, blastId, content }).returning(); return row; }
 export async function toggleBlock(blockerId: string, blockedId: string) { return db.transaction(async tx => { await lockToggle(tx, `block:${blockerId}:${blockedId}`); const old = await tx.select().from(blocksTable).where(and(eq(blocksTable.blockerId, blockerId), eq(blocksTable.blockedId, blockedId))); if (old.length) { await tx.delete(blocksTable).where(and(eq(blocksTable.blockerId, blockerId), eq(blocksTable.blockedId, blockedId))); return false; } await tx.insert(blocksTable).values({ blockerId, blockedId }); return true; }); }
 export async function notifications(userId: string) { const rows = await db.select().from(notificationsTable).where(eq(notificationsTable.userId, userId)).orderBy(desc(notificationsTable.createdAt)); return Promise.all(rows.map(async n => { const actor = await db.select().from(usersTable).where(eq(usersTable.id, n.actorId)); return { ...n, createdAt: n.createdAt.toISOString(), actor: await profile(actor[0]!, userId) }; })); }

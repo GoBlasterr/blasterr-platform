@@ -22,6 +22,7 @@ export interface Blast {
   mediaType?: BlastMediaType;
   reactions: ReactionSummary;
   commentCount: number;
+  blastBackCount?: number;
   shareCount: number;
   viewCount: number;
   isBookmarked: boolean;

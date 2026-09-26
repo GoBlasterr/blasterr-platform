@@ -222,6 +222,7 @@ export const GetFeedResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -300,6 +301,7 @@ export const GetTrendingResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -419,6 +421,7 @@ export const SearchResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -629,6 +632,7 @@ export const GetTargetResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -729,6 +733,7 @@ export const GetUserProfileResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -788,6 +793,7 @@ export const GetUserProfileResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -883,6 +889,7 @@ export const CreateBlastResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -965,6 +972,7 @@ export const UpdateBlastResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -1065,6 +1073,7 @@ export const GetMyClipsResponseItem = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -1199,6 +1208,7 @@ export const CreateClipResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -1312,6 +1322,7 @@ export const GetClipResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -1445,6 +1456,7 @@ export const UpdateClipResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -1568,6 +1580,7 @@ export const RetryClipResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -1631,6 +1644,38 @@ export const ReactToBlastResponse = zod.object({
   "funny": zod.number(),
   "watching": zod.number(),
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
+})
+
+
+/**
+ * @summary Record a visible Blast impression
+ */
+export const RecordBlastViewParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const recordBlastViewResponseViewCountMin = 0;
+
+
+
+export const RecordBlastViewResponse = zod.object({
+  "viewCount": zod.number().min(recordBlastViewResponseViewCountMin)
+})
+
+
+/**
+ * @summary Record a successfully shared Blast
+ */
+export const ShareBlastParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const shareBlastResponseShareCountMin = 0;
+
+
+
+export const ShareBlastResponse = zod.object({
+  "shareCount": zod.number().min(shareBlastResponseShareCountMin)
 })
 
 
@@ -1752,6 +1797,7 @@ export const CreateBlastBackResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -1862,6 +1908,7 @@ export const GetBookmarksResponseItem = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -2359,6 +2406,7 @@ export const GetAdminClipsResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -2535,6 +2583,7 @@ export const GetAdminContentResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),
@@ -2617,6 +2666,7 @@ export const UpdateAdminContentResponse = zod.object({
   "currentUserReaction": zod.union([zod.literal('blast'),zod.literal('facts'),zod.literal('cap'),zod.literal('funny'),zod.literal('watching'),zod.literal(null)]).nullable()
 }),
   "commentCount": zod.number(),
+  "blastBackCount": zod.number().optional(),
   "shareCount": zod.number(),
   "viewCount": zod.number(),
   "isBookmarked": zod.boolean(),

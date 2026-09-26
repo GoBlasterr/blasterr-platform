@@ -86,7 +86,9 @@ import type {
   AppealReview,
   Blast,
   BlastInput,
+  BlastShareCountResponse,
   BlastUpdate,
+  BlastViewCountResponse,
   BlockInput,
   BlockState,
   BlockedWord,
@@ -2101,6 +2103,148 @@ export const useReactToBlast = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getReactToBlastMutationOptions(options));
+    }
+
+export const getRecordBlastViewUrl = (id: string,) => {
+
+
+
+
+  return `/api/blasts/${id}/views`
+}
+
+/**
+ * @summary Record a visible Blast impression
+ */
+export const recordBlastView = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<BlastViewCountResponse> => {
+
+  return customFetch<BlastViewCountResponse>(getRecordBlastViewUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRecordBlastViewMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordBlastView>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordBlastView>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['recordBlastView'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordBlastView>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  recordBlastView(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordBlastViewMutationResult = NonNullable<Awaited<ReturnType<typeof recordBlastView>>>
+
+    export type RecordBlastViewMutationError = ErrorType<void>
+
+    /**
+ * @summary Record a visible Blast impression
+ */
+export const useRecordBlastView = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordBlastView>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordBlastView>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRecordBlastViewMutationOptions(options));
+    }
+
+export const getShareBlastUrl = (id: string,) => {
+
+
+
+
+  return `/api/blasts/${id}/share`
+}
+
+/**
+ * @summary Record a successfully shared Blast
+ */
+export const shareBlast = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<BlastShareCountResponse> => {
+
+  return customFetch<BlastShareCountResponse>(getShareBlastUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getShareBlastMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof shareBlast>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof shareBlast>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['shareBlast'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof shareBlast>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  shareBlast(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ShareBlastMutationResult = NonNullable<Awaited<ReturnType<typeof shareBlast>>>
+
+    export type ShareBlastMutationError = ErrorType<void>
+
+    /**
+ * @summary Record a successfully shared Blast
+ */
+export const useShareBlast = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof shareBlast>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof shareBlast>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getShareBlastMutationOptions(options));
     }
 
 export const getCreateCommentUrl = (id: string,) => {

@@ -10,9 +10,15 @@ import {
   useToggleBookmark,
   useCreateBlastBack,
   useDeleteBlast,
+  useRecordBlastView,
+  useShareBlast,
   getGetFeedQueryKey,
+  getGetTrendingQueryKey,
+  getGetBookmarksQueryKey,
+  getGetBusinessQueryKey,
   getGetTargetQueryKey,
   getGetUserProfileQueryKey,
+  getSearchQueryKey,
   ReactionInputType
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -52,6 +58,29 @@ const blastSchema = z.object({
   content: z.string().min(1, "Blast cannot be empty").max(1000, "Maximum 1000 characters"),
 });
 
+const viewedBlastIds = new Set<string>();
+
+function patchBlastCollections(data: unknown, blastId: string, patch: Record<string, unknown>): unknown {
+  const patchList = (items: unknown[]) => items.map((item) => {
+    if (!item || typeof item !== "object" || !("id" in item) || item.id !== blastId) return item;
+    return { ...item, ...patch };
+  });
+
+  if (Array.isArray(data)) return patchList(data);
+  if (!data || typeof data !== "object") return data;
+
+  const record = data as Record<string, unknown>;
+  let changed = false;
+  const next = { ...record };
+  for (const key of ["items", "blasts"]) {
+    if (Array.isArray(record[key])) {
+      next[key] = patchList(record[key]);
+      changed = true;
+    }
+  }
+  return changed ? next : data;
+}
+
 // --- Components ---
 
 export function BlastCard({ blast, showTarget = true, showMedia = false, isThreadReply = false, isThreadRoot = false, threadContext }: { blast: any, showTarget?: boolean, showMedia?: boolean, isThreadReply?: boolean, isThreadRoot?: boolean, threadContext?: string }) {
@@ -61,14 +90,38 @@ export function BlastCard({ blast, showTarget = true, showMedia = false, isThrea
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [blastBackText, setBlastBackText] = useState("");
+  const cardRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const reactMutation = useReactToBlast();
   const bookmarkMutation = useToggleBookmark();
   const deleteMutation = useDeleteBlast();
   const blastBackMutation = useCreateBlastBack();
+  const viewMutation = useRecordBlastView();
+  const shareMutation = useShareBlast();
   const { data: currentUser } = useCurrentUser();
   const canDelete = currentUser?.id === blast.author?.id;
+  const blastQueryKeys = [
+    getGetFeedQueryKey(),
+    getGetTrendingQueryKey(),
+    getGetBookmarksQueryKey(),
+    getSearchQueryKey(),
+    ...(blast.target?.slug
+      ? [getGetTargetQueryKey(blast.target.slug), getGetBusinessQueryKey(blast.target.slug)]
+      : []),
+    ...(blast.author?.username ? [getGetUserProfileQueryKey(blast.author.username)] : []),
+  ];
+  const patchBlastCaches = (patch: Record<string, unknown>) => {
+    for (const queryKey of blastQueryKeys) {
+      queryClient.setQueriesData(
+        { queryKey },
+        (data: unknown) => patchBlastCollections(data, blast.id, patch),
+      );
+    }
+  };
+  const refreshBlastQueries = () => Promise.all(
+    blastQueryKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+  );
 
   useEffect(() => {
     const video = videoRef.current;
@@ -98,14 +151,49 @@ export function BlastCard({ blast, showTarget = true, showMedia = false, isThrea
     };
   }, [blast.mediaType, blast.mediaUrl, showMedia]);
 
+  useEffect(() => {
+    const card = cardRef.current;
+    if (
+      !card
+      || !blast.id
+      || viewedBlastIds.has(blast.id)
+      || typeof IntersectionObserver === "undefined"
+    ) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting || entry.intersectionRatio < 0.5 || viewedBlastIds.has(blast.id)) return;
+      viewedBlastIds.add(blast.id);
+      viewMutation.mutate(
+        { id: blast.id },
+        {
+          onSuccess: ({ viewCount }) => {
+            patchBlastCaches({ viewCount });
+            observer.disconnect();
+          },
+          onError: () => viewedBlastIds.delete(blast.id),
+        },
+      );
+    }, { threshold: [0, 0.5] });
+
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, [blast.id]);
+
   const handleReact = (type: ReactionInputType) => {
     reactMutation.mutate(
       { id: blast.id, data: { type } },
       {
-        onSuccess: () => {
-          // Optimistic update would go here, invalidating for now
-          queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
-        }
+        onSuccess: (reactions) => {
+          patchBlastCaches({ reactions });
+          if (blast.target?.slug) {
+            void queryClient.invalidateQueries({ queryKey: getGetTargetQueryKey(blast.target.slug) });
+          }
+        },
+        onError: () => toast({
+          title: "Reaction not saved",
+          description: "Sign in and try again.",
+          variant: "destructive",
+        }),
       }
     );
   };
@@ -114,9 +202,10 @@ export function BlastCard({ blast, showTarget = true, showMedia = false, isThrea
     bookmarkMutation.mutate(
       { id: blast.id },
       {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
-          toast({ title: blast.isBookmarked ? "Bookmark removed" : "Bookmark saved" });
+        onSuccess: ({ isBookmarked }) => {
+          patchBlastCaches({ isBookmarked });
+          void queryClient.invalidateQueries({ queryKey: getGetBookmarksQueryKey() });
+          toast({ title: isBookmarked ? "Bookmark saved" : "Bookmark removed" });
         }
       }
     );
@@ -128,8 +217,7 @@ export function BlastCard({ blast, showTarget = true, showMedia = false, isThrea
       { id: blast.id },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetTargetQueryKey(blast.target.slug) });
+          void refreshBlastQueries();
           toast({ title: "Blast deleted" });
           setIsDeleting(false);
         },
@@ -145,8 +233,7 @@ export function BlastCard({ blast, showTarget = true, showMedia = false, isThrea
       { id: blast.id, data: { content, targetId: blast.target.id } },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetTargetQueryKey(blast.target.slug) });
+          void refreshBlastQueries();
           setBlastBackText("");
           setIsReplying(false);
           toast({ title: "Blast Back fired" });
@@ -156,12 +243,57 @@ export function BlastCard({ blast, showTarget = true, showMedia = false, isThrea
     );
   };
 
+  const handleShare = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    const url = new URL(`/target/${blast.target.slug}#blast-${blast.id}`, window.location.origin).toString();
+
+    try {
+      if (typeof navigator.share === "function") {
+        try {
+          await navigator.share({
+            title: `BLASTERR — ${blast.target.name}`,
+            text: blast.content,
+            url,
+          });
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") return;
+          await navigator.clipboard.writeText(url);
+          toast({ title: "Share link copied" });
+        }
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "Share link copied" });
+      }
+
+      shareMutation.mutate(
+        { id: blast.id },
+        {
+          onSuccess: ({ shareCount }) => {
+            patchBlastCaches({ shareCount });
+            if (blast.target?.slug) {
+              void queryClient.invalidateQueries({ queryKey: getGetTargetQueryKey(blast.target.slug) });
+            }
+          },
+          onError: () => toast({ title: "Share count could not be saved", variant: "destructive" }),
+        },
+      );
+    } catch {
+      toast({
+        title: "Could not share this Blast",
+        description: "Your browser could not open sharing or copy the link.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Safe fallback for parsing dates
   const timeAgo = blast.createdAt ? formatDistanceToNow(new Date(blast.createdAt), { addSuffix: true }) : '';
   const warmProfileMedia = () => preloadProfileMedia(blast.author?.coverUrl);
 
   return (
     <div
+      id={`blast-${blast.id}`}
+      ref={cardRef}
       className={isThreadReply
         ? "mb-2 cursor-pointer rounded-xl border border-white/10 bg-card/80 p-3 transition-colors hover:bg-white/[0.04] sm:p-4"
         : isThreadRoot
@@ -315,20 +447,21 @@ export function BlastCard({ blast, showTarget = true, showMedia = false, isThrea
               </Button>
             </div>
 
-            <Button variant="ghost" size="sm" className="h-8 hover:text-primary gap-1.5" onClick={(e) => { e.stopPropagation(); setIsReplying(true); }}>
+            <Button variant="ghost" size="sm" className="h-8 hover:text-primary gap-1.5" aria-label={`Blast Back (${blast.blastBackCount || 0})`} onClick={(e) => { e.stopPropagation(); setIsReplying(true); }}>
               <MessageSquare className="h-4 w-4" />
-              <span className="text-xs font-medium">{blast.commentCount || 0}</span>
+              <span className="text-xs font-medium">{blast.blastBackCount || 0}</span>
             </Button>
 
-            <Button variant="ghost" size="sm" className="h-8 hover:text-purple-400 gap-1.5" onClick={(e) => { e.stopPropagation(); }}>
+            <Button variant="ghost" size="sm" className="h-8 hover:text-purple-400 gap-1.5" aria-label={`Share Blast (${blast.shareCount || 0})`} onClick={handleShare}>
               <Repeat2 className="h-4 w-4" />
               <span className="text-xs font-medium">{blast.shareCount || 0}</span>
             </Button>
 
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-blue-400" onClick={(e) => { e.stopPropagation(); }}>
+              <div className="flex h-8 items-center gap-1 px-2 text-xs" aria-label={`${blast.viewCount || 0} views`}>
                 <Eye className="h-4 w-4" />
-              </Button>
+                <span className="font-medium">{blast.viewCount || 0}</span>
+              </div>
               
               <Button 
                 variant="ghost" 

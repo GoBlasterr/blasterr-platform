@@ -435,6 +435,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ReactionSummary"
+  /blasts/{id}/views:
+    post:
+      operationId: recordBlastView
+      tags: [blasts]
+      summary: Record a visible Blast impression
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      responses:
+        "200":
+          description: Updated view count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlastViewCountResponse"
+        "404":
+          description: Blast not found
+  /blasts/{id}/share:
+    post:
+      operationId: shareBlast
+      tags: [blasts]
+      summary: Record a successfully shared Blast
+      parameters:
+        - $ref: "#/components/parameters/BlastId"
+      responses:
+        "200":
+          description: Updated share count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlastShareCountResponse"
+        "404":
+          description: Blast not found
   /blasts/{id}/comments:
     post:
       operationId: createComment
@@ -2103,12 +2135,23 @@ components:
           enum: [image, video, null]
         reactions: { $ref: "#/components/schemas/ReactionSummary" }
         commentCount: { type: number }
+        blastBackCount: { type: number }
         shareCount: { type: number }
         viewCount: { type: number }
         isBookmarked: { type: boolean }
         isBlastBack: { type: boolean }
         originalBlastId:
           type: [string, "null"]
+    BlastViewCountResponse:
+      type: object
+      required: [viewCount]
+      properties:
+        viewCount: { type: number, minimum: 0 }
+    BlastShareCountResponse:
+      type: object
+      required: [shareCount]
+      properties:
+        shareCount: { type: number, minimum: 0 }
     FeedResponse:
       type: object
       required: [items, page, hasMore]
