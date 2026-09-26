@@ -105,6 +105,24 @@ export default function NearbyScreen() {
       <View style={styles.radiusOptions}>
         {RADII.map((value) => <Pressable key={value} onPress={() => setRadius(value)} accessibilityRole="radio" accessibilityState={{ selected: radius === value }} style={[styles.radiusOption, { borderColor: radius === value ? colors.primary : colors.border, backgroundColor: radius === value ? colors.accent : colors.card }]}><Text style={[styles.radiusOptionText, { color: radius === value ? colors.primary : colors.mutedForeground }]}>{value} mi</Text></Pressable>)}
       </View>
+      <View style={styles.attribution}>
+        <Text style={[styles.attributionDisclosure, { color: colors.mutedForeground }]}>
+          Missing business locations may be looked up from the saved address and cached. Your device coordinates are not sent to OpenStreetMap.
+        </Text>
+        <Pressable
+          onPress={() => {
+            void Linking.openURL('https://www.openstreetmap.org/copyright');
+          }}
+          accessibilityRole="link"
+          accessibilityLabel="OpenStreetMap contributors and copyright information"
+          accessibilityHint="Opens OpenStreetMap copyright information"
+          style={styles.attributionLink}
+        >
+          <Text style={[styles.attributionLinkText, { color: colors.primary }]}>
+            © OpenStreetMap contributors
+          </Text>
+        </Pressable>
+      </View>
       {statusPanel}
       {locationStatus === 'ready' && (feed.isLoading || feed.isFetching) ? <ActivityIndicator style={styles.feedSpinner} color={colors.primary} /> : null}
       {locationStatus === 'ready' && feed.isError ? <View style={[styles.errorPanel, { borderColor: colors.destructive }]}><Text style={[styles.errorText, { color: colors.destructive }]}>Nearby scan interrupted. Your location was not saved.</Text><Pressable onPress={() => { void feed.refetch(); }}><Text style={[styles.retryText, { color: colors.primary }]}>Retry scan</Text></Pressable></View> : null}
@@ -141,6 +159,10 @@ const styles = StyleSheet.create({
   radiusOptions: { flexDirection: 'row', gap: 7, paddingHorizontal: 20, paddingVertical: 12 },
   radiusOption: { flex: 1, minHeight: 36, borderRadius: 18, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   radiusOptionText: { fontFamily: 'Inter_600SemiBold', fontSize: 11 },
+  attribution: { marginHorizontal: 20, marginBottom: 12, alignItems: 'center' },
+  attributionDisclosure: { fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 16, textAlign: 'center' },
+  attributionLink: { minHeight: 32, justifyContent: 'center', paddingHorizontal: 8, marginTop: 2 },
+  attributionLinkText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, textAlign: 'center', textDecorationLine: 'underline' },
   statusPanel: { margin: 20, padding: 24, borderRadius: 18, borderWidth: 1, alignItems: 'center' },
   statusTitle: { fontFamily: 'Inter_700Bold', fontSize: 17, textAlign: 'center', marginTop: 12 },
   statusMessage: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, textAlign: 'center', marginTop: 8 },

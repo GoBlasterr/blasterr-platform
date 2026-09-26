@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
   blastsTable,
@@ -16,6 +16,7 @@ import {
 import { lockTargetNameIdentity, normalizeTargetText, targetIdentityLockKey } from "./target-resolution";
 import { keyFromObjectPath } from "./r2";
 import { preloadedCollisions } from "./social-repository";
+import { geocodeBusinessAddress } from "./business-geocoding";
 
 export type BusinessFilters = { page?: number; limit?: number; q?: string; city?: string; state?: string; category?: string; featured?: boolean; status?: string; includeInactive?: boolean };
 const pageArgs = (filters: BusinessFilters) => ({ page: Math.max(1, filters.page ?? 1), limit: Math.min(100, Math.max(1, filters.limit ?? 20)) });
@@ -80,6 +81,64 @@ export async function listBusinesses(filters: BusinessFilters = {}) {
   ]);
   const total = totalRows[0]?.value ?? 0;
   return { items, page, limit, total, hasMore: page * limit < total };
+}
+
+/**
+ * Resolve at most one active business with a public Blast per Nearby request.
+ * Coordinates are cached on the Target row, so later requests never need to
+ * send that address to the geocoder again.
+ */
+export async function geocodeOneMissingBusinessForNearby() {
+  const candidates = await db.select({
+    id: targetsTable.id,
+    street: businessProfilesTable.address,
+    city: businessProfilesTable.city,
+    state: businessProfilesTable.state,
+    postalCode: businessProfilesTable.postalCode,
+  }).from(targetsTable)
+    .innerJoin(businessProfilesTable, eq(businessProfilesTable.targetId, targetsTable.id))
+    .where(and(
+      eq(targetsTable.type, "business"),
+      isNull(targetsTable.latitude),
+      isNull(targetsTable.longitude),
+      isNull(targetsTable.archivedAt),
+      eq(targetsTable.preloadStatus, "active"),
+      sql`coalesce(${businessProfilesTable.status}, 'active') = 'active'`,
+      sql`trim(${businessProfilesTable.address}) <> ''`,
+      sql`trim(${businessProfilesTable.city}) <> ''`,
+      sql`trim(${businessProfilesTable.state}) <> ''`,
+      sql`exists (
+        select 1 from blasts b
+        where b.target_id = ${targetsTable.id}
+          and b.status = 'active'
+          and b.visibility = 'public'
+      )`,
+    ))
+    .orderBy(desc(sql`(
+      select max(b.created_at) from blasts b
+      where b.target_id = ${targetsTable.id}
+        and b.status = 'active'
+        and b.visibility = 'public'
+    )`))
+    .limit(50);
+
+  for (const candidate of candidates) {
+    const result = await geocodeBusinessAddress(candidate.id, {
+      street: candidate.street,
+      city: candidate.city,
+      state: candidate.state,
+      postalCode: candidate.postalCode,
+    });
+    if (!result.attempted) continue;
+    if (!result.coordinates) return { targetId: candidate.id, status: "no_match" as const };
+
+    return {
+      targetId: candidate.id,
+      status: result.persisted ? "geocoded" as const : "already_geocoded" as const,
+    };
+  }
+
+  return { status: "no_candidates" as const };
 }
 
 export async function getAdminBusinessStats() {

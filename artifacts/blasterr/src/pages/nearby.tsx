@@ -154,6 +154,17 @@ export default function Nearby() {
             </select>
           </label>
         </div>
+        <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+          Missing business coordinates may be looked up from the saved address and cached. Your device coordinates are not sent to OpenStreetMap.{" "}
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2 hover:text-white"
+          >
+            Map data © OpenStreetMap contributors
+          </a>
+        </p>
       </div>
 
       <div className="flex-1 pb-24 md:pb-0" aria-live="polite">

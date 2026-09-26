@@ -9,6 +9,7 @@ import { findTargetMatches } from "../lib/target-resolution";
 import { ProfileMediaValidationError, readableProfileMedia, validateProfileMediaUpdate } from "../lib/profile-media";
 import { resolveSubmittedProfileMediaReference } from "../lib/profile-media-policy";
 import * as social from "../lib/social-repository";
+import * as business from "../lib/business-repository";
 import { blastsTable, db, followsTable, usersTable } from "@workspace/db";
 import {
   CreateBlastBackBody, CreateBlastBackParams, CreateBlastBackResponse, CreateBlastBody, CreateBlastResponse,
@@ -58,6 +59,13 @@ router.get("/feed", async (req, res): Promise<void> => {
         radiusMiles: parsed.data.radius, locationRequired: true,
       }));
       return;
+    }
+    if (enabled("business_targets_enabled")) {
+      try {
+        await business.geocodeOneMissingBusinessForNearby();
+      } catch (error) {
+        req.log.warn({ err: error }, "Nearby business address lookup failed");
+      }
     }
     const items = (await social.nearbyBlasts(
       viewerProfile?.id,

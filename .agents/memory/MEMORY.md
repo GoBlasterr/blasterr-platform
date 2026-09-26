@@ -12,6 +12,7 @@
 - [Admin authentication boundary](admin-authentication-boundary.md) — Admin uses Supabase sessions; public website and mobile remain on Clerk.
 - [User-content translation boundary](user-content-translation-boundary.md) — translate on demand without modifying originals or persistently retaining translated user text.
 - [IP locale trust boundary](ip-locale-trust-boundary.md) — derive interface locale from proxy country evidence, with a short-lived cookie and English fallback.
+- [Nearby geocoding safeguards](nearby-geocoding-safeguards.md) — resolve one missing business address on demand, never send device coordinates, and preserve OSM rate limits, caching, identification, and attribution.
 - [Wikimedia profile enrichment](wikimedia-profile-enrichment.md) — treat lead thumbnails and Commons search as separate trusted paths; some profiles expose no usable lead image.
 - [Business ownership limits](business-ownership-limits.md) — enforce owner caps across every grant and reactivation path with shared target/owner locks; scope protected caches by user.
 - [External Stripe runtime](external-stripe-runtime.md) — Stripe connector credentials may be unavailable inside dev workflows even when the workspace connection can create products; keep sync startup best-effort and fail billing explicitly.
