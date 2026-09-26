@@ -130,9 +130,12 @@ function BlastThread({
               const parentBlast = reply.originalBlastId
                 ? blastsById.get(reply.originalBlastId)
                 : undefined;
-              const threadContext = parentBlast && parentBlast.id !== thread.root.id
-                ? `Blast Back in this conversation · replying to @${parentBlast.author.username}`
-                : `Blast Back to @${thread.root.author.username}`;
+              const replyTarget = parentBlast ?? thread.root;
+              const replyTargetType = replyTarget.id === thread.root.id
+                ? "initial Blast"
+                : "Blast Back";
+              const threadContext =
+                `Blast Back · replying to @${replyTarget.author.username}'s ${replyTargetType}`;
 
               return (
                 <BlastCard
