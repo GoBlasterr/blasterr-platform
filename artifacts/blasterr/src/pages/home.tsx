@@ -1,4 +1,4 @@
-import { useState, Fragment, useRef, useEffect } from "react";
+import { useState, Fragment, useRef, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   useGetFeed,
@@ -6,6 +6,11 @@ import {
 } from "@workspace/api-client-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { BlastCard, BlastSkeleton } from "@/components/shared/blast-card";
+import {
+  BlastConversationList,
+  organizeBlastThreads,
+  type ThreadBlast,
+} from "@/components/shared/blast-conversation";
 import { FeedAdPlacement } from "@/components/shared/sponsored-blast-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,11 +35,16 @@ export default function Home() {
 
   // Type assertion since the OpenAPI schema type isn't matching perfectly in this mockup context
   const { data: feedData, isLoading } = useGetFeed({ tab: activeTab as any, page: 1 });
+  const { threads, blastsById } = useMemo(
+    () => organizeBlastThreads((feedData?.items ?? []) as ThreadBlast[]),
+    [feedData?.items],
+  );
   const { data: user } = useCurrentUser();
   const welcomeName = user?.displayName?.trim() || user?.username || "User";
 
-  if (feedData?.items?.length && adIndexRef.current[activeTab] === undefined) {
-    adIndexRef.current[activeTab] = feedData.items.length >= 2 ? 1 : 0;
+  const adFeedLength = activeTab === "for-you" ? threads.length : feedData?.items?.length ?? 0;
+  if (adFeedLength && adIndexRef.current[activeTab] === undefined) {
+    adIndexRef.current[activeTab] = adFeedLength >= 2 ? 1 : 0;
   }
   const currentAdIndex = adIndexRef.current[activeTab];
 
@@ -142,6 +152,27 @@ export default function Home() {
             <BlastSkeleton />
             <BlastSkeleton />
           </>
+        ) : activeTab === "for-you" ? (
+          threads.length > 0 ? (
+            <BlastConversationList
+              threads={threads}
+              blastsById={blastsById}
+              showTarget
+              renderAfterConversation={(index) =>
+                index === currentAdIndex ? (
+                  <FeedAdPlacement key="ad-for-you" placement="home_feed" />
+                ) : null
+              }
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
+              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                <PenSquare className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">No blasts found</h3>
+              <p className="max-w-xs">Your feed is empty. Start following people or targets to see content here.</p>
+            </div>
+          )
         ) : feedData?.items?.length ? (
           feedData.items.map((blast: any, index: number) => {
             const isAfterTarget = index === currentAdIndex;
@@ -149,7 +180,7 @@ export default function Home() {
               <Fragment key={blast.id}>
                 <BlastCard blast={blast} showMedia />
                 {isAfterTarget && (
-                  <FeedAdPlacement key={`ad-${activeTab}`} placement={activeTab === "for-you" ? "home_feed" : "following_feed"} />
+                  <FeedAdPlacement key={`ad-${activeTab}`} placement="following_feed" />
                 )}
               </Fragment>
             );

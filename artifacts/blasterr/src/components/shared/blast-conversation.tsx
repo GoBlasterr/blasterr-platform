@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { BlastCard } from "@/components/shared/blast-card";
 import { Button } from "@/components/ui/button";
 
@@ -180,23 +180,27 @@ export function BlastConversationList({
   threads,
   blastsById,
   showTarget = false,
+  renderAfterConversation,
 }: {
   threads: BlastThreadGroup[];
   blastsById: Map<string, ThreadBlast>;
   showTarget?: boolean;
+  renderAfterConversation?: (index: number) => ReactNode;
 }) {
   const [visibleThreadCount, setVisibleThreadCount] = useState(CONVERSATIONS_PER_PAGE);
   const remainingThreads = threads.length - visibleThreadCount;
 
   return (
     <>
-      {threads.slice(0, visibleThreadCount).map((thread) => (
-        <BlastConversation
-          key={thread.root.id}
-          thread={thread}
-          blastsById={blastsById}
-          showTarget={showTarget}
-        />
+      {threads.slice(0, visibleThreadCount).map((thread, index) => (
+        <Fragment key={thread.root.id}>
+          <BlastConversation
+            thread={thread}
+            blastsById={blastsById}
+            showTarget={showTarget}
+          />
+          {renderAfterConversation?.(index)}
+        </Fragment>
       ))}
       {remainingThreads > 0 && (
         <div className="flex flex-col items-center gap-2 p-6">
