@@ -1256,6 +1256,14 @@ paths:
       parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignUpdate" } } } }
       responses: { "200": { description: Updated campaign, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } } }
+    delete:
+      operationId: deleteAdminCampaign
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      responses:
+        "204": { description: Campaign deleted }
+        "404": { description: Campaign not found }
+        "409": { description: Campaign has protected delivery, review, or financial history }
   /admin/advertising/ad-groups:
     get:
       operationId: listAdminAdGroups
