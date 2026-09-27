@@ -4901,6 +4901,8 @@ export const ReceiveAdvertisingBillingWebhookResponse = zod.unknown()
 export const getAdPlacementQuerySessionIdMin = 12;
 export const getAdPlacementQuerySessionIdMax = 200;
 
+export const getAdPlacementQueryAfterAdvertisementIdMax = 200;
+
 export const getAdPlacementQueryLanguageRegExp = new RegExp('^[a-z]{2}(-[A-Z]{2})?$');
 export const getAdPlacementQueryGeographyMax = 80;
 
@@ -4915,6 +4917,7 @@ export const getAdPlacementQueryKeywordsMax = 1000;
 export const GetAdPlacementQueryParams = zod.object({
   "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
   "sessionId": zod.coerce.string().min(getAdPlacementQuerySessionIdMin).max(getAdPlacementQuerySessionIdMax),
+  "afterAdvertisementId": zod.coerce.string().min(1).max(getAdPlacementQueryAfterAdvertisementIdMax).optional(),
   "language": zod.coerce.string().regex(getAdPlacementQueryLanguageRegExp).optional(),
   "device": zod.enum(['mobile', 'tablet', 'desktop']).optional(),
   "geography": zod.coerce.string().max(getAdPlacementQueryGeographyMax).optional(),

@@ -3549,6 +3549,12 @@ placement: GetAdPlacementPlacement;
  */
 sessionId: string;
 /**
+ * Return the next eligible advertisement after this one when possible.
+ * @minLength 1
+ * @maxLength 200
+ */
+afterAdvertisementId?: string;
+/**
  * @pattern ^[a-z]{2}(-[A-Z]{2})?$
  */
 language?: string;

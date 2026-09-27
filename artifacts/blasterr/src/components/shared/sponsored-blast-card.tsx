@@ -3,7 +3,8 @@ import {
   useGetAdPlacement, 
   useRecordAdEvent,
   AdvertisementDelivery,
-  GetAdPlacementPlacement
+  GetAdPlacementPlacement,
+  getGetAdPlacementQueryKey,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -42,11 +43,14 @@ function RotatingRightRailAd({ sessionId }: { sessionId: string }) {
   const [afterAdvertisementId, setAfterAdvertisementId] = useState<string | undefined>();
   const [rotationTick, setRotationTick] = useState(0);
   const [currentAd, setCurrentAd] = useState<AdvertisementDelivery | null>(null);
-  const lastRequestedAdIdRef = useRef<string | undefined>();
-  const query = useGetAdPlacement({
-    placement: "right_rail",
+  const lastRequestedAdIdRef = useRef<string | undefined>(undefined);
+  const queryParams = {
+    placement: "right_rail" as const,
     sessionId,
     ...(afterAdvertisementId ? { afterAdvertisementId } : {}),
+  };
+  const query = useGetAdPlacement(queryParams, {
+    query: { queryKey: getGetAdPlacementQueryKey(queryParams), staleTime: 0 },
   });
 
   useEffect(() => {
