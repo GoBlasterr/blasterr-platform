@@ -1438,6 +1438,15 @@ export interface PromotionReview {
   reason: string;
 }
 
+export type AdvertisementHomeFeedHeight = typeof AdvertisementHomeFeedHeight[keyof typeof AdvertisementHomeFeedHeight];
+
+
+export const AdvertisementHomeFeedHeight = {
+  small: 'small',
+  medium: 'medium',
+  large: 'large',
+} as const;
+
 export interface Advertisement {
   id: string;
   campaignId: string;
@@ -1448,6 +1457,7 @@ export interface Advertisement {
   name: string;
   status: string;
   placement: string;
+  homeFeedHeight: AdvertisementHomeFeedHeight;
   headline: string;
   body: string;
   /** @nullable */
@@ -1472,6 +1482,15 @@ export const AdvertisementInputPlacement = {
   right_rail: 'right_rail',
 } as const;
 
+export type AdvertisementInputHomeFeedHeight = typeof AdvertisementInputHomeFeedHeight[keyof typeof AdvertisementInputHomeFeedHeight];
+
+
+export const AdvertisementInputHomeFeedHeight = {
+  small: 'small',
+  medium: 'medium',
+  large: 'large',
+} as const;
+
 export interface AdvertisementInput {
   campaignId: string;
   adGroupId?: string;
@@ -1482,6 +1501,7 @@ export interface AdvertisementInput {
      */
   name: string;
   placement: AdvertisementInputPlacement;
+  homeFeedHeight?: AdvertisementInputHomeFeedHeight;
   /**
      * @minLength 1
      * @maxLength 200
@@ -1531,6 +1551,15 @@ export interface StatusUpdate {
   reason?: string;
 }
 
+export type AdvertisementDeliveryHomeFeedHeight = typeof AdvertisementDeliveryHomeFeedHeight[keyof typeof AdvertisementDeliveryHomeFeedHeight];
+
+
+export const AdvertisementDeliveryHomeFeedHeight = {
+  small: 'small',
+  medium: 'medium',
+  large: 'large',
+} as const;
+
 export type AdvertisementDeliveryPaidLabel = typeof AdvertisementDeliveryPaidLabel[keyof typeof AdvertisementDeliveryPaidLabel];
 
 
@@ -1544,6 +1573,7 @@ export interface AdvertisementDelivery {
   advertiserName: string;
   campaignId: string;
   placement: string;
+  homeFeedHeight: AdvertisementDeliveryHomeFeedHeight;
   headline: string;
   body: string;
   /** @nullable */

@@ -78,6 +78,13 @@
       "when": 1789940484398,
       "tag": "0010_sad_echo",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790535114018,
+      "tag": "0011_flashy_silverclaw",
+      "breakpoints": true
     }
   ]
 }

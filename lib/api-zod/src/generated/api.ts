@@ -4377,6 +4377,7 @@ export const ListAdminAdvertisementsResponse = zod.object({
   "name": zod.string(),
   "status": zod.string(),
   "placement": zod.string(),
+  "homeFeedHeight": zod.enum(['small', 'medium', 'large']),
   "headline": zod.string(),
   "body": zod.string(),
   "mediaUrl": zod.string().nullable(),
@@ -4402,6 +4403,7 @@ export const ListAdminAdvertisementsResponse = zod.object({
 
 export const createAdminAdvertisementBodyNameMax = 160;
 
+export const createAdminAdvertisementBodyHomeFeedHeightDefault = `medium`;
 export const createAdminAdvertisementBodyHeadlineMax = 200;
 
 export const createAdminAdvertisementBodyBodyMax = 1000;
@@ -4442,6 +4444,7 @@ export const CreateAdminAdvertisementBody = zod.object({
   "creativeId": zod.string().optional(),
   "name": zod.string().min(1).max(createAdminAdvertisementBodyNameMax),
   "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
+  "homeFeedHeight": zod.enum(['small', 'medium', 'large']).default(createAdminAdvertisementBodyHomeFeedHeightDefault),
   "headline": zod.string().min(1).max(createAdminAdvertisementBodyHeadlineMax),
   "body": zod.string().max(createAdminAdvertisementBodyBodyMax).optional(),
   "mediaUrl": zod.string().max(createAdminAdvertisementBodyMediaUrlMax).optional().describe('Absolute HTTP(S) URL or verified stored-media path; enforced by the API.'),
@@ -4491,6 +4494,7 @@ export const CreateAdminAdvertisementResponse = zod.object({
   "name": zod.string(),
   "status": zod.string(),
   "placement": zod.string(),
+  "homeFeedHeight": zod.enum(['small', 'medium', 'large']),
   "headline": zod.string(),
   "body": zod.string(),
   "mediaUrl": zod.string().nullable(),
@@ -4563,6 +4567,7 @@ export const ReviewAdminAdvertisementResponse = zod.object({
   "name": zod.string(),
   "status": zod.string(),
   "placement": zod.string(),
+  "homeFeedHeight": zod.enum(['small', 'medium', 'large']),
   "headline": zod.string(),
   "body": zod.string(),
   "mediaUrl": zod.string().nullable(),
@@ -4925,6 +4930,7 @@ export const GetAdPlacementResponse = zod.object({
   "advertiserName": zod.string(),
   "campaignId": zod.string(),
   "placement": zod.string(),
+  "homeFeedHeight": zod.enum(['small', 'medium', 'large']),
   "headline": zod.string(),
   "body": zod.string(),
   "mediaUrl": zod.string().nullable(),

@@ -93,6 +93,7 @@ const createAdSchema = z.object({
   creativeId: z.string().optional(),
   name: z.string().min(1, "Name is required").max(160),
   placement: z.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
+  homeFeedHeight: z.enum(["small", "medium", "large"]),
   headline: z.string().optional(), // Now optional since creativeId can provide it
   body: z.string().max(1000).optional(),
   mediaUrl: z.string().refine(isHttpUrlOrStoredMediaPath, "Upload an image or enter a valid HTTP(S) URL").optional().or(z.literal('')),
@@ -146,6 +147,7 @@ export default function AdvertisementsPage() {
       creativeId: "",
       name: "", 
       placement: "home_feed",
+      homeFeedHeight: "medium",
       headline: "",
       body: "",
       mediaUrl: "",
@@ -175,6 +177,7 @@ export default function AdvertisementsPage() {
       creativeId: linkedCreativeId,
       name: values.name,
       placement: values.placement as any,
+      homeFeedHeight: values.homeFeedHeight,
       headline: finalHeadline,
       body: values.body || undefined,
       mediaUrl: values.mediaUrl || undefined,
@@ -204,6 +207,7 @@ export default function AdvertisementsPage() {
   const selectedCreativeId = createForm.watch("creativeId");
   const selectedAdvertiserId = createForm.watch("advertiserId");
   const selectedCampaignId = createForm.watch("campaignId");
+  const selectedPlacement = createForm.watch("placement");
   const isCreativeSelected = !!selectedCreativeId && selectedCreativeId !== "none";
   const campaignsForAdvertiser = useMemo(
     () => campaignsData?.items.filter(campaign => campaign.advertiserId === selectedAdvertiserId) ?? [],
@@ -376,6 +380,34 @@ export default function AdvertisementsPage() {
                     )}
                   />
                 </div>
+
+                {selectedPlacement === "home_feed" && (
+                  <FormField
+                    control={createForm.control}
+                    name="homeFeedHeight"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Home Feed Ad Size</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose an ad size" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="small">Small - 128 px tall</SelectItem>
+                            <SelectItem value="medium">Medium - 256 px tall</SelectItem>
+                            <SelectItem value="large">Large - 384 px tall</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          The image fills the existing feed width; this setting controls its height.
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <div className="p-4 bg-muted/30 border border-dashed rounded-md space-y-4">
                   <FormField

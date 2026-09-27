@@ -87,8 +87,13 @@ export const advertisementsTable = pgTable("advertisements", {
   name: text("name").notNull(), status: text("status").notNull().default("pending_approval"),
   placement: text("placement").notNull(), headline: text("headline").notNull(), body: text("body").notNull().default(""),
   mediaUrl: text("media_url"), destinationUrl: text("destination_url"), targeting: jsonb("targeting").notNull().default({}),
-  frequencyCap: integer("frequency_cap"), ...audited,
-}, (t) => [index("advertisements_campaign_idx").on(t.campaignId), index("advertisements_placement_status_idx").on(t.placement, t.status), check("advertisements_frequency_cap_positive", sql`${t.frequencyCap} is null or ${t.frequencyCap} > 0`)]);
+  frequencyCap: integer("frequency_cap"), homeFeedHeight: text("home_feed_height").notNull().default("medium"), ...audited,
+}, (t) => [
+  index("advertisements_campaign_idx").on(t.campaignId),
+  index("advertisements_placement_status_idx").on(t.placement, t.status),
+  check("advertisements_frequency_cap_positive", sql`${t.frequencyCap} is null or ${t.frequencyCap} > 0`),
+  check("advertisements_home_feed_height_check", sql`${t.homeFeedHeight} in ('small', 'medium', 'large')`),
+]);
 
 export const adApprovalRecordsTable = pgTable("ad_approval_records", {
   id: id(), advertisementId: text("advertisement_id").notNull().references(() => advertisementsTable.id, { onDelete: "restrict" }),

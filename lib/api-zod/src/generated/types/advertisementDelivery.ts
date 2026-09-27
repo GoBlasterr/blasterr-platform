@@ -5,6 +5,7 @@
  * BLASTERR social platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { AdvertisementDeliveryHomeFeedHeight } from './advertisementDeliveryHomeFeedHeight';
 import type { AdvertisementDeliveryPaidLabel } from './advertisementDeliveryPaidLabel';
 
 export interface AdvertisementDelivery {
@@ -13,6 +14,7 @@ export interface AdvertisementDelivery {
   advertiserName: string;
   campaignId: string;
   placement: string;
+  homeFeedHeight: AdvertisementDeliveryHomeFeedHeight;
   headline: string;
   body: string;
   /** @nullable */

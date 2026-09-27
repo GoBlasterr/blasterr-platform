@@ -661,7 +661,8 @@ router.post("/admin/advertising/advertisements", async (req, res): Promise<void>
   const [creative] = body.data.creativeId ? await db.select().from(creativesTable).where(eq(creativesTable.id, body.data.creativeId)) : [];
   if (body.data.creativeId && (!creative || creative.advertiserId !== campaign.advertiserId || creative.status !== "active")) return void res.status(400).json({ error: "Creative must be active and belong to the campaign advertiser." });
   const [row] = await db.insert(advertisementsTable).values({
-    ...body.data, name: body.data.name.trim(), status: "pending_approval", targeting: body.data.targeting ?? {},
+    ...body.data, homeFeedHeight: body.data.homeFeedHeight ?? "medium",
+    name: body.data.name.trim(), status: "pending_approval", targeting: body.data.targeting ?? {},
     headline: (creative?.headline ?? body.data.headline).trim(), body: creative?.body ?? body.data.body ?? "",
     mediaUrl: creative?.mediaUrl ?? body.data.mediaUrl, destinationUrl: creative?.destinationUrl ?? body.data.destinationUrl,
   }).returning();
@@ -821,10 +822,16 @@ router.get("/advertising/placement", async (req, res): Promise<void> => {
       const [seen] = await tx.select({ value: count() }).from(adEventsTable).where(and(eq(adEventsTable.sessionId, parsed.data.sessionId), eq(adEventsTable.eventType, "delivery")));
       if ((seen?.value ?? 0) >= configuredCap) return null;
     }
-    const rows = await tx.select({ ad: advertisementsTable, campaign: campaignsTable, advertiser: advertisersTable, group: adGroupsTable }).from(advertisementsTable).innerJoin(campaignsTable, eq(advertisementsTable.campaignId, campaignsTable.id)).innerJoin(advertisersTable, eq(campaignsTable.advertiserId, advertisersTable.id)).leftJoin(adGroupsTable, eq(advertisementsTable.adGroupId, adGroupsTable.id)).where(and(eq(advertisementsTable.status, "active"), eq(advertisementsTable.placement, placement), eq(campaignsTable.status, "active"), eq(advertisersTable.status, "active")));
+     const rows = await tx.select({ ad: advertisementsTable, campaign: campaignsTable, advertiser: advertisersTable, group: adGroupsTable }).from(advertisementsTable).innerJoin(campaignsTable, eq(advertisementsTable.campaignId, campaignsTable.id)).innerJoin(advertisersTable, eq(campaignsTable.advertiserId, advertisersTable.id)).leftJoin(adGroupsTable, eq(advertisementsTable.adGroupId, adGroupsTable.id)).where(and(eq(advertisementsTable.status, "active"), eq(advertisementsTable.placement, placement), eq(campaignsTable.status, "active"), eq(advertisersTable.status, "active"))).orderBy(advertisementsTable.id);
     const scheduled = rows.filter(({ ad, campaign, group }) => (!campaign.startsAt || campaign.startsAt <= now()) && (!campaign.endsAt || campaign.endsAt >= now()) && (Array.isArray(campaign.placements) && campaign.placements.includes(placement)) && (!group || group.status === "active") && matchesTargeting(campaign.targeting, context) && (!group || matchesTargeting(group.targeting, context)) && matchesTargeting(ad.targeting, context) && (campaign.totalBudget === null || Number(campaign.spentAmount) < Number(campaign.totalBudget)));
-    let candidate: (typeof scheduled)[number] | undefined;
-    for (const item of scheduled) {
+     const afterIndex = parsed.data.afterAdvertisementId
+       ? scheduled.findIndex(({ ad }) => ad.id === parsed.data.afterAdvertisementId)
+       : -1;
+     const rotated = afterIndex >= 0
+       ? [...scheduled.slice(afterIndex + 1), ...scheduled.slice(0, afterIndex + 1)]
+       : scheduled;
+     let candidate: (typeof scheduled)[number] | undefined;
+     for (const item of rotated) {
       if (item.ad.frequencyCap) {
         const [seen] = await tx.select({ value: count() }).from(adEventsTable).where(and(eq(adEventsTable.advertisementId, item.ad.id), eq(adEventsTable.sessionId, parsed.data.sessionId), eq(adEventsTable.eventType, "delivery")));
         if ((seen?.value ?? 0) >= item.ad.frequencyCap) continue;
@@ -839,7 +846,7 @@ router.get("/advertising/placement", async (req, res): Promise<void> => {
         if (Number(daily?.value ?? 0) >= Number(item.campaign.dailyBudget)) continue;
       }
       const [review] = await tx.select({ action: adApprovalRecordsTable.action }).from(adApprovalRecordsTable).where(and(eq(adApprovalRecordsTable.advertisementId, item.ad.id), eq(adApprovalRecordsTable.action, "approve"))).limit(1);
-      if (review) { candidate = item; break; }
+       if (review) { candidate = item; break; }
     }
     if (!candidate) return null;
     const tokenId = randomUUID();
@@ -850,7 +857,7 @@ router.get("/advertising/placement", async (req, res): Promise<void> => {
   });
   if (!delivery) return void res.json(v.GetAdPlacementResponse.parse({ ad: null }));
   const { candidate, deliveryToken } = delivery;
-  res.json(v.GetAdPlacementResponse.parse({ ad: { id: candidate.ad.id, advertiserId: candidate.advertiser.id, advertiserName: candidate.advertiser.name, campaignId: candidate.ad.campaignId, placement: candidate.ad.placement, headline: candidate.ad.headline, body: candidate.ad.body, mediaUrl: candidate.ad.mediaUrl ?? null, destinationUrl: candidate.ad.destinationUrl ?? null, paidLabel: "Sponsored", deliveryToken } }));
+  res.json(v.GetAdPlacementResponse.parse({ ad: { id: candidate.ad.id, advertiserId: candidate.advertiser.id, advertiserName: candidate.advertiser.name, campaignId: candidate.ad.campaignId, placement: candidate.ad.placement, homeFeedHeight: candidate.ad.homeFeedHeight, headline: candidate.ad.headline, body: candidate.ad.body, mediaUrl: candidate.ad.mediaUrl ?? null, destinationUrl: candidate.ad.destinationUrl ?? null, paidLabel: "Sponsored", deliveryToken } }));
 });
 router.post("/advertising/events", async (req, res): Promise<void> => {
   const body = v.RecordAdEventBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "Invalid advertising event." });

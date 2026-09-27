@@ -1523,6 +1523,7 @@ paths:
       parameters:
         - { name: placement, in: query, required: true, schema: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] } }
         - { name: sessionId, in: query, required: true, schema: { type: string, minLength: 12, maxLength: 200 } }
+        - { name: afterAdvertisementId, in: query, schema: { type: string, minLength: 1, maxLength: 200, description: Return the next eligible advertisement after this one when possible. } }
         - { name: language, in: query, schema: { type: string, pattern: '^[a-z]{2}(-[A-Z]{2})?$' } }
         - { name: device, in: query, schema: { type: string, enum: [mobile, tablet, desktop] } }
         - { name: geography, in: query, schema: { type: string, maxLength: 80 } }
@@ -2608,7 +2609,7 @@ components:
         reason: { type: string, minLength: 1, maxLength: 1000 }
     Advertisement:
       type: object
-      required: [id, campaignId, adGroupId, creativeId, name, status, placement, headline, body, mediaUrl, destinationUrl, targeting, createdAt, updatedAt]
+      required: [id, campaignId, adGroupId, creativeId, name, status, placement, headline, body, mediaUrl, destinationUrl, targeting, homeFeedHeight, createdAt, updatedAt]
       properties:
         id: { type: string }
         campaignId: { type: string }
@@ -2617,6 +2618,7 @@ components:
         name: { type: string }
         status: { type: string }
         placement: { type: string }
+        homeFeedHeight: { type: string, enum: [small, medium, large] }
         headline: { type: string }
         body: { type: string }
         mediaUrl: { type: [string, "null"] }
@@ -2633,6 +2635,7 @@ components:
         creativeId: { type: string }
         name: { type: string, minLength: 1, maxLength: 160 }
         placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] }
+        homeFeedHeight: { type: string, enum: [small, medium, large], default: medium }
         headline: { type: string, minLength: 1, maxLength: 200 }
         body: { type: string, maxLength: 1000 }
         mediaUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL or verified stored-media path; enforced by the API. }
@@ -2652,13 +2655,14 @@ components:
         reason: { type: string, minLength: 1, maxLength: 1000 }
     AdvertisementDelivery:
       type: object
-      required: [id, advertiserId, advertiserName, campaignId, placement, headline, body, mediaUrl, destinationUrl, paidLabel, deliveryToken]
+      required: [id, advertiserId, advertiserName, campaignId, placement, homeFeedHeight, headline, body, mediaUrl, destinationUrl, paidLabel, deliveryToken]
       properties:
         id: { type: string }
         advertiserId: { type: string }
         advertiserName: { type: string }
         campaignId: { type: string }
         placement: { type: string }
+        homeFeedHeight: { type: string, enum: [small, medium, large] }
         headline: { type: string }
         body: { type: string }
         mediaUrl: { type: [string, "null"] }
