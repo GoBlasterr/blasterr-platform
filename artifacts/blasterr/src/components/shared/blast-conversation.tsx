@@ -22,7 +22,7 @@ const engagementCount = (value: unknown) =>
 
 export function blastEngagementScore(blast: ThreadBlast) {
   const reactions = blast.reactions && typeof blast.reactions === "object"
-    ? Object.values(blast.reactions as Record<string, unknown>).reduce((total, count) => total + engagementCount(count), 0)
+    ? Object.values(blast.reactions as Record<string, unknown>).reduce<number>((total, count) => total + engagementCount(count), 0)
     : 0;
   return reactions
     + engagementCount(blast.commentCount)

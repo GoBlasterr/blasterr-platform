@@ -47,7 +47,7 @@ const blastEngagementScore = (blast: {
   commentCount: number;
   blastBackCount: number;
   shareCount: number;
-}) => Object.values(blast.reactions).reduce(
+}) => Object.values(blast.reactions).reduce<number>(
   (total, count) => total + (typeof count === "number" && Number.isFinite(count) ? Math.max(0, count) : 0),
   0,
 ) + blast.commentCount + blast.blastBackCount + blast.shareCount;
