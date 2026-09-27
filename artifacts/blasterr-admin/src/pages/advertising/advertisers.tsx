@@ -2,6 +2,7 @@ import { useState } from "react";
 import { 
   useListAdminAdvertisers, 
   useCreateAdminAdvertiser, 
+  useUpdateAdminAdvertiser,
   useUpdateAdminAdvertiserStatus,
   getListAdminAdvertisersQueryKey
 } from "@workspace/api-client-react";
@@ -26,6 +27,12 @@ const createAdvertiserSchema = z.object({
   contactEmail: z.string().email("Invalid email").optional().or(z.literal('')),
 });
 
+const editAdvertiserSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(160, "Name too long"),
+  ownerClerkId: z.string().max(200).optional().or(z.literal('')),
+  contactEmail: z.string().email("Invalid email").optional().or(z.literal('')),
+});
+
 const updateStatusSchema = z.object({
   status: z.string().min(1, "Status is required"),
   reason: z.string().max(1000).optional()
@@ -37,6 +44,7 @@ export default function AdvertisersPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedAdvertiser, setSelectedAdvertiser] = useState<string | null>(null);
+  const [editingAdvertiser, setEditingAdvertiser] = useState<string | null>(null);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -55,6 +63,7 @@ export default function AdvertisersPage() {
   });
 
   const createMutation = useCreateAdminAdvertiser();
+  const updateMutation = useUpdateAdminAdvertiser();
   const updateStatusMutation = useUpdateAdminAdvertiserStatus();
 
   const createForm = useReactHookForm<z.infer<typeof createAdvertiserSchema>>({
@@ -65,6 +74,11 @@ export default function AdvertisersPage() {
   const statusForm = useReactHookForm<z.infer<typeof updateStatusSchema>>({
     resolver: zodResolver(updateStatusSchema),
     defaultValues: { status: "active", reason: "" },
+  });
+
+  const editForm = useReactHookForm<z.infer<typeof editAdvertiserSchema>>({
+    resolver: zodResolver(editAdvertiserSchema),
+    defaultValues: { name: "", ownerClerkId: "", contactEmail: "" },
   });
 
   const onSubmitCreate = (values: z.infer<typeof createAdvertiserSchema>) => {
@@ -100,6 +114,30 @@ export default function AdvertisersPage() {
       onError: (err: any) => {
         toast({ title: "Update Failed", description: err.message || "An error occurred", variant: "destructive" });
       }
+    });
+  };
+
+  const onSubmitEdit = (values: z.infer<typeof editAdvertiserSchema>) => {
+    if (!editingAdvertiser) return;
+    updateMutation.mutate({
+      id: editingAdvertiser,
+      data: {
+        name: values.name,
+        ownerClerkId: values.ownerClerkId?.trim() || null,
+        contactEmail: values.contactEmail?.trim() || null,
+      },
+    }, {
+      onSuccess: () => {
+        toast({ title: "Advertiser updated", description: "The advertiser information has been saved." });
+        queryClient.invalidateQueries({ queryKey: getListAdminAdvertisersQueryKey() });
+        setEditingAdvertiser(null);
+        editForm.reset();
+      },
+      onError: (err: any) => toast({
+        title: "Update Failed",
+        description: err.data?.error || err.message || "An error occurred.",
+        variant: "destructive",
+      }),
     });
   };
 
@@ -251,75 +289,147 @@ export default function AdvertisersPage() {
                       {new Date(advertiser.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Dialog open={selectedAdvertiser === advertiser.id} onOpenChange={(open) => {
-                        if (open) {
-                          setSelectedAdvertiser(advertiser.id);
-                          statusForm.reset({ status: advertiser.status, reason: "" });
-                        } else {
-                          setSelectedAdvertiser(null);
-                        }
-                      }}>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <ShieldAlert className="w-4 h-4 mr-2" />
-                            Manage
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Update Advertiser Status</DialogTitle>
-                            <DialogDescription>
-                              Modify operational status for {advertiser.name}. Suspending an advertiser immediately halts all their active campaigns.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <Form {...statusForm}>
-                            <form onSubmit={statusForm.handleSubmit(onSubmitStatus)} className="space-y-4">
-                              <FormField
-                                control={statusForm.control}
-                                name="status"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Status</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <div className="flex justify-end gap-2">
+                        <Dialog open={editingAdvertiser === advertiser.id} onOpenChange={(open) => {
+                          if (open) {
+                            setEditingAdvertiser(advertiser.id);
+                            editForm.reset({
+                              name: advertiser.name,
+                              ownerClerkId: advertiser.ownerClerkId ?? "",
+                              contactEmail: advertiser.contactEmail ?? "",
+                            });
+                          } else if (!updateMutation.isPending) {
+                            setEditingAdvertiser(null);
+                          }
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Edit2 className="w-4 h-4 mr-2" />
+                              Edit
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Edit Advertiser</DialogTitle>
+                              <DialogDescription>Update the advertiser name, contact email, and linked owner.</DialogDescription>
+                            </DialogHeader>
+                            <Form {...editForm}>
+                              <form onSubmit={editForm.handleSubmit(onSubmitEdit)} className="space-y-4">
+                                <FormField
+                                  control={editForm.control}
+                                  name="name"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Advertiser Name</FormLabel>
+                                      <FormControl><Input placeholder="Acme Corp" {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={editForm.control}
+                                  name="contactEmail"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Contact Email</FormLabel>
+                                      <FormControl><Input type="email" placeholder="billing@acme.com" {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={editForm.control}
+                                  name="ownerClerkId"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Owner Clerk ID</FormLabel>
+                                      <FormControl><Input placeholder="user_..." {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <DialogFooter>
+                                  <Button type="button" variant="outline" disabled={updateMutation.isPending} onClick={() => setEditingAdvertiser(null)}>Cancel</Button>
+                                  <Button type="submit" disabled={updateMutation.isPending}>
+                                    {updateMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                    Save Changes
+                                  </Button>
+                                </DialogFooter>
+                              </form>
+                            </Form>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog open={selectedAdvertiser === advertiser.id} onOpenChange={(open) => {
+                          if (open) {
+                            setSelectedAdvertiser(advertiser.id);
+                            statusForm.reset({ status: advertiser.status, reason: "" });
+                          } else {
+                            setSelectedAdvertiser(null);
+                          }
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <ShieldAlert className="w-4 h-4 mr-2" />
+                              Manage
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Update Advertiser Status</DialogTitle>
+                              <DialogDescription>
+                                Modify operational status for {advertiser.name}. Suspending an advertiser immediately halts all their active campaigns.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <Form {...statusForm}>
+                              <form onSubmit={statusForm.handleSubmit(onSubmitStatus)} className="space-y-4">
+                                <FormField
+                                  control={statusForm.control}
+                                  name="status"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Status</FormLabel>
+                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Select status" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="active">Active</SelectItem>
+                                          <SelectItem value="suspended">Suspended</SelectItem>
+                                          <SelectItem value="pending">Pending</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={statusForm.control}
+                                  name="reason"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Reason for Change (Audit Log)</FormLabel>
                                       <FormControl>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Select status" />
-                                        </SelectTrigger>
+                                        <Input placeholder="e.g. Terms of Service violation" {...field} />
                                       </FormControl>
-                                      <SelectContent>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="suspended">Suspended</SelectItem>
-                                        <SelectItem value="pending">Pending</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={statusForm.control}
-                                name="reason"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Reason for Change (Audit Log)</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="e.g. Terms of Service violation" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setSelectedAdvertiser(null)}>Cancel</Button>
-                                <Button type="submit" variant={statusForm.watch("status") === "suspended" ? "destructive" : "default"} disabled={updateStatusMutation.isPending}>
-                                  {updateStatusMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                                  Confirm Update
-                                </Button>
-                              </DialogFooter>
-                            </form>
-                          </Form>
-                        </DialogContent>
-                      </Dialog>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <DialogFooter>
+                                  <Button type="button" variant="outline" onClick={() => setSelectedAdvertiser(null)}>Cancel</Button>
+                                  <Button type="submit" variant={statusForm.watch("status") === "suspended" ? "destructive" : "default"} disabled={updateStatusMutation.isPending}>
+                                    {updateStatusMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                    Confirm Update
+                                  </Button>
+                                </DialogFooter>
+                              </form>
+                            </Form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

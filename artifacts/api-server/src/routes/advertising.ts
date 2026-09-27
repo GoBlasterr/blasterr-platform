@@ -266,6 +266,23 @@ router.post("/admin/advertising/advertisers", async (req, res): Promise<void> =>
   await audit(actor, "advertiser_created", "advertiser", row.id);
   res.status(201).json(v.CreateAdminAdvertiserResponse.parse(advertiserPayload(row)));
 });
+router.patch("/admin/advertising/advertisers/:id", async (req, res): Promise<void> => {
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const params = v.UpdateAdminAdvertiserParams.safeParse(req.params);
+  const body = v.UpdateAdminAdvertiserBody.safeParse(req.body);
+  if (!params.success || !body.success || !body.data.name.trim()) return void res.status(400).json({ error: "Valid advertiser information is required." });
+  const [row] = await db.update(advertisersTable).set({
+    name: body.data.name.trim(),
+    ownerClerkId: body.data.ownerClerkId,
+    contactEmail: body.data.contactEmail,
+    updatedAt: now(),
+  }).where(eq(advertisersTable.id, params.data.id)).returning();
+  if (!row) return void res.status(404).json({ error: "Advertiser not found." });
+  await audit(actor, "advertiser_updated", "advertiser", row.id, null, {
+    name: row.name, ownerClerkId: row.ownerClerkId ?? null, contactEmail: row.contactEmail ?? null,
+  });
+  res.json(v.UpdateAdminAdvertiserResponse.parse(advertiserPayload(row)));
+});
 router.patch("/admin/advertising/advertisers/:id/status", async (req, res): Promise<void> => {
   const actor = await requireAdmin(req, res); if (!actor) return;
   const params = v.UpdateAdminAdvertiserStatusParams.safeParse(req.params), body = v.UpdateAdminAdvertiserStatusBody.safeParse(req.body);
@@ -334,6 +351,62 @@ router.patch("/admin/advertising/campaigns/:id", async (req, res): Promise<void>
   if (!row) return void res.status(404).json({ error: "Campaign not found." });
   await audit(actor, "campaign_controls_updated", "campaign", row.id, null, { pricingModel: row.pricingModel });
   res.json(v.UpdateAdminCampaignResponse.parse(campaignPayload(row)));
+});
+router.delete("/admin/advertising/campaigns/:id", async (req, res): Promise<void> => {
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const params = v.DeleteAdminCampaignParams.safeParse(req.params);
+  if (!params.success) return void res.status(400).json({ error: "Invalid campaign." });
+
+  let result: { kind: "deleted" | "missing" | "protected" };
+  try {
+    result = await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${params.data.id}))`);
+      const [campaign] = await tx.select().from(campaignsTable).where(eq(campaignsTable.id, params.data.id)).limit(1);
+      if (!campaign) return { kind: "missing" };
+
+      const [[events], [approvals], [fraudFlags], [boostRequests], [spend], [reports], [transactions]] = await Promise.all([
+        tx.select({ value: count() }).from(adEventsTable)
+          .innerJoin(advertisementsTable, eq(adEventsTable.advertisementId, advertisementsTable.id))
+          .where(eq(advertisementsTable.campaignId, campaign.id)),
+        tx.select({ value: count() }).from(adApprovalRecordsTable)
+          .innerJoin(advertisementsTable, eq(adApprovalRecordsTable.advertisementId, advertisementsTable.id))
+          .where(eq(advertisementsTable.campaignId, campaign.id)),
+        tx.select({ value: count() }).from(adFraudFlagsTable)
+          .innerJoin(advertisementsTable, eq(adFraudFlagsTable.advertisementId, advertisementsTable.id))
+          .where(eq(advertisementsTable.campaignId, campaign.id)),
+        tx.select({ value: count() }).from(adBoostRequestsTable)
+          .innerJoin(advertisementsTable, eq(adBoostRequestsTable.advertisementId, advertisementsTable.id))
+          .where(eq(advertisementsTable.campaignId, campaign.id)),
+        tx.select({ value: count() }).from(adSpendLedgerTable).where(eq(adSpendLedgerTable.campaignId, campaign.id)),
+        tx.select({ value: count() }).from(adReportsTable).where(eq(adReportsTable.campaignId, campaign.id)),
+        tx.select({ value: count() }).from(adTransactionsTable).where(eq(adTransactionsTable.campaignId, campaign.id)),
+      ]);
+      const protectedRecordCount = [
+        events, approvals, fraudFlags, boostRequests, spend, reports, transactions,
+      ].reduce((total, row) => total + Number(row?.value ?? 0), 0);
+      if (protectedRecordCount > 0 || Number(campaign.spentAmount) > 0) return { kind: "protected" };
+
+      const [deleted] = await tx.delete(campaignsTable).where(eq(campaignsTable.id, campaign.id)).returning({ id: campaignsTable.id });
+      if (!deleted) return { kind: "missing" };
+      await tx.insert(advertisingAuditLogsTable).values({
+        actorClerkId: actor,
+        action: "campaign_deleted",
+        entityType: "campaign",
+        entityId: campaign.id,
+        reason: "Deleted from Admin campaign management.",
+        details: { name: campaign.name, advertiserId: campaign.advertiserId },
+      });
+      return { kind: "deleted" };
+    });
+  } catch (error) {
+    if ((error as { code?: string }).code === "23503") {
+      return void res.status(409).json({ error: "Campaign history prevents deletion. Pause the campaign instead." });
+    }
+    throw error;
+  }
+  if (result.kind === "missing") return void res.status(404).json({ error: "Campaign not found." });
+  if (result.kind === "protected") return void res.status(409).json({ error: "Campaigns with delivery, approval, fraud, boost, reporting, or billing history cannot be deleted. Pause the campaign instead." });
+  res.sendStatus(204);
 });
 
 router.get("/admin/advertising/ad-groups", async (req, res): Promise<void> => {

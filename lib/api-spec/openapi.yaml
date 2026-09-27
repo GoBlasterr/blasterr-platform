@@ -1224,6 +1224,13 @@ paths:
       tags: [admin, advertising]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertiserInput" } } } }
       responses: { "201": { description: Created advertiser, content: { application/json: { schema: { $ref: "#/components/schemas/Advertiser" } } } } }
+  /admin/advertising/advertisers/{id}:
+    patch:
+      operationId: updateAdminAdvertiser
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertiserUpdate" } } } }
+      responses: { "200": { description: Updated advertiser, content: { application/json: { schema: { $ref: "#/components/schemas/Advertiser" } } } } }
   /admin/advertising/advertisers/{id}/status:
     patch:
       operationId: updateAdminAdvertiserStatus
@@ -2463,6 +2470,13 @@ components:
         name: { type: string, minLength: 1, maxLength: 160 }
         ownerClerkId: { type: string, maxLength: 200 }
         contactEmail: { type: string, maxLength: 320 }
+    AdvertiserUpdate:
+      type: object
+      required: [name, ownerClerkId, contactEmail]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        ownerClerkId: { type: [string, "null"], maxLength: 200 }
+        contactEmail: { type: [string, "null"], maxLength: 320 }
     Campaign:
       type: object
       required: [id, advertiserId, name, status, placements, targeting, dailyBudget, totalBudget, pricingModel, bidAmount, spentAmount, startsAt, endsAt, createdAt, updatedAt]

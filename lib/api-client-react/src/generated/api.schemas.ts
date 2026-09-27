@@ -1008,6 +1008,24 @@ export interface AdvertiserInput {
   contactEmail?: string;
 }
 
+export interface AdvertiserUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  ownerClerkId: string | null;
+  /**
+     * @maxLength 320
+     * @nullable
+     */
+  contactEmail: string | null;
+}
+
 export type CampaignPricingModel = typeof CampaignPricingModel[keyof typeof CampaignPricingModel];
 
 

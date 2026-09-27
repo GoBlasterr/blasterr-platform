@@ -3328,6 +3328,35 @@ export const CreateAdminAdvertiserResponse = zod.object({
 })
 
 
+export const UpdateAdminAdvertiserParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateAdminAdvertiserBodyNameMax = 160;
+
+export const updateAdminAdvertiserBodyOwnerClerkIdMax = 200;
+
+export const updateAdminAdvertiserBodyContactEmailMax = 320;
+
+
+
+export const UpdateAdminAdvertiserBody = zod.object({
+  "name": zod.string().min(1).max(updateAdminAdvertiserBodyNameMax),
+  "ownerClerkId": zod.string().max(updateAdminAdvertiserBodyOwnerClerkIdMax).nullable(),
+  "contactEmail": zod.string().max(updateAdminAdvertiserBodyContactEmailMax).nullable()
+})
+
+export const UpdateAdminAdvertiserResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "status": zod.string(),
+  "ownerClerkId": zod.string().nullable(),
+  "contactEmail": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
 export const UpdateAdminAdvertiserStatusParams = zod.object({
   "id": zod.coerce.string()
 })

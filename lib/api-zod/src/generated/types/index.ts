@@ -90,6 +90,7 @@ export * from './advertisementReviewAction';
 export * from './advertiser';
 export * from './advertiserInput';
 export * from './advertiserPage';
+export * from './advertiserUpdate';
 export * from './advertisingAudit';
 export * from './advertisingAuditPage';
 export * from './advertisingBillingSummary';

@@ -17,3 +17,4 @@
 - [Business ownership limits](business-ownership-limits.md) — enforce owner caps across every grant and reactivation path with shared target/owner locks; scope protected caches by user.
 - [External Stripe runtime](external-stripe-runtime.md) — Stripe connector credentials may be unavailable inside dev workflows even when the workspace connection can create products; keep sync startup best-effort and fail billing explicitly.
 - [External schema baselines](external-schema-baselines.md) — generated migrations can replay already-applied legacy tables; inspect the database baseline and make additive migrations idempotent before applying.
+- [OpenAPI email formats](openapi-zod-email-format.md) — this workspace's Zod codegen rejects generated top-level `zod.email()`; validate email outside OpenAPI `format: email`.

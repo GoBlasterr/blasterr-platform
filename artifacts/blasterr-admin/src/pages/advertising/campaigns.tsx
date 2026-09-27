@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { 
   useListAdminCampaigns, 
+  useListAdminAdvertisers,
   useCreateAdminCampaign,
   useUpdateAdminCampaignStatus,
-  getListAdminCampaignsQueryKey
+  useDeleteAdminCampaign,
+  getListAdminCampaignsQueryKey,
+  getListAdminAdvertisersQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Search, Loader2, Plus, Play, Pause } from "lucide-react";
+import { Search, Loader2, Plus, Play, Pause, Trash2 } from "lucide-react";
 import { useForm as useReactHookForm } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -36,6 +39,7 @@ export default function CampaignsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [campaignAction, setCampaignAction] = useState<{ id: string; status: "active" | "paused" } | null>(null);
+  const [campaignToDelete, setCampaignToDelete] = useState<{ id: string; name: string } | null>(null);
   const [actionReason, setActionReason] = useState("");
   
   const queryClient = useQueryClient();
@@ -54,8 +58,15 @@ export default function CampaignsPage() {
     }
   });
 
+  const advertiserParams = { page: 1, limit: 100 };
+  const advertisersQuery = useListAdminAdvertisers(advertiserParams, {
+    query: { queryKey: getListAdminAdvertisersQueryKey(advertiserParams) },
+  });
+  const activeAdvertisers = advertisersQuery.data?.items.filter((advertiser) => advertiser.status === "active") ?? [];
+
   const createMutation = useCreateAdminCampaign();
   const statusMutation = useUpdateAdminCampaignStatus();
+  const deleteMutation = useDeleteAdminCampaign();
 
   const createForm = useReactHookForm<z.infer<typeof createCampaignSchema>>({
     resolver: zodResolver(createCampaignSchema),
@@ -140,10 +151,25 @@ export default function CampaignsPage() {
                     name="advertiserId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Advertiser ID</FormLabel>
-                        <FormControl>
-                          <Input placeholder="adv_..." {...field} />
-                        </FormControl>
+                        <FormLabel>Advertiser</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={advertisersQuery.isLoading || activeAdvertisers.length === 0}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={advertisersQuery.isLoading ? "Loading advertisers..." : "Select an active advertiser"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {activeAdvertisers.map((advertiser) => (
+                              <SelectItem key={advertiser.id} value={advertiser.id}>
+                                {advertiser.name} · {advertiser.id.slice(0, 8)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {advertisersQuery.isError && <p className="text-sm text-destructive">Advertisers could not be loaded. Close and reopen this form to retry.</p>}
+                        {!advertisersQuery.isLoading && !advertisersQuery.isError && activeAdvertisers.length === 0 && (
+                          <p className="text-xs text-muted-foreground">Create an active advertiser on the Advertisers page first.</p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -353,14 +379,24 @@ export default function CampaignsPage() {
                       {new Date(campaign.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant={campaign.status === "active" ? "outline" : "default"}
-                        onClick={() => setCampaignAction({ id: campaign.id, status: campaign.status === "active" ? "paused" : "active" })}
-                      >
-                        {campaign.status === "active" ? <Pause className="mr-2 h-3.5 w-3.5" /> : <Play className="mr-2 h-3.5 w-3.5" />}
-                        {campaign.status === "active" ? "Pause" : "Activate"}
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant={campaign.status === "active" ? "outline" : "default"}
+                          onClick={() => setCampaignAction({ id: campaign.id, status: campaign.status === "active" ? "paused" : "active" })}
+                        >
+                          {campaign.status === "active" ? <Pause className="mr-2 h-3.5 w-3.5" /> : <Play className="mr-2 h-3.5 w-3.5" />}
+                          {campaign.status === "active" ? "Pause" : "Activate"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => setCampaignToDelete({ id: campaign.id, name: campaign.name })}
+                        >
+                          <Trash2 className="mr-2 h-3.5 w-3.5" />
+                          Delete
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -420,6 +456,42 @@ export default function CampaignsPage() {
             >
               {statusMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(campaignToDelete)} onOpenChange={(open) => {
+        if (!open && !deleteMutation.isPending) setCampaignToDelete(null);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete campaign?</DialogTitle>
+            <DialogDescription>
+              This permanently deletes “{campaignToDelete?.name}” and its attached ad groups and advertisements. Campaigns with delivery, approval, fraud, boost, reporting, or billing history are protected and cannot be deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" disabled={deleteMutation.isPending} onClick={() => setCampaignToDelete(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={() => campaignToDelete && deleteMutation.mutate({ id: campaignToDelete.id }, {
+                onSuccess: () => {
+                  queryClient.invalidateQueries({ queryKey: getListAdminCampaignsQueryKey() });
+                  if (data?.items.length === 1 && page > 1) setPage((current) => Math.max(1, current - 1));
+                  toast({ title: "Campaign deleted", description: "The campaign, its ads, and its ad groups were removed." });
+                  setCampaignToDelete(null);
+                },
+                onError: (err: any) => toast({
+                  title: "Campaign not deleted",
+                  description: err.data?.error || err.message || "An error occurred.",
+                  variant: "destructive",
+                }),
+              })}
+            >
+              {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete Campaign
             </Button>
           </DialogFooter>
         </DialogContent>
