@@ -1490,7 +1490,7 @@ export interface AdvertisementInput {
   /** @maxLength 1000 */
   body?: string;
   /**
-     * Absolute HTTP(S) URL; enforced by the API.
+     * Absolute HTTP(S) URL or verified stored-media path; enforced by the API.
      * @maxLength 2000
      */
   mediaUrl?: string;

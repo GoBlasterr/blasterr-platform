@@ -4,7 +4,7 @@ import {
   adApprovalRecordsTable, adBoostRequestsTable, adEventsTable, adTransactionsTable, advertisementsTable, advertisersTable,
   adGroupsTable, adPromotionRequestsTable, adSpendLedgerTable, adReportsTable, adFraudFlagsTable,
   adFraudAuditLogsTable, adFraudNotificationsTable, advertisingAuditLogsTable, advertisingSettingsTable,
-  adminNotificationsTable, blastsTable, campaignsTable, creativesTable, db, usersTable,
+  adminNotificationsTable, blastsTable, campaignsTable, creativesTable, db, mediaAssetsTable, usersTable,
 } from "@workspace/db";
 import { and, count, desc, eq, gte, lt, sql } from "drizzle-orm";
 import { Router, type IRouter, type Request, type Response } from "express";
@@ -43,6 +43,26 @@ function isHttpUrl(value: string | undefined): boolean {
     const url = new URL(value);
     return url.protocol === "http:" || url.protocol === "https:";
   } catch { return false; }
+}
+function isAdvertisementMediaUrl(value: string | undefined): boolean {
+  if (!value) return true;
+  return isHttpUrl(value) ||
+    /^\/api\/storage\/objects\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*\.[A-Za-z0-9]+$/.test(value);
+}
+async function isVerifiedAdvertisementUpload(value: string, req: Request, actor: string): Promise<boolean> {
+  const objectKey = value.slice("/api/storage/objects/".length);
+  const ownerId = getAuth(req).userId ??
+    (process.env.NODE_ENV === "development" ? "demo-preview-user" : `admin-${actor}`);
+  const [asset] = await db.select({ contentType: mediaAssetsTable.contentType })
+    .from(mediaAssetsTable)
+    .where(and(
+      eq(mediaAssetsTable.objectKey, objectKey),
+      eq(mediaAssetsTable.ownerId, ownerId),
+      eq(mediaAssetsTable.purpose, "advertisement"),
+      eq(mediaAssetsTable.lifecycleStatus, "ready"),
+    ))
+    .limit(1);
+  return !!asset && ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(asset.contentType);
 }
 function normalizedList(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").map((item) => item.trim().toLowerCase()).filter(Boolean) : [];
@@ -619,13 +639,21 @@ router.get("/admin/advertising/advertisements", async (req, res): Promise<void> 
   if (!await requireAdmin(req, res)) return;
   const parsed = v.ListAdminAdvertisementsQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid query." });
   const rows = await db.select().from(advertisementsTable).orderBy(desc(advertisementsTable.createdAt));
-  const filtered = rows.filter((x) => (!parsed.data.status || x.status === parsed.data.status) && (!parsed.data.search || `${x.name} ${x.headline}`.toLowerCase().includes(parsed.data.search.toLowerCase())));
+  const includeDeleted = parsed.data.status === "deleted";
+  const filtered = rows.filter((x) =>
+    (includeDeleted ? x.status === "deleted" : x.status !== "deleted") &&
+    (!parsed.data.status || parsed.data.status === "all" || x.status === parsed.data.status) &&
+    (!parsed.data.search || `${x.name} ${x.headline}`.toLowerCase().includes(parsed.data.search.toLowerCase()))
+  );
   res.json(v.ListAdminAdvertisementsResponse.parse(page(filtered.map(advertisementPayload), parsed.data.page, parsed.data.limit)));
 });
 router.post("/admin/advertising/advertisements", async (req, res): Promise<void> => {
   const actor = await requireAdmin(req, res); if (!actor) return;
   const body = v.CreateAdminAdvertisementBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "Invalid advertisement." });
-  if (!isHttpUrl(body.data.mediaUrl) || !isHttpUrl(body.data.destinationUrl)) return void res.status(400).json({ error: "Media and destination URLs must be absolute HTTP(S) URLs." });
+  if (!isAdvertisementMediaUrl(body.data.mediaUrl) || !isHttpUrl(body.data.destinationUrl)) return void res.status(400).json({ error: "Media must be an absolute HTTP(S) URL or verified uploaded media, and the destination must be an absolute HTTP(S) URL." });
+  if (body.data.mediaUrl?.startsWith("/api/storage/objects/") && !await isVerifiedAdvertisementUpload(body.data.mediaUrl, req, actor)) {
+    return void res.status(400).json({ error: "Advertisement media must be a completed image upload from this Admin account." });
+  }
   const config = settingsPayload(await settings()); if (!config.enabled || config.emergencyShutdown) return void res.status(409).json({ error: "Advertising creation is disabled by platform settings." });
   const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, body.data.campaignId)); if (!campaign) return void res.status(404).json({ error: "Campaign not found." });
   const [group] = body.data.adGroupId ? await db.select().from(adGroupsTable).where(eq(adGroupsTable.id, body.data.adGroupId)) : [];
@@ -640,6 +668,22 @@ router.post("/admin/advertising/advertisements", async (req, res): Promise<void>
   await db.insert(adApprovalRecordsTable).values({ advertisementId: row.id, action: "submitted" });
   await audit(actor, "advertisement_created", "advertisement", row.id);
   res.status(201).json(v.CreateAdminAdvertisementResponse.parse(advertisementPayload(row)));
+});
+router.delete("/admin/advertising/advertisements/:id", async (req, res): Promise<void> => {
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const params = v.DeleteAdminAdvertisementParams.safeParse(req.params);
+  if (!params.success) return void res.status(400).json({ error: "Invalid advertisement." });
+  const [advertisement] = await db.select({ id: advertisementsTable.id, status: advertisementsTable.status })
+    .from(advertisementsTable)
+    .where(eq(advertisementsTable.id, params.data.id));
+  if (!advertisement) return void res.status(404).json({ error: "Advertisement not found." });
+  if (advertisement.status !== "deleted") {
+    await db.update(advertisementsTable)
+      .set({ status: "deleted", updatedAt: now() })
+      .where(eq(advertisementsTable.id, advertisement.id));
+    await audit(actor, "advertisement_deleted", "advertisement", advertisement.id);
+  }
+  res.sendStatus(204);
 });
 router.post("/admin/advertising/advertisements/:id/review", async (req, res): Promise<void> => {
   const actor = await requireAdmin(req, res); if (!actor) return;

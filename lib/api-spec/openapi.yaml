@@ -1375,6 +1375,14 @@ paths:
       tags: [admin, advertising]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisementInput" } } } }
       responses: { "201": { description: Created advertisement, content: { application/json: { schema: { $ref: "#/components/schemas/Advertisement" } } } } }
+  /admin/advertising/advertisements/{id}:
+    delete:
+      operationId: deleteAdminAdvertisement
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      responses:
+        "204": { description: Advertisement removed from active admin listings }
+        "404": { description: Advertisement not found }
   /admin/advertising/advertisements/{id}/review:
     post:
       operationId: reviewAdminAdvertisement
@@ -2627,7 +2635,7 @@ components:
         placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] }
         headline: { type: string, minLength: 1, maxLength: 200 }
         body: { type: string, maxLength: 1000 }
-        mediaUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL; enforced by the API. }
+        mediaUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL or verified stored-media path; enforced by the API. }
         destinationUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL; enforced by the API. }
         targeting: { $ref: "#/components/schemas/Targeting" }
     AdvertisementReview:

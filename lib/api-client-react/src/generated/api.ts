@@ -7504,6 +7504,71 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateAdminAdvertisementMutationOptions(options));
     }
 
+export const getDeleteAdminAdvertisementUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/advertising/advertisements/${id}`
+}
+
+export const deleteAdminAdvertisement = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteAdminAdvertisementUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteAdminAdvertisementMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminAdvertisement>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAdminAdvertisement>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteAdminAdvertisement'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAdminAdvertisement>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAdminAdvertisement(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAdminAdvertisementMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAdminAdvertisement>>>
+
+    export type DeleteAdminAdvertisementMutationError = ErrorType<void>
+
+    export const useDeleteAdminAdvertisement = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminAdvertisement>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAdminAdvertisement>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteAdminAdvertisementMutationOptions(options));
+    }
+
 export const getReviewAdminAdvertisementUrl = (id: string,) => {
 
 

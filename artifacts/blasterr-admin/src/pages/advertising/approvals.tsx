@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, XCircle, AlertCircle, ExternalLink, RefreshCw } from "lucide-react";
+import { DeleteAdvertisementButton } from "./delete-advertisement-button";
 
 function safeHostname(value: string | null): string {
   if (!value) return "None";
@@ -198,6 +199,9 @@ export default function ApprovalsPage() {
                   )}
                   Approve
                 </Button>
+                <div className="col-span-2 flex justify-end">
+                  <DeleteAdvertisementButton id={ad.id} />
+                </div>
               </div>
             </Card>
           ))}

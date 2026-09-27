@@ -4444,7 +4444,7 @@ export const CreateAdminAdvertisementBody = zod.object({
   "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
   "headline": zod.string().min(1).max(createAdminAdvertisementBodyHeadlineMax),
   "body": zod.string().max(createAdminAdvertisementBodyBodyMax).optional(),
-  "mediaUrl": zod.string().max(createAdminAdvertisementBodyMediaUrlMax).optional().describe('Absolute HTTP(S) URL; enforced by the API.'),
+  "mediaUrl": zod.string().max(createAdminAdvertisementBodyMediaUrlMax).optional().describe('Absolute HTTP(S) URL or verified stored-media path; enforced by the API.'),
   "destinationUrl": zod.string().max(createAdminAdvertisementBodyDestinationUrlMax).optional().describe('Absolute HTTP(S) URL; enforced by the API.'),
   "targeting": zod.object({
   "geographies": zod.array(zod.string().regex(createAdminAdvertisementBodyTargetingGeographiesItemRegExp)).max(createAdminAdvertisementBodyTargetingGeographiesMax).optional(),
@@ -4507,6 +4507,13 @@ export const CreateAdminAdvertisementResponse = zod.object({
   "exclusions": zod.array(zod.string().min(1).max(createAdminAdvertisementResponseTargetingExclusionsItemMax)).max(createAdminAdvertisementResponseTargetingExclusionsMax).optional()
 })
 })
+
+
+export const DeleteAdminAdvertisementParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteAdminAdvertisementResponse = zod.void()
 
 
 export const ReviewAdminAdvertisementParams = zod.object({

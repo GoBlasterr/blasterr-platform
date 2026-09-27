@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, ExternalLink } from "lucide-react";
+import { DeleteAdvertisementButton } from "./delete-advertisement-button";
 
 export default function FilteredAdsPage({ status, title, description }: { status: string, title: string, description: string }) {
   const [page, setPage] = useState(1);
@@ -31,13 +32,14 @@ export default function FilteredAdsPage({ status, title, description }: { status
                 <TableHead>Placement</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Campaign ID</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={4} className="h-24 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="h-24 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
               ) : data?.items.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="h-24 text-center text-muted-foreground">No {status} ads found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No {status} ads found.</TableCell></TableRow>
               ) : (
                 data?.items.map(ad => (
                   <TableRow key={ad.id}>
@@ -55,6 +57,7 @@ export default function FilteredAdsPage({ status, title, description }: { status
                       <Badge variant="secondary">{ad.status.toUpperCase()}</Badge>
                     </TableCell>
                     <TableCell className="text-sm font-mono text-muted-foreground">{ad.campaignId.slice(0, 12)}...</TableCell>
+                    <TableCell><DeleteAdvertisementButton id={ad.id} /></TableCell>
                   </TableRow>
                 ))
               )}

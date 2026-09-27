@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { getAuth } from "@clerk/express";
 import { eq, or } from "drizzle-orm";
-import { db, targetsTable, usersTable } from "@workspace/db";
+import { advertisementsTable, db, targetsTable, usersTable } from "@workspace/db";
 import { getAdminSession, originMatchesHost } from "../lib/admin-supabase-auth";
 import {
   buildMediaObjectKey,
@@ -78,9 +78,9 @@ async function authenticatedOwner(req: Request, res: Response): Promise<string |
   return admin ? `admin-${admin.id}` : null;
 }
 
-function uploadPurpose(value: unknown): "avatar" | "banner" | "target-image" | "blast-media" | "clip-asset" | "general" {
+function uploadPurpose(value: unknown): "avatar" | "banner" | "target-image" | "blast-media" | "clip-asset" | "advertisement" | "general" {
   return value === "avatar" || value === "banner" || value === "target-image" ||
-    value === "blast-media" || value === "clip-asset" ? value : "general";
+    value === "blast-media" || value === "clip-asset" || value === "advertisement" ? value : "general";
 }
 
 function allowedUpload(contentType: unknown, purpose: string, size: unknown): { valid: boolean; message: string } {
@@ -222,10 +222,14 @@ router.delete("/storage/uploads/:id", async (req: Request, res: Response) => {
       (await db.select({ id: usersTable.id }).from(usersTable).where(or(
         eq(usersTable.avatarUrl, objectPath),
         eq(usersTable.coverUrl, objectPath),
+      )).limit(1))[0] ||
+      (await db.select({ id: advertisementsTable.id }).from(advertisementsTable).where(or(
+        eq(advertisementsTable.mediaUrl, objectPath),
+        eq(advertisementsTable.mediaUrl, `/api/storage${objectPath}`),
       )).limit(1))[0];
     if (referenced) {
       await restoreClaimedMedia(asset.id, ownerId, claimed.previousStatus);
-      res.status(409).json({ error: "This media is currently referenced by a profile and cannot be deleted." });
+      res.status(409).json({ error: "This media is currently referenced by content and cannot be deleted." });
       return;
     }
     await deleteR2Object(asset.objectKey);
