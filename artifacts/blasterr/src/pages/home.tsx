@@ -139,7 +139,7 @@ export default function Home() {
           Lock onto a target and start blasting...
         </div>
         <div className="px-4 py-2 bg-primary/20 text-primary font-bold rounded-full text-sm border border-primary/30">
-          Create
+          Create a Blast
         </div>
       </div>
 
