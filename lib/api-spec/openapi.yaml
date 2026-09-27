@@ -1263,7 +1263,7 @@ paths:
       responses:
         "204": { description: Campaign deleted }
         "404": { description: Campaign not found }
-        "409": { description: Campaign has protected delivery, review, or financial history }
+        "409": { description: "Campaign has protected delivery, review, or financial history" }
   /admin/advertising/ad-groups:
     get:
       operationId: listAdminAdGroups
