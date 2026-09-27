@@ -35,6 +35,12 @@ export default function Profile() {
     preloadProfileMedia(profile?.coverUrl);
   }, [profile?.coverUrl]);
 
+  useEffect(() => {
+    for (const business of ownedBusinesses?.items ?? []) {
+      preloadProfileMedia(business.imageUrl);
+    }
+  }, [ownedBusinesses?.items]);
+
   const handleFollow = () => {
     followMutation.mutate(
       { username },

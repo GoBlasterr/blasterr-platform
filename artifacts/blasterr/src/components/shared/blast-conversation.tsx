@@ -17,6 +17,18 @@ export type BlastThreadGroup = {
 
 const CONVERSATIONS_PER_PAGE = 12;
 const REPLIES_PER_PAGE = 10;
+const engagementCount = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0;
+
+export function blastEngagementScore(blast: ThreadBlast) {
+  const reactions = blast.reactions && typeof blast.reactions === "object"
+    ? Object.values(blast.reactions as Record<string, unknown>).reduce((total, count) => total + engagementCount(count), 0)
+    : 0;
+  return reactions
+    + engagementCount(blast.commentCount)
+    + engagementCount(blast.blastBackCount)
+    + engagementCount(blast.shareCount);
+}
 
 export function organizeBlastThreads(
   blasts: ThreadBlast[],
@@ -100,10 +112,10 @@ export function organizeBlastThreads(
   for (const thread of threads) thread.replies.sort(compareRepliesOldestFirst);
 
   if (sortBy === "popular") {
-    const conversationViews = (thread: BlastThreadGroup) =>
-      Math.max(0, thread.root.viewCount ?? 0, ...thread.replies.map((reply) => reply.viewCount ?? 0));
+    const conversationEngagement = (thread: BlastThreadGroup) =>
+      [thread.root, ...thread.replies].reduce((total, blast) => total + blastEngagementScore(blast), 0);
     threads.sort((a, b) =>
-      conversationViews(b) - conversationViews(a) || compareRootsNewestFirst(a, b),
+      conversationEngagement(b) - conversationEngagement(a) || compareRootsNewestFirst(a, b),
     );
   } else {
     threads.sort(compareRootsNewestFirst);

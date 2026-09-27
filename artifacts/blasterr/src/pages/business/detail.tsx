@@ -121,7 +121,7 @@ export default function BusinessDetail() {
              <div className="mb-4 flex items-end justify-between gap-4">
               <div className="flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-2xl h-24 w-24 sm:h-32 sm:w-32">
                  {business.imageUrl ? (
-                   <img src={business.imageUrl} alt={business.name} className="h-full w-full object-cover" />
+                    <img src={business.imageUrl} alt={business.name} fetchPriority="high" decoding="async" className="h-full w-full object-cover" />
                  ) : (
                    <Briefcase className="w-12 h-12 text-muted-foreground" />
                  )}
