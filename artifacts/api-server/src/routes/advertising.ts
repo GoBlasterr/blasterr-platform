@@ -742,7 +742,13 @@ router.get("/admin/advertising/advertisements", async (req, res): Promise<void> 
 });
 router.post("/admin/advertising/advertisements", async (req, res): Promise<void> => {
   const actor = await requireAdmin(req, res); if (!actor) return;
-  const body = v.CreateAdminAdvertisementBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "Invalid advertisement." });
+  const body = v.CreateAdminAdvertisementBody.safeParse(req.body);
+  if (!body.success) {
+    const details = body.error.issues
+      .map((issue) => `${issue.path.length ? issue.path.join(".") : "request"}: ${issue.message}`)
+      .join("; ");
+    return void res.status(400).json({ error: `Invalid advertisement. ${details}` });
+  }
   if (!isAdvertisementMediaUrl(body.data.mediaUrl) || !isHttpUrl(body.data.destinationUrl)) return void res.status(400).json({ error: "Media must be an absolute HTTP(S) URL or verified uploaded media, and the destination must be an absolute HTTP(S) URL." });
   if (body.data.mediaUrl?.startsWith("/api/storage/objects/") && !await isVerifiedAdvertisementUpload(body.data.mediaUrl, req, actor)) {
     return void res.status(400).json({ error: "Advertisement media must be a completed image upload from this Admin account." });

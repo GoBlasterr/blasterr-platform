@@ -28,6 +28,10 @@ function isHttpUrlOrStoredMediaPath(value: string): boolean {
   if (/^\/api\/storage\/objects\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*\.[A-Za-z0-9]+$/.test(value)) {
     return true;
   }
+  return isHttpUrl(value);
+}
+
+function isHttpUrl(value: string): boolean {
   try {
     const url = new URL(value);
     return url.protocol === "http:" || url.protocol === "https:";
@@ -94,15 +98,40 @@ const createAdSchema = z.object({
   name: z.string().min(1, "Name is required").max(160),
   placement: z.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
   homeFeedHeight: z.enum(["small", "medium", "large"]),
-  headline: z.string().optional(), // Now optional since creativeId can provide it
+  headline: z.string().max(200, "Headline must be 200 characters or fewer").optional(), // Now optional since creativeId can provide it
   body: z.string().max(1000).optional(),
-  mediaUrl: z.string().refine(isHttpUrlOrStoredMediaPath, "Upload an image or enter a valid HTTP(S) URL").optional().or(z.literal('')),
-  destinationUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  mediaUrl: z.string().max(2000).refine(isHttpUrlOrStoredMediaPath, "Upload an image or enter a valid HTTP(S) URL").optional().or(z.literal('')),
+  destinationUrl: z.string().max(2000).refine(value => !value || isHttpUrl(value), "Must be an absolute HTTP(S) URL").optional().or(z.literal('')),
   // Targeting
   geographies: z.string().optional(),
   languages: z.string().optional(),
   interests: z.string().optional(),
   keywords: z.string().optional(),
+}).superRefine((values, ctx) => {
+  const validateList = (
+    field: "geographies" | "languages" | "interests" | "keywords",
+    value: string | undefined,
+    maxItems: number,
+    isValidItem: (item: string) => boolean,
+    itemMessage: string,
+  ) => {
+    const items = value?.split(",").map(item => item.trim()).filter(Boolean) ?? [];
+    if (items.length > maxItems) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [field],
+        message: `Use no more than ${maxItems} comma-separated values.`,
+      });
+    }
+    if (items.some(item => !isValidItem(item))) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: itemMessage });
+    }
+  };
+
+  validateList("geographies", values.geographies, 50, item => /^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$/.test(item), "Each geography must be 2–80 letters, numbers, spaces, underscores, or hyphens.");
+  validateList("languages", values.languages, 20, item => /^[a-z]{2}(-[A-Z]{2})?$/.test(item), "Use language codes like en or en-US.");
+  validateList("interests", values.interests, 50, item => item.length <= 80, "Each interest must be 80 characters or fewer.");
+  validateList("keywords", values.keywords, 100, item => item.length <= 80, "Each keyword must be 80 characters or fewer.");
 });
 
 export default function AdvertisementsPage() {
