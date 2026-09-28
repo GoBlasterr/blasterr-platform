@@ -171,13 +171,7 @@ export function Shell({ children }: ShellProps) {
         </div>
         
         <aside className="hidden xl:block w-[350px] min-w-0 shrink-0 p-6 sticky top-0 h-screen overflow-y-auto custom-scrollbar">
-          <div className="glass-panel w-full min-w-0 rounded-2xl overflow-hidden">
-            <div className="border-b border-white/10 px-5 py-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Paid advertisements</p>
-              <p className="mt-1 text-xs text-muted-foreground">Sponsored content from approved partners</p>
-            </div>
-            <FeedAdPlacement placement="right_rail" />
-          </div>
+          <FeedAdPlacement placement="right_rail" />
         </aside>
       </main>
 

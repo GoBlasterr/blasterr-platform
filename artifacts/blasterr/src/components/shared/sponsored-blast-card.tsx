@@ -7,8 +7,7 @@ import {
   getGetAdPlacementQueryKey,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ExternalLink, Megaphone } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 export function FeedAdPlacement({ placement }: { placement: GetAdPlacementPlacement }) {
   const sessionIdRef = useRef<string | null>(null);
@@ -100,6 +99,15 @@ export function SponsoredBlastCard({
     medium: "h-64",
     large: "h-96",
   }[ad.homeFeedHeight];
+  const destinationUrl = (() => {
+    if (!ad.destinationUrl) return null;
+    try {
+      const url = new URL(ad.destinationUrl);
+      return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+    } catch {
+      return null;
+    }
+  })();
   
   useEffect(() => {
     if (recordedImpressionDelivery.current === ad.deliveryToken) return;
@@ -130,31 +138,52 @@ export function SponsoredBlastCard({
     return () => observer.disconnect();
   }, [ad.deliveryToken, ad.id, placement, recordEvent, sessionId]);
 
+  const recordClick = () => recordEvent.mutate({
+    data: {
+      advertisementId: ad.id,
+      eventType: "click",
+      placement,
+      sessionId,
+      deliveryToken: ad.deliveryToken,
+    }
+  });
+
   const handleCTA = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!ad.destinationUrl) return;
-    
-    // Record click
-    recordEvent.mutate({
-      data: {
-        advertisementId: ad.id,
-        eventType: "click",
-        placement: placement,
-        sessionId,
-        deliveryToken: ad.deliveryToken,
-      }
-    });
-    
-    // Validate URL and open
-    try {
-      const url = new URL(ad.destinationUrl);
-      if (url.protocol === 'http:' || url.protocol === 'https:') {
-        window.open(url.href, '_blank', 'noopener,noreferrer');
-      }
-    } catch (e) {
-      // Invalid URL, do nothing
-    }
+    if (!destinationUrl) return;
+    recordClick();
+    window.open(destinationUrl, "_blank", "noopener,noreferrer");
   };
+
+  if (placement === "right_rail") {
+    if (!ad.mediaUrl) return null;
+
+    const image = (
+      <img
+        src={ad.mediaUrl}
+        alt={ad.headline || "Advertisement"}
+        className="block w-full max-h-96 object-contain"
+      />
+    );
+
+    return (
+      <div
+        ref={containerRef}
+        className="w-full min-w-0 overflow-hidden rounded-2xl"
+      >
+        {destinationUrl ? (
+          <button
+            type="button"
+            aria-label={`Open advertisement: ${ad.headline || "View ad"}`}
+            onClick={handleCTA}
+            className="block w-full cursor-pointer bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            {image}
+          </button>
+        ) : image}
+      </div>
+    );
+  }
 
   return (
     <div 
