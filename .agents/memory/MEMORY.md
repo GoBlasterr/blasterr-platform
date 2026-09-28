@@ -19,3 +19,4 @@
 - [External schema baselines](external-schema-baselines.md) — generated migrations can replay already-applied legacy tables; inspect the database baseline and make additive migrations idempotent before applying.
 - [OpenAPI email formats](openapi-zod-email-format.md) — this workspace's Zod codegen rejects generated top-level `zod.email()`; validate email outside OpenAPI `format: email`.
 - [PostgreSQL transaction queries](postgres-transaction-query-serialization.md) — await Drizzle queries sequentially inside a transaction; one node-postgres client cannot safely run overlapping queries.
+- [Native TypeScript test imports](native-typescript-test-imports.md) — Node's strip-types runner may fail on extensionless relative ESM imports before tests execute; separate that harness failure from feature regressions.

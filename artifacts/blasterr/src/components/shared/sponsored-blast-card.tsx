@@ -6,9 +6,6 @@ import {
   GetAdPlacementPlacement,
   getGetAdPlacementQueryKey,
 } from "@workspace/api-client-react";
-import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
-
 export function FeedAdPlacement({ placement }: { placement: GetAdPlacementPlacement }) {
   const sessionIdRef = useRef<string | null>(null);
   if (!sessionIdRef.current) {
@@ -155,96 +152,28 @@ export function SponsoredBlastCard({
     window.open(destinationUrl, "_blank", "noopener,noreferrer");
   };
 
-  if (placement === "right_rail") {
-    if (!ad.mediaUrl) return null;
+  if (!ad.mediaUrl) return null;
 
-    const image = (
-      <img
-        src={ad.mediaUrl}
-        alt={ad.headline || "Advertisement"}
-        className="block w-full max-h-96 object-contain"
-      />
-    );
-
-    return (
-      <div
-        ref={containerRef}
-        className="w-full min-w-0 overflow-hidden rounded-2xl"
-      >
-        {destinationUrl ? (
-          <button
-            type="button"
-            aria-label={`Open advertisement: ${ad.headline || "View ad"}`}
-            onClick={handleCTA}
-            className="block w-full cursor-pointer bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            {image}
-          </button>
-        ) : image}
-      </div>
-    );
-  }
+  const image = (
+    <img
+      src={ad.mediaUrl}
+      alt="Advertisement"
+      className={`block w-full object-contain ${placement === "home_feed" ? homeFeedImageHeight : "h-auto max-h-96"}`}
+    />
+  );
 
   return (
-    <div 
-      ref={containerRef}
-      className="box-border w-full min-w-0 max-w-full p-5 border-b border-white/5 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer"
-      onClick={handleCTA}
-    >
-      <div className="flex w-full min-w-0 gap-4">
-        {/* Ad icon / pseudo avatar */}
-        <div className="shrink-0 pt-1">
-          <Avatar className="w-12 h-12 border border-primary/30 shadow-[0_0_10px_rgba(229,244,3,0.2)]">
-            <AvatarFallback className="bg-primary/10 text-primary">
-              <Megaphone className="h-5 w-5" />
-            </AvatarFallback>
-          </Avatar>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start gap-2 mb-1">
-            <span className="min-w-0 flex-1 font-bold text-white text-lg leading-tight break-words">
-              {ad.headline}
-            </span>
-            
-            <div className="shrink-0 flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded text-[10px] uppercase font-bold text-muted-foreground tracking-wider border border-white/5">
-              <span>{ad.paidLabel}</span>
-            </div>
-          </div>
-          
-          <div className="text-sm text-primary/80 mb-2 truncate font-medium">
-            Ad by {ad.advertiserName}
-          </div>
-
-          <p className="mt-2 text-[15px] leading-relaxed text-white whitespace-pre-wrap break-words">
-            {ad.body}
-          </p>
-
-          {ad.mediaUrl && (
-            <div className={`mt-3 w-full rounded-2xl overflow-hidden border border-primary/20 bg-black/50 ${placement === "home_feed" ? homeFeedImageHeight : "max-h-96"}`}>
-              <img
-                src={ad.mediaUrl}
-                alt="Advertisement media"
-                className={`w-full object-cover hover:opacity-90 transition-opacity ${placement === "home_feed" ? "h-full" : "h-auto max-h-96"}`}
-              />
-            </div>
-          )}
-
-          {/* Action */}
-          {ad.destinationUrl && (
-            <div className="mt-4 flex justify-end">
-              <Button 
-                onClick={handleCTA}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-full px-6 shadow-[0_0_15px_rgba(229,244,3,0.3)] transition-all hover:shadow-[0_0_20px_rgba(229,244,3,0.5)] group"
-              >
-                Learn More
-                <ExternalLink className="h-4 w-4 ml-2 opacity-70 group-hover:opacity-100 transition-opacity" />
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
+    <div ref={containerRef} className="w-full min-w-0 overflow-hidden">
+      {destinationUrl ? (
+        <button
+          type="button"
+          aria-label="Open advertisement"
+          onClick={handleCTA}
+          className="block w-full cursor-pointer bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {image}
+        </button>
+      ) : image}
     </div>
   );
 }

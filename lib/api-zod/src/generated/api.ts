@@ -4481,9 +4481,9 @@ export const CreateAdminAdvertisementBody = zod.object({
   "name": zod.string().min(1).max(createAdminAdvertisementBodyNameMax),
   "placement": zod.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
   "homeFeedHeight": zod.enum(['small', 'medium', 'large']).default(createAdminAdvertisementBodyHomeFeedHeightDefault),
-  "headline": zod.string().min(1).max(createAdminAdvertisementBodyHeadlineMax),
+  "headline": zod.string().min(1).max(createAdminAdvertisementBodyHeadlineMax).optional(),
   "body": zod.string().max(createAdminAdvertisementBodyBodyMax).optional(),
-  "mediaUrl": zod.string().max(createAdminAdvertisementBodyMediaUrlMax).optional().describe('Absolute HTTP(S) URL or verified stored-media path; enforced by the API.'),
+  "mediaUrl": zod.string().min(1).max(createAdminAdvertisementBodyMediaUrlMax).describe('Required absolute HTTP(S) URL or verified stored-media image path; enforced by the API.'),
   "destinationUrl": zod.string().max(createAdminAdvertisementBodyDestinationUrlMax).optional().describe('Absolute HTTP(S) URL; enforced by the API.'),
   "targeting": zod.object({
   "geographies": zod.array(zod.string().regex(createAdminAdvertisementBodyTargetingGeographiesItemRegExp)).max(createAdminAdvertisementBodyTargetingGeographiesMax).optional(),
@@ -4599,7 +4599,7 @@ export const UpdateAdminAdvertisementBody = zod.object({
   "homeFeedHeight": zod.enum(['small', 'medium', 'large']).optional(),
   "headline": zod.string().min(1).max(updateAdminAdvertisementBodyHeadlineMax).optional(),
   "body": zod.string().max(updateAdminAdvertisementBodyBodyMax).optional(),
-  "mediaUrl": zod.string().max(updateAdminAdvertisementBodyMediaUrlMax).nullish().describe('Absolute HTTP(S) URL or verified stored-media path; enforced by the API.'),
+  "mediaUrl": zod.string().min(1).max(updateAdminAdvertisementBodyMediaUrlMax).optional().describe('Required absolute HTTP(S) URL or verified stored-media image path; enforced by the API.'),
   "destinationUrl": zod.string().max(updateAdminAdvertisementBodyDestinationUrlMax).nullish().describe('Absolute HTTP(S) URL; enforced by the API.'),
   "targeting": zod.object({
   "geographies": zod.array(zod.string().regex(updateAdminAdvertisementBodyTargetingGeographiesItemRegExp)).max(updateAdminAdvertisementBodyTargetingGeographiesMax).optional(),

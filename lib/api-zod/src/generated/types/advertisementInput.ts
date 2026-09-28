@@ -24,14 +24,15 @@ export interface AdvertisementInput {
      * @minLength 1
      * @maxLength 200
      */
-  headline: string;
+  headline?: string;
   /** @maxLength 1000 */
   body?: string;
   /**
-     * Absolute HTTP(S) URL or verified stored-media path; enforced by the API.
+     * Required absolute HTTP(S) URL or verified stored-media image path; enforced by the API.
+     * @minLength 1
      * @maxLength 2000
      */
-  mediaUrl?: string;
+  mediaUrl: string;
   /**
      * Absolute HTTP(S) URL; enforced by the API.
      * @maxLength 2000

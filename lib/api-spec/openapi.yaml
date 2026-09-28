@@ -2661,7 +2661,7 @@ components:
         targeting: { $ref: "#/components/schemas/Targeting" }
     AdvertisementInput:
       type: object
-      required: [campaignId, name, placement, headline]
+      required: [campaignId, name, placement, mediaUrl]
       properties:
         campaignId: { type: string }
         adGroupId: { type: string }
@@ -2671,7 +2671,7 @@ components:
         homeFeedHeight: { type: string, enum: [small, medium, large], default: medium }
         headline: { type: string, minLength: 1, maxLength: 200 }
         body: { type: string, maxLength: 1000 }
-        mediaUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL or verified stored-media path; enforced by the API. }
+        mediaUrl: { type: string, minLength: 1, maxLength: 2000, description: Required absolute HTTP(S) URL or verified stored-media image path; enforced by the API. }
         destinationUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL; enforced by the API. }
         targeting: { $ref: "#/components/schemas/Targeting" }
     AdvertisementUpdate:
@@ -2686,7 +2686,7 @@ components:
         homeFeedHeight: { type: string, enum: [small, medium, large] }
         headline: { type: string, minLength: 1, maxLength: 200 }
         body: { type: string, maxLength: 1000 }
-        mediaUrl: { type: [string, "null"], maxLength: 2000, description: Absolute HTTP(S) URL or verified stored-media path; enforced by the API. }
+        mediaUrl: { type: string, minLength: 1, maxLength: 2000, description: Required absolute HTTP(S) URL or verified stored-media image path; enforced by the API. }
         destinationUrl: { type: [string, "null"], maxLength: 2000, description: Absolute HTTP(S) URL; enforced by the API. }
         targeting: { $ref: "#/components/schemas/Targeting" }
     AdvertisementReview:

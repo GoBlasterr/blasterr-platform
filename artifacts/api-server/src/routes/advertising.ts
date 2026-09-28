@@ -761,7 +761,7 @@ router.post("/admin/advertising/advertisements", async (req, res): Promise<void>
       .join("; ");
     return void res.status(400).json({ error: `Invalid advertisement. ${details}` });
   }
-  if (!isAdvertisementMediaUrl(body.data.mediaUrl) || !isHttpUrl(body.data.destinationUrl)) return void res.status(400).json({ error: "Media must be an absolute HTTP(S) URL or verified uploaded media, and the destination must be an absolute HTTP(S) URL." });
+  if (!body.data.mediaUrl || !isAdvertisementMediaUrl(body.data.mediaUrl) || !isHttpUrl(body.data.destinationUrl)) return void res.status(400).json({ error: "A valid advertisement image is required; media must be an absolute HTTP(S) URL or verified uploaded media." });
   if (body.data.mediaUrl?.startsWith("/api/storage/objects/") && !await isVerifiedAdvertisementUpload(body.data.mediaUrl, req, actor)) {
     return void res.status(400).json({ error: "Advertisement media must be a completed image upload from this Admin account." });
   }
@@ -774,7 +774,7 @@ router.post("/admin/advertising/advertisements", async (req, res): Promise<void>
   const [row] = await db.insert(advertisementsTable).values({
     ...body.data, homeFeedHeight: body.data.homeFeedHeight ?? "medium",
     name: body.data.name.trim(), status: "pending_approval", targeting: body.data.targeting ?? {},
-    headline: (creative?.headline ?? body.data.headline).trim(), body: creative?.body ?? body.data.body ?? "",
+    headline: (creative?.headline ?? body.data.headline ?? "").trim(), body: creative?.body ?? body.data.body ?? "",
     mediaUrl: creative?.mediaUrl ?? body.data.mediaUrl, destinationUrl: creative?.destinationUrl ?? body.data.destinationUrl,
   }).returning();
   await db.insert(adApprovalRecordsTable).values({ advertisementId: row.id, action: "submitted" });
@@ -830,6 +830,9 @@ router.patch("/admin/advertising/advertisements/:id", async (req, res): Promise<
     const destinationUrl = body.data.destinationUrl === undefined
       ? current.destinationUrl
       : body.data.destinationUrl?.trim() || null;
+    if (!mediaUrl) {
+      return { kind: "invalid" as const, message: "An advertisement image is required." };
+    }
     if (!isAdvertisementMediaUrl(mediaUrl ?? undefined) || !isHttpUrl(destinationUrl ?? undefined)) {
       return { kind: "invalid" as const, message: "Media must be an absolute HTTP(S) URL or verified uploaded media, and the destination must be an absolute HTTP(S) URL." };
     }
@@ -845,7 +848,7 @@ router.patch("/admin/advertising/advertisements/:id", async (req, res): Promise<
     if (creativeChanged && creative) {
       headline = creative.headline.trim();
       adBody = creative.body ?? "";
-      nextMediaUrl = creative.mediaUrl ?? null;
+      nextMediaUrl = creative.mediaUrl ?? mediaUrl;
       nextDestinationUrl = creative.destinationUrl ?? null;
     }
 

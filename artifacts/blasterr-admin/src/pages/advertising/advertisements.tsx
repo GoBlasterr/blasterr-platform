@@ -7,7 +7,6 @@ import {
   useListAdminAdvertisers,
   useListAdminCampaigns,
   useListAdminAdGroups,
-  useListAdminCreatives,
   type Advertisement,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -96,14 +95,13 @@ const createAdSchema = z.object({
   advertiserId: z.string().min(1, "Advertiser is required"),
   campaignId: z.string().min(1, "Campaign ID is required"),
   adGroupId: z.string().optional(),
-  creativeId: z.string().optional(),
   name: z.string().min(1, "Name is required").max(160),
   placement: z.enum(['home_feed', 'following_feed', 'search', 'trending', 'profile', 'clips', 'right_rail']),
   homeFeedHeight: z.enum(["small", "medium", "large"]),
-  headline: z.string().max(200, "Headline must be 200 characters or fewer").optional(), // Now optional since creativeId can provide it
-  body: z.string().max(1000).optional(),
-  mediaUrl: z.string().max(2000).refine(isHttpUrlOrStoredMediaPath, "Upload an image or enter a valid HTTP(S) URL").optional().or(z.literal('')),
-  destinationUrl: z.string().max(2000).refine(value => !value || isHttpUrl(value), "Must be an absolute HTTP(S) URL").optional().or(z.literal('')),
+  mediaUrl: z.string().max(2000).refine(
+    value => value.length > 0 && isHttpUrlOrStoredMediaPath(value),
+    "Upload an advertisement image.",
+  ),
   // Targeting
   geographies: z.string().optional(),
   languages: z.string().optional(),
@@ -146,14 +144,10 @@ const emptyAdFormValues: z.infer<typeof createAdSchema> = {
   advertiserId: "",
   campaignId: "",
   adGroupId: "",
-  creativeId: "",
   name: "",
   placement: "home_feed",
   homeFeedHeight: "medium",
-  headline: "",
-  body: "",
   mediaUrl: "",
-  destinationUrl: "",
   geographies: "",
   languages: "",
   devices: "",
@@ -172,7 +166,6 @@ export default function AdvertisementsPage() {
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [mediaUploadError, setMediaUploadError] = useState("");
   const [uploadedMediaAssetId, setUploadedMediaAssetId] = useState<string | null>(null);
-  const [uploadedMediaName, setUploadedMediaName] = useState("");
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -193,7 +186,6 @@ export default function AdvertisementsPage() {
   const { data: advertisersData } = useListAdminAdvertisers({ page: 1, limit: 100 } as any);
   const { data: campaignsData } = useListAdminCampaigns({ page: 1, limit: 100 } as any);
   const { data: adGroupsData } = useListAdminAdGroups({ limit: 100 } as any);
-  const { data: creativesData } = useListAdminCreatives({ limit: 100 } as any);
 
   const createMutation = useCreateAdminAdvertisement();
   const updateMutation = useUpdateAdminAdvertisement();
@@ -211,7 +203,6 @@ export default function AdvertisementsPage() {
     setEditingAd(null);
     createForm.reset(emptyAdFormValues);
     setUploadedMediaAssetId(null);
-    setUploadedMediaName("");
     setMediaUploadError("");
   };
 
@@ -226,14 +217,10 @@ export default function AdvertisementsPage() {
       advertiserId: campaign?.advertiserId ?? "",
       campaignId: ad.campaignId,
       adGroupId: ad.adGroupId ?? "none",
-      creativeId: ad.creativeId ?? "none",
       name: ad.name,
       placement: ad.placement as z.infer<typeof createAdSchema>["placement"],
       homeFeedHeight: ad.homeFeedHeight,
-      headline: ad.headline,
-      body: ad.body,
       mediaUrl: ad.mediaUrl ?? "",
-      destinationUrl: ad.destinationUrl ?? "",
       geographies: ad.targeting.geographies?.join(", ") ?? "",
       languages: languageValues?.join(", ") ?? "",
       devices: ad.targeting.devices?.join(", ") ?? "",
@@ -243,21 +230,12 @@ export default function AdvertisementsPage() {
       exclusions: ad.targeting.exclusions?.join(", ") ?? "",
     });
     setUploadedMediaAssetId(null);
-    setUploadedMediaName("");
     setMediaUploadError("");
     setIsAdFormOpen(true);
   };
 
   const onSubmitAdForm = (values: z.infer<typeof createAdSchema>) => {
     const toArray = (str?: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : undefined;
-
-    const linkedCreativeId = values.creativeId && values.creativeId !== "none" ? values.creativeId : undefined;
-    const finalHeadline = linkedCreativeId && !values.headline ? "Pending Creative Link" : values.headline || "";
-
-    if (!linkedCreativeId && !finalHeadline) {
-      createForm.setError("headline", { type: "manual", message: "Headline is required if no creative is selected." });
-      return;
-    }
 
     const targetingValues = {
       geographies: toArray(values.geographies),
@@ -285,14 +263,10 @@ export default function AdvertisementsPage() {
       updateMutation.mutate({ id: editingAd.id, data: {
         campaignId: values.campaignId,
         adGroupId: values.adGroupId && values.adGroupId !== "none" ? values.adGroupId : null,
-        creativeId: linkedCreativeId ?? null,
         name: values.name,
         placement: values.placement,
         homeFeedHeight: values.homeFeedHeight,
-        headline: finalHeadline,
-        body: values.body ?? "",
-        mediaUrl: values.mediaUrl?.trim() || null,
-        destinationUrl: values.destinationUrl?.trim() || null,
+        mediaUrl: values.mediaUrl.trim(),
         targeting: {
           geographies: targetingValues.geographies ?? [],
           languages: targetingValues.languages ?? [],
@@ -312,14 +286,10 @@ export default function AdvertisementsPage() {
     createMutation.mutate({ data: {
       campaignId: values.campaignId,
       adGroupId: values.adGroupId && values.adGroupId !== "none" ? values.adGroupId : undefined,
-      creativeId: linkedCreativeId,
       name: values.name,
       placement: values.placement as any,
       homeFeedHeight: values.homeFeedHeight,
-      headline: finalHeadline,
-      body: values.body || undefined,
-      mediaUrl: values.mediaUrl || undefined,
-      destinationUrl: values.destinationUrl || undefined,
+      mediaUrl: values.mediaUrl.trim(),
       targeting: targetingValues,
     }}, {
       onSuccess: created => finishSave(created, true),
@@ -329,12 +299,10 @@ export default function AdvertisementsPage() {
     });
   };
 
-  const selectedCreativeId = createForm.watch("creativeId");
   const selectedAdvertiserId = createForm.watch("advertiserId");
   const selectedCampaignId = createForm.watch("campaignId");
   const selectedAdGroupId = createForm.watch("adGroupId");
   const selectedPlacement = createForm.watch("placement");
-  const isCreativeSelected = !!selectedCreativeId && selectedCreativeId !== "none";
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const campaignsForAdvertiser = useMemo(
     () => campaignsData?.items.filter(campaign => campaign.advertiserId === selectedAdvertiserId) ?? [],
@@ -346,13 +314,6 @@ export default function AdvertisementsPage() {
     ) ?? [],
     [adGroupsData, selectedCampaignId, selectedAdGroupId],
   );
-  const creativesForAdvertiser = useMemo(
-    () => creativesData?.items.filter(creative =>
-      creative.advertiserId === selectedAdvertiserId && (creative.status === "active" || (editingAd?.creativeId === creative.id && selectedCreativeId === creative.id)),
-    ) ?? [],
-    [creativesData, selectedAdvertiserId, editingAd?.creativeId, selectedCreativeId],
-  );
-
   return (
     <div className="p-6 max-w-[1600px] mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -368,7 +329,6 @@ export default function AdvertisementsPage() {
               setEditingAd(null);
               createForm.reset(emptyAdFormValues);
               setUploadedMediaAssetId(null);
-              setUploadedMediaName("");
               setMediaUploadError("");
               setIsAdFormOpen(true);
             } else {
@@ -387,8 +347,8 @@ export default function AdvertisementsPage() {
               <DialogTitle>{editingAd ? "Edit Advertisement" : "Create Advertisement"}</DialogTitle>
               <DialogDescription>
                 {editingAd
-                  ? "Update the ad details. Changes to creative or delivery settings will require fresh review."
-                  : "Create a new ad. Select an existing creative to inherit its content automatically."}
+                  ? "Update the image or delivery settings. The ad displays only its image."
+                  : "The uploaded image is the full advertisement shown to users."}
               </DialogDescription>
             </DialogHeader>
             <Form {...createForm}>
@@ -419,7 +379,6 @@ export default function AdvertisementsPage() {
                             field.onChange(value);
                             createForm.setValue("campaignId", "", { shouldValidate: true });
                             createForm.setValue("adGroupId", "");
-                            createForm.setValue("creativeId", "");
                           }}
                         >
                           <FormControl>
@@ -558,79 +517,13 @@ export default function AdvertisementsPage() {
                   />
                 )}
 
-                <div className="p-4 bg-muted/30 border border-dashed rounded-md space-y-4">
-                  <FormField
-                    control={createForm.control}
-                    name="creativeId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Creative Asset (Optional)</FormLabel>
-                        <Select
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            if (value !== "none" && uploadedMediaAssetId) {
-                              const assetId = uploadedMediaAssetId;
-                              createForm.setValue("mediaUrl", "", { shouldDirty: true, shouldValidate: true });
-                              setUploadedMediaAssetId(null);
-                              setUploadedMediaName("");
-                              void deleteUploadedAdvertisementImage(assetId).catch(() => undefined);
-                            }
-                          }}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Custom Content" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="none">Custom Content (Fill below)</SelectItem>
-                            {creativesForAdvertiser.map(cr => (
-                              <SelectItem key={cr.id} value={cr.id}>{cr.name} - {cr.headline.slice(0, 20)}...</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">If selected, the server will authoritative override the fields below.</p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {!isCreativeSelected && (
-                    <>
-                      <FormField
-                        control={createForm.control}
-                        name="headline"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Headline</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Buy our product..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={createForm.control}
-                        name="body"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Body Copy (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Additional context..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-muted/30 border border-dashed rounded-md">
                         <FormField
                           control={createForm.control}
                           name="mediaUrl"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Advertisement Image (Optional)</FormLabel>
+                              <FormLabel>Advertisement Image</FormLabel>
                               <FormControl>
                                 <Input
                                   type="file"
@@ -657,7 +550,6 @@ export default function AdvertisementsPage() {
                                       const previousAssetId = uploadedMediaAssetId;
                                       createForm.setValue("mediaUrl", upload.mediaUrl, { shouldDirty: true, shouldValidate: true });
                                       setUploadedMediaAssetId(upload.assetId);
-                                      setUploadedMediaName(file.name);
                                       if (previousAssetId && previousAssetId !== upload.assetId) {
                                         void deleteUploadedAdvertisementImage(previousAssetId).catch(() => undefined);
                                       }
@@ -680,7 +572,6 @@ export default function AdvertisementsPage() {
                                 <div className="flex items-center gap-3 rounded-md border p-2">
                                   <img src={field.value} alt="Advertisement preview" className="h-12 w-16 rounded object-cover" />
                                   <div className="min-w-0 flex-1">
-                                    <p className="truncate text-xs">{uploadedMediaName || "Uploaded image"}</p>
                                     <Button
                                       type="button"
                                       variant="ghost"
@@ -690,7 +581,6 @@ export default function AdvertisementsPage() {
                                         const assetId = uploadedMediaAssetId;
                                         createForm.setValue("mediaUrl", "", { shouldDirty: true, shouldValidate: true });
                                         setUploadedMediaAssetId(null);
-                                        setUploadedMediaName("");
                                         if (assetId) void deleteUploadedAdvertisementImage(assetId).catch(() => undefined);
                                       }}
                                     >
@@ -703,22 +593,6 @@ export default function AdvertisementsPage() {
                             </FormItem>
                           )}
                         />
-                        <FormField
-                          control={createForm.control}
-                          name="destinationUrl"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Click Destination (Optional)</FormLabel>
-                              <FormControl>
-                                <Input placeholder="https://..." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </>
-                  )}
                 </div>
 
                 <div className="space-y-4 pt-2">
@@ -869,7 +743,7 @@ export default function AdvertisementsPage() {
                 <TableHead>Ad Name</TableHead>
                 <TableHead>Placement</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Headline</TableHead>
+                <TableHead>Image</TableHead>
                 <TableHead>Campaign</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Actions</TableHead>
@@ -914,8 +788,16 @@ export default function AdvertisementsPage() {
                         {ad.status.toUpperCase().replace('_', ' ')}
                       </Badge>
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate" title={ad.headline}>
-                      {ad.headline}
+                    <TableCell>
+                      {ad.mediaUrl ? (
+                        <img
+                          src={ad.mediaUrl}
+                          alt="Advertisement preview"
+                          className="h-12 w-20 rounded object-cover"
+                        />
+                      ) : (
+                        <span className="text-muted-foreground">No image</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-sm font-mono text-muted-foreground">
                       {ad.campaignId.slice(0, 12)}...
