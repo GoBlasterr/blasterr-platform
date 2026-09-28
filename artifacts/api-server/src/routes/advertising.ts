@@ -357,34 +357,50 @@ router.delete("/admin/advertising/campaigns/:id", async (req, res): Promise<void
   const params = v.DeleteAdminCampaignParams.safeParse(req.params);
   if (!params.success) return void res.status(400).json({ error: "Invalid campaign." });
 
-  let result: { kind: "deleted" | "missing" | "protected" };
+  let result: { kind: "deleted" | "missing" } | { kind: "protected"; reasons: string[] };
   try {
     result = await db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${params.data.id}))`);
       const [campaign] = await tx.select().from(campaignsTable).where(eq(campaignsTable.id, params.data.id)).limit(1);
       if (!campaign) return { kind: "missing" };
 
-      const [[events], [approvals], [fraudFlags], [boostRequests], [spend], [reports], [transactions]] = await Promise.all([
-        tx.select({ value: count() }).from(adEventsTable)
-          .innerJoin(advertisementsTable, eq(adEventsTable.advertisementId, advertisementsTable.id))
-          .where(eq(advertisementsTable.campaignId, campaign.id)),
-        tx.select({ value: count() }).from(adApprovalRecordsTable)
-          .innerJoin(advertisementsTable, eq(adApprovalRecordsTable.advertisementId, advertisementsTable.id))
-          .where(eq(advertisementsTable.campaignId, campaign.id)),
-        tx.select({ value: count() }).from(adFraudFlagsTable)
-          .innerJoin(advertisementsTable, eq(adFraudFlagsTable.advertisementId, advertisementsTable.id))
-          .where(eq(advertisementsTable.campaignId, campaign.id)),
-        tx.select({ value: count() }).from(adBoostRequestsTable)
-          .innerJoin(advertisementsTable, eq(adBoostRequestsTable.advertisementId, advertisementsTable.id))
-          .where(eq(advertisementsTable.campaignId, campaign.id)),
-        tx.select({ value: count() }).from(adSpendLedgerTable).where(eq(adSpendLedgerTable.campaignId, campaign.id)),
-        tx.select({ value: count() }).from(adReportsTable).where(eq(adReportsTable.campaignId, campaign.id)),
-        tx.select({ value: count() }).from(adTransactionsTable).where(eq(adTransactionsTable.campaignId, campaign.id)),
-      ]);
-      const protectedRecordCount = [
-        events, approvals, fraudFlags, boostRequests, spend, reports, transactions,
-      ].reduce((total, row) => total + Number(row?.value ?? 0), 0);
-      if (protectedRecordCount > 0 || Number(campaign.spentAmount) > 0) return { kind: "protected" };
+      // A transaction uses one PostgreSQL client; issue its reads sequentially
+      // rather than queueing overlapping client.query() calls with Promise.all.
+      const [events] = await tx.select({ value: count() }).from(adEventsTable)
+        .innerJoin(advertisementsTable, eq(adEventsTable.advertisementId, advertisementsTable.id))
+        .where(eq(advertisementsTable.campaignId, campaign.id));
+      const [approvals] = await tx.select({ value: count() }).from(adApprovalRecordsTable)
+        .innerJoin(advertisementsTable, eq(adApprovalRecordsTable.advertisementId, advertisementsTable.id))
+        .where(eq(advertisementsTable.campaignId, campaign.id));
+      const [fraudFlags] = await tx.select({ value: count() }).from(adFraudFlagsTable)
+        .innerJoin(advertisementsTable, eq(adFraudFlagsTable.advertisementId, advertisementsTable.id))
+        .where(eq(advertisementsTable.campaignId, campaign.id));
+      const [boostRequests] = await tx.select({ value: count() }).from(adBoostRequestsTable)
+        .innerJoin(advertisementsTable, eq(adBoostRequestsTable.advertisementId, advertisementsTable.id))
+        .where(eq(advertisementsTable.campaignId, campaign.id));
+      const [spend] = await tx.select({ value: count() }).from(adSpendLedgerTable)
+        .where(eq(adSpendLedgerTable.campaignId, campaign.id));
+      const [reports] = await tx.select({ value: count() }).from(adReportsTable)
+        .where(eq(adReportsTable.campaignId, campaign.id));
+      const [transactions] = await tx.select({ value: count() }).from(adTransactionsTable)
+        .where(eq(adTransactionsTable.campaignId, campaign.id));
+
+      const protectedReasons = [
+        { value: Number(events?.value ?? 0), label: "delivery event" },
+        { value: Number(approvals?.value ?? 0), label: "approval record" },
+        { value: Number(fraudFlags?.value ?? 0), label: "fraud record" },
+        { value: Number(boostRequests?.value ?? 0), label: "boost request" },
+        { value: Number(spend?.value ?? 0), label: "spend ledger record" },
+        { value: Number(reports?.value ?? 0), label: "report" },
+        { value: Number(transactions?.value ?? 0), label: "billing transaction" },
+      ]
+        .filter(({ value }) => value > 0)
+        .map(({ value, label }) => `${value} ${label}${value === 1 ? "" : "s"}`);
+      const spentAmount = Number(campaign.spentAmount);
+      if (spentAmount > 0 && Number(spend?.value ?? 0) === 0) {
+        protectedReasons.push(`recorded spend of $${spentAmount.toFixed(2)}`);
+      }
+      if (protectedReasons.length > 0) return { kind: "protected", reasons: protectedReasons };
 
       const [deleted] = await tx.delete(campaignsTable).where(eq(campaignsTable.id, campaign.id)).returning({ id: campaignsTable.id });
       if (!deleted) return { kind: "missing" };
@@ -400,12 +416,16 @@ router.delete("/admin/advertising/campaigns/:id", async (req, res): Promise<void
     });
   } catch (error) {
     if ((error as { code?: string }).code === "23503") {
-      return void res.status(409).json({ error: "Campaign history prevents deletion. Pause the campaign instead." });
+      return void res.status(409).json({ error: "Another record still references this campaign. Its history has been preserved." });
     }
     throw error;
   }
   if (result.kind === "missing") return void res.status(404).json({ error: "Campaign not found." });
-  if (result.kind === "protected") return void res.status(409).json({ error: "Campaigns with delivery, approval, fraud, boost, reporting, or billing history cannot be deleted. Pause the campaign instead." });
+  if (result.kind === "protected") {
+    return void res.status(409).json({
+      error: `This campaign cannot be permanently deleted because it has ${result.reasons.join(", ")}. Its history is being preserved.`,
+    });
+  }
   res.sendStatus(204);
 });
 

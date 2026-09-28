@@ -18,3 +18,4 @@
 - [External Stripe runtime](external-stripe-runtime.md) — Stripe connector credentials may be unavailable inside dev workflows even when the workspace connection can create products; keep sync startup best-effort and fail billing explicitly.
 - [External schema baselines](external-schema-baselines.md) — generated migrations can replay already-applied legacy tables; inspect the database baseline and make additive migrations idempotent before applying.
 - [OpenAPI email formats](openapi-zod-email-format.md) — this workspace's Zod codegen rejects generated top-level `zod.email()`; validate email outside OpenAPI `format: email`.
+- [PostgreSQL transaction queries](postgres-transaction-query-serialization.md) — await Drizzle queries sequentially inside a transaction; one node-postgres client cannot safely run overlapping queries.
