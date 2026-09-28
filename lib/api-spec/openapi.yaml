@@ -1391,6 +1391,17 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisementInput" } } } }
       responses: { "201": { description: Created advertisement, content: { application/json: { schema: { $ref: "#/components/schemas/Advertisement" } } } } }
   /admin/advertising/advertisements/{id}:
+    patch:
+      operationId: updateAdminAdvertisement
+      tags: [admin, advertising]
+      parameters: [{ $ref: "#/components/parameters/AdvertisingId" }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/AdvertisementUpdate" } } }
+      responses:
+        "200": { description: Updated advertisement, content: { application/json: { schema: { $ref: "#/components/schemas/Advertisement" } } } }
+        "400": { description: Invalid advertisement update }
+        "404": { description: Advertisement not found }
     delete:
       operationId: deleteAdminAdvertisement
       tags: [admin, advertising]
@@ -2662,6 +2673,21 @@ components:
         body: { type: string, maxLength: 1000 }
         mediaUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL or verified stored-media path; enforced by the API. }
         destinationUrl: { type: string, maxLength: 2000, description: Absolute HTTP(S) URL; enforced by the API. }
+        targeting: { $ref: "#/components/schemas/Targeting" }
+    AdvertisementUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        campaignId: { type: string, minLength: 1 }
+        adGroupId: { type: [string, "null"] }
+        creativeId: { type: [string, "null"] }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        placement: { type: string, enum: [home_feed, following_feed, search, trending, profile, clips, right_rail] }
+        homeFeedHeight: { type: string, enum: [small, medium, large] }
+        headline: { type: string, minLength: 1, maxLength: 200 }
+        body: { type: string, maxLength: 1000 }
+        mediaUrl: { type: [string, "null"], maxLength: 2000, description: Absolute HTTP(S) URL or verified stored-media path; enforced by the API. }
+        destinationUrl: { type: [string, "null"], maxLength: 2000, description: Absolute HTTP(S) URL; enforced by the API. }
         targeting: { $ref: "#/components/schemas/Targeting" }
     AdvertisementReview:
       type: object
