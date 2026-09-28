@@ -2,11 +2,13 @@ import { useState, useMemo } from "react";
 import { 
   useListAdminAdvertisements, 
   useCreateAdminAdvertisement,
+  useUpdateAdminAdvertisement,
   getListAdminAdvertisementsQueryKey,
   useListAdminAdvertisers,
   useListAdminCampaigns,
   useListAdminAdGroups,
-  useListAdminCreatives
+  useListAdminCreatives,
+  type Advertisement,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -20,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Search, Loader2, Plus, ExternalLink } from "lucide-react";
+import { Search, Loader2, Plus, ExternalLink, Pencil } from "lucide-react";
 import { useForm as useReactHookForm } from "react-hook-form";
 import { DeleteAdvertisementButton } from "./delete-advertisement-button";
 
@@ -105,11 +107,14 @@ const createAdSchema = z.object({
   // Targeting
   geographies: z.string().optional(),
   languages: z.string().optional(),
+  devices: z.string().optional(),
   interests: z.string().optional(),
+  categories: z.string().optional(),
   keywords: z.string().optional(),
+  exclusions: z.string().optional(),
 }).superRefine((values, ctx) => {
   const validateList = (
-    field: "geographies" | "languages" | "interests" | "keywords",
+    field: "geographies" | "languages" | "devices" | "interests" | "categories" | "keywords" | "exclusions",
     value: string | undefined,
     maxItems: number,
     isValidItem: (item: string) => boolean,
@@ -130,15 +135,40 @@ const createAdSchema = z.object({
 
   validateList("geographies", values.geographies, 50, item => /^[A-Za-z0-9][A-Za-z0-9 _-]{1,79}$/.test(item), "Each geography must be 2–80 letters, numbers, spaces, underscores, or hyphens.");
   validateList("languages", values.languages, 20, item => /^[a-z]{2}(-[A-Z]{2})?$/.test(item), "Use language codes like en or en-US.");
+  validateList("devices", values.devices, 3, item => ["mobile", "tablet", "desktop"].includes(item.toLowerCase()), "Use mobile, tablet, or desktop.");
   validateList("interests", values.interests, 50, item => item.length <= 80, "Each interest must be 80 characters or fewer.");
+  validateList("categories", values.categories, 50, item => item.length <= 80, "Each category must be 80 characters or fewer.");
   validateList("keywords", values.keywords, 100, item => item.length <= 80, "Each keyword must be 80 characters or fewer.");
+  validateList("exclusions", values.exclusions, 100, item => item.length <= 80, "Each exclusion must be 80 characters or fewer.");
 });
+
+const emptyAdFormValues: z.infer<typeof createAdSchema> = {
+  advertiserId: "",
+  campaignId: "",
+  adGroupId: "",
+  creativeId: "",
+  name: "",
+  placement: "home_feed",
+  homeFeedHeight: "medium",
+  headline: "",
+  body: "",
+  mediaUrl: "",
+  destinationUrl: "",
+  geographies: "",
+  languages: "",
+  devices: "",
+  interests: "",
+  categories: "",
+  keywords: "",
+  exclusions: "",
+};
 
 export default function AdvertisementsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isAdFormOpen, setIsAdFormOpen] = useState(false);
+  const [editingAd, setEditingAd] = useState<Advertisement | null>(null);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [mediaUploadError, setMediaUploadError] = useState("");
   const [uploadedMediaAssetId, setUploadedMediaAssetId] = useState<string | null>(null);
@@ -162,41 +192,120 @@ export default function AdvertisementsPage() {
 
   const { data: advertisersData } = useListAdminAdvertisers({ page: 1, limit: 100 } as any);
   const { data: campaignsData } = useListAdminCampaigns({ page: 1, limit: 100 } as any);
-  const { data: adGroupsData } = useListAdminAdGroups({ limit: 100, status: "active" } as any);
-  const { data: creativesData } = useListAdminCreatives({ limit: 100, status: "active" } as any);
+  const { data: adGroupsData } = useListAdminAdGroups({ limit: 100 } as any);
+  const { data: creativesData } = useListAdminCreatives({ limit: 100 } as any);
 
   const createMutation = useCreateAdminAdvertisement();
+  const updateMutation = useUpdateAdminAdvertisement();
 
   const createForm = useReactHookForm<z.infer<typeof createAdSchema>>({
     resolver: zodResolver(createAdSchema),
-    defaultValues: { 
-      advertiserId: "",
-      campaignId: "", 
-      adGroupId: "",
-      creativeId: "",
-      name: "", 
-      placement: "home_feed",
-      homeFeedHeight: "medium",
-      headline: "",
-      body: "",
-      mediaUrl: "",
-      destinationUrl: "",
-      geographies: "",
-      languages: "",
-      interests: "",
-      keywords: ""
-    },
+    defaultValues: emptyAdFormValues,
   });
 
-  const onSubmitCreate = (values: z.infer<typeof createAdSchema>) => {
+  const clearFormState = (removeUncommittedUpload: boolean) => {
+    if (removeUncommittedUpload && uploadedMediaAssetId) {
+      void deleteUploadedAdvertisementImage(uploadedMediaAssetId).catch(() => undefined);
+    }
+    setIsAdFormOpen(false);
+    setEditingAd(null);
+    createForm.reset(emptyAdFormValues);
+    setUploadedMediaAssetId(null);
+    setUploadedMediaName("");
+    setMediaUploadError("");
+  };
+
+  const openEditForm = (ad: Advertisement) => {
+    const campaign = campaignsData?.items.find(item => item.id === ad.campaignId);
+    const languageValues = ad.targeting.languages?.map(value => {
+      const [language, region] = value.split("-");
+      return region ? `${language.toLowerCase()}-${region.toUpperCase()}` : language.toLowerCase();
+    });
+    setEditingAd(ad);
+    createForm.reset({
+      advertiserId: campaign?.advertiserId ?? "",
+      campaignId: ad.campaignId,
+      adGroupId: ad.adGroupId ?? "none",
+      creativeId: ad.creativeId ?? "none",
+      name: ad.name,
+      placement: ad.placement as z.infer<typeof createAdSchema>["placement"],
+      homeFeedHeight: ad.homeFeedHeight,
+      headline: ad.headline,
+      body: ad.body,
+      mediaUrl: ad.mediaUrl ?? "",
+      destinationUrl: ad.destinationUrl ?? "",
+      geographies: ad.targeting.geographies?.join(", ") ?? "",
+      languages: languageValues?.join(", ") ?? "",
+      devices: ad.targeting.devices?.join(", ") ?? "",
+      interests: ad.targeting.interests?.join(", ") ?? "",
+      categories: ad.targeting.categories?.join(", ") ?? "",
+      keywords: ad.targeting.keywords?.join(", ") ?? "",
+      exclusions: ad.targeting.exclusions?.join(", ") ?? "",
+    });
+    setUploadedMediaAssetId(null);
+    setUploadedMediaName("");
+    setMediaUploadError("");
+    setIsAdFormOpen(true);
+  };
+
+  const onSubmitAdForm = (values: z.infer<typeof createAdSchema>) => {
     const toArray = (str?: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : undefined;
 
-    // Use a placeholder if creativeId is set, as the server will pull the real headline
     const linkedCreativeId = values.creativeId && values.creativeId !== "none" ? values.creativeId : undefined;
-    const finalHeadline = linkedCreativeId && !values.headline ? "Pending Creative Link" : (values.headline || "");
+    const finalHeadline = linkedCreativeId && !values.headline ? "Pending Creative Link" : values.headline || "";
 
     if (!linkedCreativeId && !finalHeadline) {
       createForm.setError("headline", { type: "manual", message: "Headline is required if no creative is selected." });
+      return;
+    }
+
+    const targetingValues = {
+      geographies: toArray(values.geographies),
+      languages: toArray(values.languages),
+        devices: toArray(values.devices)?.map(value => value.toLowerCase() as "mobile" | "tablet" | "desktop"),
+      interests: toArray(values.interests),
+      categories: toArray(values.categories),
+      keywords: toArray(values.keywords),
+      exclusions: toArray(values.exclusions),
+    };
+    const finishSave = (updated: Advertisement | undefined, created: boolean) => {
+      toast({
+        title: created ? "Advertisement Created" : "Advertisement Updated",
+        description: created
+          ? "The ad has been queued for review."
+          : updated?.status === "pending_approval" && editingAd?.status !== "pending_approval"
+            ? "Delivery or creative changes are queued for fresh review."
+            : "Your changes have been saved.",
+      });
+      queryClient.invalidateQueries({ queryKey: getListAdminAdvertisementsQueryKey() });
+      clearFormState(false);
+    };
+
+    if (editingAd) {
+      updateMutation.mutate({ id: editingAd.id, data: {
+        campaignId: values.campaignId,
+        adGroupId: values.adGroupId && values.adGroupId !== "none" ? values.adGroupId : null,
+        creativeId: linkedCreativeId ?? null,
+        name: values.name,
+        placement: values.placement,
+        homeFeedHeight: values.homeFeedHeight,
+        headline: finalHeadline,
+        body: values.body ?? "",
+        mediaUrl: values.mediaUrl?.trim() || null,
+        destinationUrl: values.destinationUrl?.trim() || null,
+        targeting: {
+          geographies: targetingValues.geographies ?? [],
+          languages: targetingValues.languages ?? [],
+          devices: targetingValues.devices ?? [],
+          interests: targetingValues.interests ?? [],
+          categories: targetingValues.categories ?? [],
+          keywords: targetingValues.keywords ?? [],
+          exclusions: targetingValues.exclusions ?? [],
+        },
+      }}, {
+        onSuccess: updated => finishSave(updated, false),
+        onError: (err: any) => toast({ title: "Update Failed", description: err.data?.error || err.message || "An error occurred", variant: "destructive" }),
+      });
       return;
     }
 
@@ -211,22 +320,9 @@ export default function AdvertisementsPage() {
       body: values.body || undefined,
       mediaUrl: values.mediaUrl || undefined,
       destinationUrl: values.destinationUrl || undefined,
-      targeting: {
-        geographies: toArray(values.geographies),
-        languages: toArray(values.languages),
-        interests: toArray(values.interests),
-        keywords: toArray(values.keywords),
-      }
+      targeting: targetingValues,
     }}, {
-      onSuccess: () => {
-        toast({ title: "Advertisement Created", description: "The ad has been queued for review." });
-        queryClient.invalidateQueries({ queryKey: getListAdminAdvertisementsQueryKey(queryParams as any) });
-        setIsCreateOpen(false);
-        createForm.reset();
-        setUploadedMediaAssetId(null);
-        setUploadedMediaName("");
-        setMediaUploadError("");
-      },
+      onSuccess: created => finishSave(created, true),
       onError: (err: any) => {
         toast({ title: "Creation Failed", description: err.message || "An error occurred", variant: "destructive" });
       }
@@ -236,19 +332,25 @@ export default function AdvertisementsPage() {
   const selectedCreativeId = createForm.watch("creativeId");
   const selectedAdvertiserId = createForm.watch("advertiserId");
   const selectedCampaignId = createForm.watch("campaignId");
+  const selectedAdGroupId = createForm.watch("adGroupId");
   const selectedPlacement = createForm.watch("placement");
   const isCreativeSelected = !!selectedCreativeId && selectedCreativeId !== "none";
+  const isSaving = createMutation.isPending || updateMutation.isPending;
   const campaignsForAdvertiser = useMemo(
     () => campaignsData?.items.filter(campaign => campaign.advertiserId === selectedAdvertiserId) ?? [],
     [campaignsData, selectedAdvertiserId],
   );
   const adGroupsForCampaign = useMemo(
-    () => adGroupsData?.items.filter(group => group.campaignId === selectedCampaignId) ?? [],
-    [adGroupsData, selectedCampaignId],
+    () => adGroupsData?.items.filter(group =>
+      group.campaignId === selectedCampaignId && (group.status === "active" || group.id === selectedAdGroupId),
+    ) ?? [],
+    [adGroupsData, selectedCampaignId, selectedAdGroupId],
   );
   const creativesForAdvertiser = useMemo(
-    () => creativesData?.items.filter(creative => creative.advertiserId === selectedAdvertiserId) ?? [],
-    [creativesData, selectedAdvertiserId],
+    () => creativesData?.items.filter(creative =>
+      creative.advertiserId === selectedAdvertiserId && (creative.status === "active" || (editingAd?.creativeId === creative.id && selectedCreativeId === creative.id)),
+    ) ?? [],
+    [creativesData, selectedAdvertiserId, editingAd?.creativeId, selectedCreativeId],
   );
 
   return (
@@ -259,7 +361,21 @@ export default function AdvertisementsPage() {
           <p className="text-muted-foreground">Manage individual ad placements and status.</p>
         </div>
         
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <Dialog
+          open={isAdFormOpen}
+          onOpenChange={(open) => {
+            if (open) {
+              setEditingAd(null);
+              createForm.reset(emptyAdFormValues);
+              setUploadedMediaAssetId(null);
+              setUploadedMediaName("");
+              setMediaUploadError("");
+              setIsAdFormOpen(true);
+            } else {
+              clearFormState(true);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
@@ -268,11 +384,15 @@ export default function AdvertisementsPage() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create Advertisement</DialogTitle>
-              <DialogDescription>Create a new ad. Select an existing creative to inherit its content automatically.</DialogDescription>
+              <DialogTitle>{editingAd ? "Edit Advertisement" : "Create Advertisement"}</DialogTitle>
+              <DialogDescription>
+                {editingAd
+                  ? "Update the ad details. Changes to creative or delivery settings will require fresh review."
+                  : "Create a new ad. Select an existing creative to inherit its content automatically."}
+              </DialogDescription>
             </DialogHeader>
             <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit(onSubmitCreate)} className="space-y-6">
+              <form onSubmit={createForm.handleSubmit(onSubmitAdForm)} className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={createForm.control}
@@ -631,13 +751,80 @@ export default function AdvertisementsPage() {
                       )}
                     />
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={createForm.control}
+                      name="devices"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Devices</FormLabel>
+                          <FormControl>
+                            <Input placeholder="mobile, tablet, desktop" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createForm.control}
+                      name="interests"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Interests</FormLabel>
+                          <FormControl>
+                            <Input placeholder="outdoors, cooking" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createForm.control}
+                      name="categories"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Categories</FormLabel>
+                          <FormControl>
+                            <Input placeholder="food, travel" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createForm.control}
+                      name="keywords"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Keywords</FormLabel>
+                          <FormControl>
+                            <Input placeholder="summer sale, new" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createForm.control}
+                      name="exclusions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Excluded Keywords</FormLabel>
+                          <FormControl>
+                            <Input placeholder="competitor, discontinued" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
 
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={createMutation.isPending || isUploadingMedia}>
-                    {(createMutation.isPending || isUploadingMedia) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Create Advertisement
+                  <Button type="button" variant="outline" onClick={() => clearFormState(true)}>Cancel</Button>
+                  <Button type="submit" disabled={isSaving || isUploadingMedia}>
+                    {(isSaving || isUploadingMedia) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    {editingAd ? "Save Changes" : "Create Advertisement"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -652,7 +839,7 @@ export default function AdvertisementsPage() {
             <div className="relative w-full sm:w-96">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search creatives..."
+                placeholder="Search advertisements..."
                 className="pl-9 bg-background"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -737,7 +924,19 @@ export default function AdvertisementsPage() {
                       {new Date(ad.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <DeleteAdvertisementButton id={ad.id} />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          aria-label={`Edit ${ad.name}`}
+                          disabled={ad.status === "deleted"}
+                          onClick={() => openEditForm(ad)}
+                        >
+                          <Pencil className="h-4 w-4 mr-1.5" />
+                          Edit
+                        </Button>
+                        <DeleteAdvertisementButton id={ad.id} />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

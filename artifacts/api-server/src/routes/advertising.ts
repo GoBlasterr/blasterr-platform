@@ -49,11 +49,11 @@ function isAdvertisementMediaUrl(value: string | undefined): boolean {
   return isHttpUrl(value) ||
     /^\/api\/storage\/objects\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*\.[A-Za-z0-9]+$/.test(value);
 }
-async function isVerifiedAdvertisementUpload(value: string, req: Request, actor: string): Promise<boolean> {
+async function isVerifiedAdvertisementUpload(value: string, req: Request, actor: string, store: any = db): Promise<boolean> {
   const objectKey = value.slice("/api/storage/objects/".length);
   const ownerId = getAuth(req).userId ??
     (process.env.NODE_ENV === "development" ? "demo-preview-user" : `admin-${actor}`);
-  const [asset] = await db.select({ contentType: mediaAssetsTable.contentType })
+  const [asset] = await store.select({ contentType: mediaAssetsTable.contentType })
     .from(mediaAssetsTable)
     .where(and(
       eq(mediaAssetsTable.objectKey, objectKey),
@@ -67,10 +67,18 @@ async function isVerifiedAdvertisementUpload(value: string, req: Request, actor:
 function normalizedList(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").map((item) => item.trim().toLowerCase()).filter(Boolean) : [];
 }
+function normalizedLanguages(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string").map((item) => {
+      const [language, region] = item.trim().split("-");
+      return language ? (region ? `${language.toLowerCase()}-${region.toUpperCase()}` : language.toLowerCase()) : "";
+    }).filter(Boolean)
+    : [];
+}
 function targeting(value: unknown): Targeting {
   const source = object(value);
   return {
-    geographies: normalizedList(source.geographies), languages: normalizedList(source.languages),
+    geographies: normalizedList(source.geographies), languages: normalizedLanguages(source.languages),
     devices: normalizedList(source.devices), interests: normalizedList(source.interests),
     categories: normalizedList(source.categories), keywords: normalizedList(source.keywords),
     exclusions: normalizedList(source.exclusions),
@@ -94,7 +102,11 @@ function viewerContext(req: Request, query: Record<string, unknown>): ViewerCont
 function matchesTargeting(value: unknown, context: ViewerContext): boolean {
   const rules = targeting(value);
   const includes = (required: string[] | undefined, actual: string | undefined) => !required?.length || Boolean(actual && required.includes(actual));
-  const includesLanguage = (required: string[] | undefined, actual: string | undefined) => !required?.length || Boolean(actual && required.some((language) => actual === language || actual.startsWith(`${language}-`)));
+  const includesLanguage = (required: string[] | undefined, actual: string | undefined) => !required?.length || Boolean(actual && required.some((language) => {
+    const normalizedLanguage = language.toLowerCase();
+    const normalizedActual = actual.toLowerCase();
+    return normalizedActual === normalizedLanguage || normalizedActual.startsWith(`${normalizedLanguage}-`);
+  }));
   const intersects = (required: string[] | undefined, actual: string[]) => !required?.length || actual.some((item) => required.includes(item));
   const signals = [context.geography, context.language, context.device, ...context.interests, ...context.categories, ...context.keywords].filter(Boolean) as string[];
   return includes(rules.geographies, context.geography) && includesLanguage(rules.languages, context.language)
@@ -768,6 +780,138 @@ router.post("/admin/advertising/advertisements", async (req, res): Promise<void>
   await db.insert(adApprovalRecordsTable).values({ advertisementId: row.id, action: "submitted" });
   await audit(actor, "advertisement_created", "advertisement", row.id);
   res.status(201).json(v.CreateAdminAdvertisementResponse.parse(advertisementPayload(row)));
+});
+router.patch("/admin/advertising/advertisements/:id", async (req, res): Promise<void> => {
+  const actor = await requireAdmin(req, res); if (!actor) return;
+  const params = v.UpdateAdminAdvertisementParams.safeParse(req.params);
+  const body = v.UpdateAdminAdvertisementBody.safeParse(req.body);
+  if (!params.success || !body.success || !Object.keys(body.data).length) {
+    return void res.status(400).json({ error: "Valid advertisement changes are required." });
+  }
+
+  const result = await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${params.data.id}))`);
+    const [current] = await tx.select().from(advertisementsTable)
+      .where(eq(advertisementsTable.id, params.data.id)).limit(1);
+    if (!current) return { kind: "missing" as const };
+    if (current.status === "deleted") return { kind: "deleted" as const };
+
+    const campaignId = body.data.campaignId ?? current.campaignId;
+    const [campaign] = await tx.select().from(campaignsTable)
+      .where(eq(campaignsTable.id, campaignId)).limit(1);
+    if (!campaign) return { kind: "invalid" as const, message: "Campaign not found." };
+
+    const adGroupId = body.data.adGroupId === undefined ? current.adGroupId : body.data.adGroupId;
+    if (adGroupId) {
+      const [group] = await tx.select().from(adGroupsTable)
+        .where(eq(adGroupsTable.id, adGroupId)).limit(1);
+      if (!group || group.campaignId !== campaign.id) {
+        return { kind: "invalid" as const, message: "Ad group must belong to the selected campaign." };
+      }
+    }
+
+    const creativeId = body.data.creativeId === undefined ? current.creativeId : body.data.creativeId;
+    const creativeChanged = (creativeId ?? null) !== (current.creativeId ?? null);
+    let creative: typeof creativesTable.$inferSelect | undefined;
+    if (creativeId) {
+      [creative] = await tx.select().from(creativesTable)
+        .where(eq(creativesTable.id, creativeId)).limit(1);
+      if (!creative || creative.advertiserId !== campaign.advertiserId) {
+        return { kind: "invalid" as const, message: "Creative must belong to the selected campaign advertiser." };
+      }
+      if (creativeChanged && creative.status !== "active") {
+        return { kind: "invalid" as const, message: "Choose an active creative." };
+      }
+    }
+
+    const mediaUrl = body.data.mediaUrl === undefined
+      ? current.mediaUrl
+      : body.data.mediaUrl?.trim() || null;
+    const destinationUrl = body.data.destinationUrl === undefined
+      ? current.destinationUrl
+      : body.data.destinationUrl?.trim() || null;
+    if (!isAdvertisementMediaUrl(mediaUrl ?? undefined) || !isHttpUrl(destinationUrl ?? undefined)) {
+      return { kind: "invalid" as const, message: "Media must be an absolute HTTP(S) URL or verified uploaded media, and the destination must be an absolute HTTP(S) URL." };
+    }
+    if (mediaUrl !== current.mediaUrl && mediaUrl?.startsWith("/api/storage/objects/") &&
+        !await isVerifiedAdvertisementUpload(mediaUrl, req, actor, tx)) {
+      return { kind: "invalid" as const, message: "Advertisement media must be a completed image upload from this Admin account." };
+    }
+
+    let headline = body.data.headline === undefined ? current.headline : body.data.headline.trim();
+    let adBody = body.data.body === undefined ? current.body : body.data.body;
+    let nextMediaUrl = mediaUrl;
+    let nextDestinationUrl = destinationUrl;
+    if (creativeChanged && creative) {
+      headline = creative.headline.trim();
+      adBody = creative.body ?? "";
+      nextMediaUrl = creative.mediaUrl ?? null;
+      nextDestinationUrl = creative.destinationUrl ?? null;
+    }
+
+    const nextTargeting = targeting({
+      ...object(current.targeting),
+      ...object(body.data.targeting),
+    });
+    const next = {
+      campaignId: campaign.id,
+      adGroupId: adGroupId ?? null,
+      creativeId: creativeId ?? null,
+      name: body.data.name === undefined ? current.name : body.data.name.trim(),
+      placement: body.data.placement ?? current.placement,
+      homeFeedHeight: body.data.homeFeedHeight ?? current.homeFeedHeight,
+      headline,
+      body: adBody,
+      mediaUrl: nextMediaUrl,
+      destinationUrl: nextDestinationUrl,
+      targeting: nextTargeting,
+    };
+
+    const changedFields: string[] = [];
+    if (next.campaignId !== current.campaignId) changedFields.push("campaignId");
+    if (next.adGroupId !== (current.adGroupId ?? null)) changedFields.push("adGroupId");
+    if (next.creativeId !== (current.creativeId ?? null)) changedFields.push("creativeId");
+    if (next.name !== current.name) changedFields.push("name");
+    if (next.placement !== current.placement) changedFields.push("placement");
+    if (next.homeFeedHeight !== current.homeFeedHeight) changedFields.push("homeFeedHeight");
+    if (next.headline !== current.headline) changedFields.push("headline");
+    if (next.body !== current.body) changedFields.push("body");
+    if (next.mediaUrl !== (current.mediaUrl ?? null)) changedFields.push("mediaUrl");
+    if (next.destinationUrl !== (current.destinationUrl ?? null)) changedFields.push("destinationUrl");
+    if (JSON.stringify(nextTargeting) !== JSON.stringify(targeting(current.targeting))) changedFields.push("targeting");
+    if (!changedFields.length) return { kind: "updated" as const, row: current, changedFields, requiresReview: false };
+
+    const reviewFields = new Set(["campaignId", "adGroupId", "creativeId", "placement", "homeFeedHeight", "headline", "body", "mediaUrl", "destinationUrl", "targeting"]);
+    const requiresReview = changedFields.some((field) => reviewFields.has(field));
+    const status = requiresReview ? "pending_approval" : current.status;
+    const [row] = await tx.update(advertisementsTable).set({
+      ...next,
+      status,
+      updatedAt: now(),
+    }).where(eq(advertisementsTable.id, current.id)).returning();
+    if (!row) return { kind: "missing" as const };
+
+    if (requiresReview) {
+      await tx.insert(adApprovalRecordsTable).values({
+        advertisementId: row.id,
+        action: "submitted",
+        reason: "Advertisement delivery or creative details were updated and require fresh review.",
+      });
+    }
+    return { kind: "updated" as const, row, changedFields, requiresReview };
+  });
+
+  if (result.kind === "missing") return void res.status(404).json({ error: "Advertisement not found." });
+  if (result.kind === "deleted") return void res.status(409).json({ error: "Deleted advertisements cannot be edited." });
+  if (result.kind === "invalid") return void res.status(400).json({ error: result.message });
+  if (result.changedFields.length) {
+    await audit(actor, "advertisement_updated", "advertisement", result.row.id, null, {
+      changedFields: result.changedFields,
+      requiresReview: result.requiresReview,
+      status: result.row.status,
+    });
+  }
+  res.json(v.UpdateAdminAdvertisementResponse.parse(advertisementPayload(result.row)));
 });
 router.delete("/admin/advertising/advertisements/:id", async (req, res): Promise<void> => {
   const actor = await requireAdmin(req, res); if (!actor) return;

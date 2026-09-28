@@ -1540,6 +1540,64 @@ export interface AdvertisementInput {
   targeting?: Targeting;
 }
 
+export type AdvertisementUpdatePlacement = typeof AdvertisementUpdatePlacement[keyof typeof AdvertisementUpdatePlacement];
+
+
+export const AdvertisementUpdatePlacement = {
+  home_feed: 'home_feed',
+  following_feed: 'following_feed',
+  search: 'search',
+  trending: 'trending',
+  profile: 'profile',
+  clips: 'clips',
+  right_rail: 'right_rail',
+} as const;
+
+export type AdvertisementUpdateHomeFeedHeight = typeof AdvertisementUpdateHomeFeedHeight[keyof typeof AdvertisementUpdateHomeFeedHeight];
+
+
+export const AdvertisementUpdateHomeFeedHeight = {
+  small: 'small',
+  medium: 'medium',
+  large: 'large',
+} as const;
+
+export interface AdvertisementUpdate {
+  /** @minLength 1 */
+  campaignId?: string;
+  /** @nullable */
+  adGroupId?: string | null;
+  /** @nullable */
+  creativeId?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name?: string;
+  placement?: AdvertisementUpdatePlacement;
+  homeFeedHeight?: AdvertisementUpdateHomeFeedHeight;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  headline?: string;
+  /** @maxLength 1000 */
+  body?: string;
+  /**
+     * Absolute HTTP(S) URL or verified stored-media path; enforced by the API.
+     * @maxLength 2000
+     * @nullable
+     */
+  mediaUrl?: string | null;
+  /**
+     * Absolute HTTP(S) URL; enforced by the API.
+     * @maxLength 2000
+     * @nullable
+     */
+  destinationUrl?: string | null;
+  targeting?: Targeting;
+}
+
 export type AdvertisementReviewAction = typeof AdvertisementReviewAction[keyof typeof AdvertisementReviewAction];
 
 
