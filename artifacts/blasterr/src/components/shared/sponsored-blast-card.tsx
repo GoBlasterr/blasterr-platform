@@ -15,7 +15,9 @@ export function FeedAdPlacement({ placement }: { placement: GetAdPlacementPlacem
   }
   return placement === "right_rail"
     ? <RotatingRightRailAd sessionId={sessionIdRef.current} />
-    : <SinglePlacementAd placement={placement} sessionId={sessionIdRef.current} />;
+    : placement === "home_feed"
+      ? <RotatingSinglePlacementAd placement={placement} sessionId={sessionIdRef.current} />
+      : <SinglePlacementAd placement={placement} sessionId={sessionIdRef.current} />;
 }
 
 function SinglePlacementAd({
@@ -33,6 +35,54 @@ function SinglePlacementAd({
   }
 
   return <SponsoredBlastCard ad={ad} placement={placement} sessionId={sessionId} />;
+}
+
+function RotatingSinglePlacementAd({
+  placement,
+  sessionId,
+}: {
+  placement: GetAdPlacementPlacement;
+  sessionId: string;
+}) {
+  const [afterAdvertisementId, setAfterAdvertisementId] = useState<string | undefined>();
+  const [rotationTick, setRotationTick] = useState(0);
+  const [currentAd, setCurrentAd] = useState<AdvertisementDelivery | null>(null);
+  const lastRequestedAdIdRef = useRef<string | undefined>(undefined);
+  const queryParams = {
+    placement,
+    sessionId,
+    ...(afterAdvertisementId ? { afterAdvertisementId } : {}),
+  };
+  const query = useGetAdPlacement(queryParams, {
+    query: { queryKey: getGetAdPlacementQueryKey(queryParams), staleTime: 0 },
+  });
+
+  useEffect(() => {
+    if (query.data !== undefined) {
+      setCurrentAd(query.data.ad);
+    }
+  }, [query.data]);
+
+  useEffect(() => {
+    if (rotationTick === 0) return;
+    if (lastRequestedAdIdRef.current === afterAdvertisementId) {
+      void query.refetch();
+      return;
+    }
+    lastRequestedAdIdRef.current = afterAdvertisementId;
+  }, [afterAdvertisementId, query.refetch, rotationTick]);
+
+  useEffect(() => {
+    if (!currentAd) return;
+    const interval = window.setInterval(() => {
+      setAfterAdvertisementId(currentAd.id);
+      setRotationTick((tick) => tick + 1);
+    }, 15_000);
+    return () => window.clearInterval(interval);
+  }, [currentAd?.id]);
+
+  if (!currentAd) return null;
+  return <SponsoredBlastCard ad={currentAd} placement={placement} sessionId={sessionId} />;
 }
 
 function RotatingRightRailAd({ sessionId }: { sessionId: string }) {
