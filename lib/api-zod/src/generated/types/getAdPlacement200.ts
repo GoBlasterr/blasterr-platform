@@ -9,4 +9,5 @@ import type { AdvertisementDelivery } from './advertisementDelivery';
 
 export type GetAdPlacement200 = {
   ad: AdvertisementDelivery | null;
+  ads: AdvertisementDelivery[];
 };

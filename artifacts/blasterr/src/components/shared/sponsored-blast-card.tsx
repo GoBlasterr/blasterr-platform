@@ -38,7 +38,7 @@ function SinglePlacementAd({
 function RotatingRightRailAd({ sessionId }: { sessionId: string }) {
   const [afterAdvertisementId, setAfterAdvertisementId] = useState<string | undefined>();
   const [rotationTick, setRotationTick] = useState(0);
-  const [currentAd, setCurrentAd] = useState<AdvertisementDelivery | null>(null);
+  const [currentAds, setCurrentAds] = useState<AdvertisementDelivery[]>([]);
   const lastRequestedAdIdRef = useRef<string | undefined>(undefined);
   const queryParams = {
     placement: "right_rail" as const,
@@ -51,7 +51,7 @@ function RotatingRightRailAd({ sessionId }: { sessionId: string }) {
 
   useEffect(() => {
     if (query.data !== undefined) {
-      setCurrentAd(query.data.ad);
+      setCurrentAds(query.data.ads);
     }
   }, [query.data]);
 
@@ -65,17 +65,25 @@ function RotatingRightRailAd({ sessionId }: { sessionId: string }) {
   }, [afterAdvertisementId, query.refetch, rotationTick]);
 
   useEffect(() => {
-    if (!currentAd) return;
+    const lastAd = currentAds[currentAds.length - 1];
+    if (!lastAd) return;
     const interval = window.setInterval(() => {
-      setAfterAdvertisementId(currentAd.id);
+      setAfterAdvertisementId(lastAd.id);
       setRotationTick((tick) => tick + 1);
     }, 15_000);
     return () => window.clearInterval(interval);
-  }, [currentAd?.id]);
+  }, [currentAds[currentAds.length - 1]?.id]);
 
-  const ad = currentAd ?? query.data?.ad ?? null;
-  if (!ad) return null;
-  return <SponsoredBlastCard ad={ad} placement="right_rail" sessionId={sessionId} />;
+  if (!currentAds.length) return null;
+  return (
+    <div className="divide-y divide-white/10">
+      {currentAds.slice(0, 2).map((ad) => (
+        <div key={ad.id} className="px-3 py-4">
+          <SponsoredBlastCard ad={ad} placement="right_rail" sessionId={sessionId} />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function SponsoredBlastCard({ 

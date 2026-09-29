@@ -3681,6 +3681,7 @@ export const GetAdPlacementDevice = {
 
 export type GetAdPlacement200 = {
   ad: AdvertisementDelivery | null;
+  ads: AdvertisementDelivery[];
 };
 
 export type RecordAdEvent201 = {

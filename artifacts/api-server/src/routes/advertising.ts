@@ -937,11 +937,56 @@ router.post("/admin/advertising/advertisements/:id/review", async (req, res): Pr
   const params = v.ReviewAdminAdvertisementParams.safeParse(req.params), body = v.ReviewAdminAdvertisementBody.safeParse(req.body);
   if (!params.success || !body.success || (body.data.action !== "approve" && !body.data.reason)) return void res.status(400).json({ error: "A reason is required for this review action." });
   const status = body.data.action === "approve" || body.data.action === "resume" ? "active" : body.data.action === "pause" ? "paused" : body.data.action;
-  const [row] = await db.update(advertisementsTable).set({ status, updatedAt: now() }).where(eq(advertisementsTable.id, params.data.id)).returning();
-  if (!row) return void res.status(404).json({ error: "Advertisement not found." });
-  await db.insert(adApprovalRecordsTable).values({ advertisementId: row.id, action: body.data.action, reason: body.data.reason, reviewerClerkId: actor });
-  await audit(actor, `advertisement_${body.data.action}`, "advertisement", row.id, body.data.reason);
-  res.json(v.ReviewAdminAdvertisementResponse.parse(advertisementPayload(row)));
+  const result = await db.transaction(async (tx) => {
+    const [current] = await tx.select().from(advertisementsTable)
+      .where(eq(advertisementsTable.id, params.data.id)).limit(1);
+    if (!current) return { kind: "missing" as const };
+    if (current.status === "deleted") return { kind: "deleted" as const };
+    const [campaign] = await tx.select().from(campaignsTable)
+      .where(eq(campaignsTable.id, current.campaignId)).limit(1);
+    if (!campaign) return { kind: "missing_campaign" as const };
+    const [row] = await tx.update(advertisementsTable)
+      .set({ status, updatedAt: now() })
+      .where(eq(advertisementsTable.id, current.id))
+      .returning();
+    if (!row) return { kind: "missing" as const };
+    await tx.insert(adApprovalRecordsTable).values({
+      advertisementId: row.id,
+      action: body.data.action,
+      reason: body.data.reason,
+      reviewerClerkId: actor,
+    });
+
+    const canPrepareCampaign =
+      campaign.status === "active" ||
+      campaign.status === "draft" ||
+      campaign.status === "pending_approval" ||
+      (body.data.action === "resume" && campaign.status === "paused");
+    if ((body.data.action === "approve" || body.data.action === "resume") && canPrepareCampaign) {
+      const placements = Array.isArray(campaign.placements)
+        ? campaign.placements.filter((placement): placement is string => typeof placement === "string")
+        : [];
+      const nextPlacements = placements.includes(row.placement)
+        ? placements
+        : [...placements, row.placement];
+      const shouldActivate =
+        (body.data.action === "approve" && (campaign.status === "draft" || campaign.status === "pending_approval")) ||
+        (body.data.action === "resume" && campaign.status === "paused");
+      if (shouldActivate || nextPlacements.length !== placements.length) {
+        await tx.update(campaignsTable).set({
+          ...(shouldActivate ? { status: "active" } : {}),
+          placements: nextPlacements,
+          updatedAt: now(),
+        }).where(eq(campaignsTable.id, campaign.id));
+      }
+    }
+    return { kind: "updated" as const, row };
+  });
+  if (result.kind === "missing") return void res.status(404).json({ error: "Advertisement not found." });
+  if (result.kind === "deleted") return void res.status(409).json({ error: "Deleted advertisements cannot be reviewed." });
+  if (result.kind === "missing_campaign") return void res.status(409).json({ error: "Advertisement campaign not found." });
+  await audit(actor, `advertisement_${body.data.action}`, "advertisement", result.row.id, body.data.reason);
+  res.json(v.ReviewAdminAdvertisementResponse.parse(advertisementPayload(result.row)));
 });
 
 async function settings() {
@@ -1060,50 +1105,138 @@ router.get("/admin/advertising/revenue", async (req, res): Promise<void> => {
 router.get("/advertising/placement", async (req, res): Promise<void> => {
   const parsed = v.GetAdPlacementQueryParams.safeParse(req.query); if (!parsed.success) return void res.status(400).json({ error: "Invalid placement request." });
   const placement = parsed.data.placement as Placement, config = settingsPayload(await settings()), context = viewerContext(req, parsed.data);
-  if (!config.enabled || config.emergencyShutdown || object(config.featureFlags).advertisingEnabled === false || object(config.placementSettings)[placement] === false) return void res.json(v.GetAdPlacementResponse.parse({ ad: null }));
+  if (!config.enabled || config.emergencyShutdown || object(config.featureFlags).advertisingEnabled === false || object(config.placementSettings)[placement] === false) return void res.json(v.GetAdPlacementResponse.parse({ ad: null, ads: [] }));
   const delivery = await db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${parsed.data.sessionId}))`);
     const configuredCap = Number(object(config.frequencySettings).maxImpressionsPerSession);
+    let existingDeliveryCount = 0;
     if (Number.isFinite(configuredCap) && configuredCap > 0) {
       const [seen] = await tx.select({ value: count() }).from(adEventsTable).where(and(eq(adEventsTable.sessionId, parsed.data.sessionId), eq(adEventsTable.eventType, "delivery")));
-      if ((seen?.value ?? 0) >= configuredCap) return null;
+      existingDeliveryCount = Number(seen?.value ?? 0);
+      if (existingDeliveryCount >= configuredCap) return [];
     }
-     const rows = await tx.select({ ad: advertisementsTable, campaign: campaignsTable, advertiser: advertisersTable, group: adGroupsTable }).from(advertisementsTable).innerJoin(campaignsTable, eq(advertisementsTable.campaignId, campaignsTable.id)).innerJoin(advertisersTable, eq(campaignsTable.advertiserId, advertisersTable.id)).leftJoin(adGroupsTable, eq(advertisementsTable.adGroupId, adGroupsTable.id)).where(and(eq(advertisementsTable.status, "active"), eq(advertisementsTable.placement, placement), eq(campaignsTable.status, "active"), eq(advertisersTable.status, "active"))).orderBy(advertisementsTable.id);
-    const scheduled = rows.filter(({ ad, campaign, group }) => (!campaign.startsAt || campaign.startsAt <= now()) && (!campaign.endsAt || campaign.endsAt >= now()) && (Array.isArray(campaign.placements) && campaign.placements.includes(placement)) && (!group || group.status === "active") && matchesTargeting(campaign.targeting, context) && (!group || matchesTargeting(group.targeting, context)) && matchesTargeting(ad.targeting, context) && (campaign.totalBudget === null || Number(campaign.spentAmount) < Number(campaign.totalBudget)));
-     const afterIndex = parsed.data.afterAdvertisementId
-       ? scheduled.findIndex(({ ad }) => ad.id === parsed.data.afterAdvertisementId)
-       : -1;
-     const rotated = afterIndex >= 0
-       ? [...scheduled.slice(afterIndex + 1), ...scheduled.slice(0, afterIndex + 1)]
-       : scheduled;
-     let candidate: (typeof scheduled)[number] | undefined;
-     for (const item of rotated) {
+    const rows = await tx.select({ ad: advertisementsTable, campaign: campaignsTable, advertiser: advertisersTable, group: adGroupsTable })
+      .from(advertisementsTable)
+      .innerJoin(campaignsTable, eq(advertisementsTable.campaignId, campaignsTable.id))
+      .innerJoin(advertisersTable, eq(campaignsTable.advertiserId, advertisersTable.id))
+      .leftJoin(adGroupsTable, eq(advertisementsTable.adGroupId, adGroupsTable.id))
+      .where(and(
+        eq(advertisementsTable.status, "active"),
+        eq(advertisementsTable.placement, placement),
+        eq(campaignsTable.status, "active"),
+        eq(advertisersTable.status, "active"),
+      ))
+      .orderBy(advertisementsTable.id);
+    const scheduled = rows.filter(({ ad, campaign, group }) =>
+      (!campaign.startsAt || campaign.startsAt <= now()) &&
+      (!campaign.endsAt || campaign.endsAt >= now()) &&
+      (Array.isArray(campaign.placements) && campaign.placements.includes(placement)) &&
+      (!group || group.status === "active") &&
+      matchesTargeting(campaign.targeting, context) &&
+      (!group || matchesTargeting(group.targeting, context)) &&
+      matchesTargeting(ad.targeting, context) &&
+      (campaign.totalBudget === null || Number(campaign.spentAmount) < Number(campaign.totalBudget))
+    );
+    if (placement === "right_rail") {
+      scheduled.sort((a, b) =>
+        a.advertiser.name.localeCompare(b.advertiser.name) ||
+        a.ad.id.localeCompare(b.ad.id)
+      );
+    }
+    const afterIndex = parsed.data.afterAdvertisementId
+      ? scheduled.findIndex(({ ad }) => ad.id === parsed.data.afterAdvertisementId)
+      : -1;
+    const rotated = afterIndex >= 0
+      ? [...scheduled.slice(afterIndex + 1), ...scheduled.slice(0, afterIndex + 1)]
+      : scheduled;
+    const maxAds = placement === "right_rail" ? 2 : 1;
+    const selected: typeof scheduled = [];
+
+    for (const item of rotated) {
+      if (Number.isFinite(configuredCap) && configuredCap > 0 &&
+        existingDeliveryCount + selected.length >= configuredCap) break;
       if (item.ad.frequencyCap) {
-        const [seen] = await tx.select({ value: count() }).from(adEventsTable).where(and(eq(adEventsTable.advertisementId, item.ad.id), eq(adEventsTable.sessionId, parsed.data.sessionId), eq(adEventsTable.eventType, "delivery")));
+        const [seen] = await tx.select({ value: count() }).from(adEventsTable)
+          .where(and(
+            eq(adEventsTable.advertisementId, item.ad.id),
+            eq(adEventsTable.sessionId, parsed.data.sessionId),
+            eq(adEventsTable.eventType, "delivery"),
+          ));
         if ((seen?.value ?? 0) >= item.ad.frequencyCap) continue;
       }
       if (item.group?.frequencyCap) {
-        const [seen] = await tx.select({ value: count() }).from(adEventsTable).innerJoin(advertisementsTable, eq(adEventsTable.advertisementId, advertisementsTable.id)).where(and(eq(advertisementsTable.adGroupId, item.group.id), eq(adEventsTable.sessionId, parsed.data.sessionId), eq(adEventsTable.eventType, "delivery")));
+        const [seen] = await tx.select({ value: count() }).from(adEventsTable)
+          .innerJoin(advertisementsTable, eq(adEventsTable.advertisementId, advertisementsTable.id))
+          .where(and(
+            eq(advertisementsTable.adGroupId, item.group.id),
+            eq(adEventsTable.sessionId, parsed.data.sessionId),
+            eq(adEventsTable.eventType, "delivery"),
+          ));
         if ((seen?.value ?? 0) >= item.group.frequencyCap) continue;
       }
       if (item.campaign.dailyBudget !== null) {
-        const dayStart = new Date(); dayStart.setUTCHours(0, 0, 0, 0);
-        const [daily] = await tx.select({ value: sql<number>`coalesce(sum(${adSpendLedgerTable.amount}), 0)` }).from(adSpendLedgerTable).where(and(eq(adSpendLedgerTable.campaignId, item.campaign.id), gte(adSpendLedgerTable.occurredAt, dayStart)));
+        const dayStart = new Date();
+        dayStart.setUTCHours(0, 0, 0, 0);
+        const [daily] = await tx.select({
+          value: sql<number>`coalesce(sum(${adSpendLedgerTable.amount}), 0)`,
+        }).from(adSpendLedgerTable).where(and(
+          eq(adSpendLedgerTable.campaignId, item.campaign.id),
+          gte(adSpendLedgerTable.occurredAt, dayStart),
+        ));
         if (Number(daily?.value ?? 0) >= Number(item.campaign.dailyBudget)) continue;
       }
-      const [review] = await tx.select({ action: adApprovalRecordsTable.action }).from(adApprovalRecordsTable).where(and(eq(adApprovalRecordsTable.advertisementId, item.ad.id), eq(adApprovalRecordsTable.action, "approve"))).limit(1);
-       if (review) { candidate = item; break; }
+      const [review] = await tx.select({ action: adApprovalRecordsTable.action })
+        .from(adApprovalRecordsTable)
+        .where(and(
+          eq(adApprovalRecordsTable.advertisementId, item.ad.id),
+          eq(adApprovalRecordsTable.action, "approve"),
+        ))
+        .limit(1);
+      if (!review) continue;
+      selected.push(item);
+      if (selected.length >= maxAds) break;
     }
-    if (!candidate) return null;
-    const tokenId = randomUUID();
-    const deliveryToken = createDeliveryToken({ adId: candidate.ad.id, placement, sessionId: parsed.data.sessionId, tokenId, expiresAt: Date.now() + 15 * 60 * 1000 });
-    if (!deliveryToken) throw new Error("Advertising signing is unavailable.");
-    await tx.insert(adEventsTable).values({ advertisementId: candidate.ad.id, eventType: "delivery", placement, sessionId: parsed.data.sessionId, deliveryTokenId: tokenId });
-    return { candidate, deliveryToken };
+
+    const deliveries: Array<{
+      candidate: (typeof scheduled)[number];
+      deliveryToken: string;
+    }> = [];
+    for (const candidate of selected) {
+      const tokenId = randomUUID();
+      const deliveryToken = createDeliveryToken({
+        adId: candidate.ad.id,
+        placement,
+        sessionId: parsed.data.sessionId,
+        tokenId,
+        expiresAt: Date.now() + 15 * 60 * 1000,
+      });
+      if (!deliveryToken) throw new Error("Advertising signing is unavailable.");
+      await tx.insert(adEventsTable).values({
+        advertisementId: candidate.ad.id,
+        eventType: "delivery",
+        placement,
+        sessionId: parsed.data.sessionId,
+        deliveryTokenId: tokenId,
+      });
+      deliveries.push({ candidate, deliveryToken });
+    }
+    return deliveries;
   });
-  if (!delivery) return void res.json(v.GetAdPlacementResponse.parse({ ad: null }));
-  const { candidate, deliveryToken } = delivery;
-  res.json(v.GetAdPlacementResponse.parse({ ad: { id: candidate.ad.id, advertiserId: candidate.advertiser.id, advertiserName: candidate.advertiser.name, campaignId: candidate.ad.campaignId, placement: candidate.ad.placement, homeFeedHeight: candidate.ad.homeFeedHeight, headline: candidate.ad.headline, body: candidate.ad.body, mediaUrl: candidate.ad.mediaUrl ?? null, destinationUrl: candidate.ad.destinationUrl ?? null, paidLabel: "Sponsored", deliveryToken } }));
+  const ads = delivery.map(({ candidate, deliveryToken }) => ({
+    id: candidate.ad.id,
+    advertiserId: candidate.advertiser.id,
+    advertiserName: candidate.advertiser.name,
+    campaignId: candidate.ad.campaignId,
+    placement: candidate.ad.placement,
+    homeFeedHeight: candidate.ad.homeFeedHeight,
+    headline: candidate.ad.headline,
+    body: candidate.ad.body,
+    mediaUrl: candidate.ad.mediaUrl ?? null,
+    destinationUrl: candidate.ad.destinationUrl ?? null,
+    paidLabel: "Sponsored" as const,
+    deliveryToken,
+  }));
+  res.json(v.GetAdPlacementResponse.parse({ ad: ads[0] ?? null, ads }));
 });
 router.post("/advertising/events", async (req, res): Promise<void> => {
   const body = v.RecordAdEventBody.safeParse(req.body); if (!body.success) return void res.status(400).json({ error: "Invalid advertising event." });

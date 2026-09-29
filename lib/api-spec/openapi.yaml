@@ -1556,7 +1556,19 @@ paths:
         - { name: interests, in: query, schema: { type: string, maxLength: 1000, description: Comma-separated viewer interest slugs. } }
         - { name: categories, in: query, schema: { type: string, maxLength: 1000, description: Comma-separated content category slugs. } }
         - { name: keywords, in: query, schema: { type: string, maxLength: 1000, description: Comma-separated contextual keywords. } }
-      responses: { "200": { description: Eligible advertisement, content: { application/json: { schema: { type: object, required: [ad], properties: { ad: { anyOf: [{ $ref: "#/components/schemas/AdvertisementDelivery" }, { type: "null" }] } } } } } } }
+      responses:
+        "200":
+          description: Eligible advertisement or up to two right-rail advertisements
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ad, ads]
+                properties:
+                  ad: { anyOf: [{ $ref: "#/components/schemas/AdvertisementDelivery" }, { type: "null" }] }
+                  ads:
+                    type: array
+                    items: { $ref: "#/components/schemas/AdvertisementDelivery" }
   /advertising/events:
     post:
       operationId: recordAdEvent

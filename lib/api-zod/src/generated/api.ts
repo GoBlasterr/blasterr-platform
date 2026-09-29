@@ -5092,7 +5092,21 @@ export const GetAdPlacementResponse = zod.object({
   "destinationUrl": zod.string().nullable(),
   "paidLabel": zod.enum(['Sponsored']),
   "deliveryToken": zod.string()
-}),zod.null()])
+}),zod.null()]),
+  "ads": zod.array(zod.object({
+  "id": zod.string(),
+  "advertiserId": zod.string(),
+  "advertiserName": zod.string(),
+  "campaignId": zod.string(),
+  "placement": zod.string(),
+  "homeFeedHeight": zod.enum(['small', 'medium', 'large']),
+  "headline": zod.string(),
+  "body": zod.string(),
+  "mediaUrl": zod.string().nullable(),
+  "destinationUrl": zod.string().nullable(),
+  "paidLabel": zod.enum(['Sponsored']),
+  "deliveryToken": zod.string()
+}))
 })
 
 
