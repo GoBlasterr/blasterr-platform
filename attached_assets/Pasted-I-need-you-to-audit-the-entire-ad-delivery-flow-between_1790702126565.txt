@@ -1,0 +1,73 @@
+I need you to audit the entire ad delivery flow between this Replit backend/admin and my production frontend deployed on Vercel.
+
+IMPORTANT ARCHITECTURE:
+- This Replit project is the backend/admin.
+- The public Blasterr frontend is deployed separately on Vercel.
+- Ads/campaigns are created and managed from this Replit admin.
+- The live Vercel frontend must fetch the active ads from this backend/database through the production API.
+- Do NOT move the frontend to Replit.
+- Do NOT replace the database.
+- Do NOT redesign the admin.
+- Do NOT delete or rewrite working ad-management functionality.
+
+CURRENT ISSUE:
+I created/updated a production campaign for "Carolina Water Delivery" in the admin.
+The campaign is configured for the home_feed and right_rail placements, but the ad is not appearing on the live Blasterr frontend deployed on Vercel.
+
+Please investigate the complete flow:
+
+1. Find the database tables/models that store campaigns, advertisements, ad groups, creatives, placements, targeting, status, scheduling, and publication state.
+
+2. Find the API endpoint(s) that the public frontend is supposed to call to retrieve active ads.
+
+3. Test those API endpoints directly and determine whether the Carolina Water Delivery campaign/ad is returned when it should be active.
+
+4. Check all conditions that can prevent an ad from being returned:
+   - campaign status
+   - advertisement status
+   - creative status
+   - ad group status
+   - approval status
+   - draft/published state
+   - start/end dates
+   - scheduling
+   - placement
+   - targeting
+   - frequency caps
+   - budget/delivery limits
+   - paused state
+   - environment/database mismatch
+
+5. Verify that the production API returns the Carolina Water Delivery ad for:
+   - home_feed
+   - right_rail
+
+6. Verify the API response format matches what the Vercel frontend expects.
+
+7. Find the exact frontend API base URL expected by the Vercel frontend.
+
+8. Check whether the backend allows requests from the production Vercel domain using CORS.
+
+9. Check whether the Vercel frontend is accidentally using:
+   - localhost
+   - a Replit development URL
+   - an old API URL
+   - mock/static ad data
+   - cached data
+   - a different database/environment
+
+10. Check whether the backend production deployment is actually running and publicly reachable.
+
+11. Add or fix only what is necessary for the production ad-delivery flow.
+
+12. Do NOT use hardcoded Carolina Water data in the frontend. The frontend must receive ads dynamically from the backend.
+
+13. Make sure future ads created/published from the admin automatically become available to the Vercel frontend without requiring a frontend code change or redeployment.
+
+Before changing anything, explain:
+A) which API endpoint currently serves public ads,
+B) which database records are involved,
+C) what is currently preventing Carolina Water from appearing,
+D) exactly what files you intend to change.
+
+Then make the smallest safe fix and test it.
