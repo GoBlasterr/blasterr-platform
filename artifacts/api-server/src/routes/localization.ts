@@ -2,10 +2,10 @@ import { createHash } from "node:crypto";
 import { Router, type IRouter, type Request } from "express";
 import { GetViewerLocaleResponse, TranslateTextBody, TranslateTextResponse } from "@workspace/api-zod";
 import {
-  isCountryCode,
   languageForCountry,
   localeFromCookie,
   translationCacheKey,
+  trustedCountryFromProxyHeaders,
   type SupportedLanguage,
 } from "../lib/localization";
 import { allowedInterfaceStrings } from "../lib/interface-localization";
@@ -38,20 +38,10 @@ function rateLimited(key: string): boolean {
 }
 
 function trustedCountry(req: Request): string | undefined {
-  const cloudflareCountry = req.get("cf-ipcountry");
-  if (isCountryCode(cloudflareCountry) && (process.env.NODE_ENV !== "production" || (req.get("cf-ray") && req.get("cf-connecting-ip")))) {
-    return cloudflareCountry.toUpperCase();
-  }
-  const vercelCountry = req.get("x-vercel-ip-country");
-  if (isCountryCode(vercelCountry) && (process.env.NODE_ENV !== "production" || req.get("x-vercel-id"))) {
-    return vercelCountry.toUpperCase();
-  }
-  const deploymentCountry = req.get("x-country-code");
-  const isDeploymentProxy = Boolean(process.env.REPLIT_DEPLOYMENT) && Boolean(req.get("x-forwarded-for"));
-  if (isCountryCode(deploymentCountry) && (process.env.NODE_ENV !== "production" || isDeploymentProxy)) {
-    return deploymentCountry.toUpperCase();
-  }
-  return undefined;
+  return trustedCountryFromProxyHeaders((name) => req.get(name), {
+    production: process.env.NODE_ENV === "production",
+    replitDeployment: Boolean(process.env.REPLIT_DEPLOYMENT),
+  });
 }
 
 router.get("/localization/locale", (req, res) => {

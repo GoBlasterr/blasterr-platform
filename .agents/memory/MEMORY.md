@@ -21,3 +21,4 @@
 - [PostgreSQL transaction queries](postgres-transaction-query-serialization.md) — await Drizzle queries sequentially inside a transaction; one node-postgres client cannot safely run overlapping queries.
 - [Native TypeScript test imports](native-typescript-test-imports.md) — Node's strip-types runner may fail on extensionless relative ESM imports before tests execute; separate that harness failure from feature regressions.
 - [Ad approval delivery boundary](ad-approval-delivery-boundary.md) — approval may prepare a pending campaign, but only explicit resume should clear an intentional pause.
+- [Vercel ad-delivery boundary](vercel-ad-delivery-boundary.md) — live Vercel JavaScript and rewrites can lag workspace source; verify them separately from the Replit API.

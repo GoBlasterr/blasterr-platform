@@ -10,6 +10,7 @@ import { and, count, desc, eq, gte, lt, sql } from "drizzle-orm";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { createHmac, randomUUID } from "node:crypto";
 import { getBillingProvider } from "../lib/ad-billing";
+import { trustedCountryFromProxyHeaders } from "../lib/localization";
 import {
   createSignedDeliveryToken,
   detectFraudRules,
@@ -91,9 +92,12 @@ function viewerContext(req: Request, query: Record<string, unknown>): ViewerCont
   const userAgent = String(req.headers["user-agent"] ?? "").toLowerCase();
   const inferredDevice = /ipad|tablet/.test(userAgent) ? "tablet" : /mobile|android|iphone/.test(userAgent) ? "mobile" : "desktop";
   const headerLanguage = String(req.headers["accept-language"] ?? "").split(",")[0]?.trim();
-  const headerGeography = req.headers["x-country-code"] ?? req.headers["cf-ipcountry"];
+  const trustedGeography = trustedCountryFromProxyHeaders((name) => req.get(name), {
+    production: process.env.NODE_ENV === "production",
+    replitDeployment: Boolean(process.env.REPLIT_DEPLOYMENT),
+  });
   return {
-    geography: String(query.geography ?? headerGeography ?? "").trim().toLowerCase() || undefined,
+    geography: String(query.geography ?? trustedGeography ?? "").trim().toLowerCase() || undefined,
     language: String(query.language ?? headerLanguage ?? "").trim().toLowerCase() || undefined,
     device: String(query.device ?? inferredDevice).trim().toLowerCase() || undefined,
     interests: csv(query.interests), categories: csv(query.categories), keywords: csv(query.keywords),

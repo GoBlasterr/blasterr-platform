@@ -39,6 +39,37 @@ export function isCountryCode(value?: string): value is string {
   return Boolean(value && /^[A-Za-z]{2}$/.test(value.trim()));
 }
 
+export type ProxyCountryHeaderReader = (name: string) => string | undefined;
+export type ProxyCountryTrustOptions = {
+  production: boolean;
+  replitDeployment: boolean;
+};
+
+export function trustedCountryFromProxyHeaders(
+  getHeader: ProxyCountryHeaderReader,
+  options: ProxyCountryTrustOptions,
+): string | undefined {
+  const cloudflareCountry = getHeader("cf-ipcountry");
+  if (isCountryCode(cloudflareCountry) &&
+    (!options.production || Boolean(getHeader("cf-ray") && getHeader("cf-connecting-ip")))) {
+    return cloudflareCountry.toUpperCase();
+  }
+
+  const vercelCountry = getHeader("x-vercel-ip-country");
+  if (isCountryCode(vercelCountry) &&
+    (!options.production || Boolean(getHeader("x-vercel-id")))) {
+    return vercelCountry.toUpperCase();
+  }
+
+  const deploymentCountry = getHeader("x-country-code");
+  const isDeploymentProxy = options.replitDeployment && Boolean(getHeader("x-forwarded-for"));
+  if (isCountryCode(deploymentCountry) && (!options.production || isDeploymentProxy)) {
+    return deploymentCountry.toUpperCase();
+  }
+
+  return undefined;
+}
+
 export function localeFromCookie(cookieHeader?: string): SupportedLanguage | null {
   const value = cookieHeader
     ?.split(";")
