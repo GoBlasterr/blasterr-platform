@@ -30,16 +30,24 @@ async function applyViewerLocale() {
   }
 }
 
-void applyViewerLocale().then((locale) => {
-  installInterfaceLocalization(locale.language);
-  createRoot(document.getElementById('root')!, {
-    // Keeps caught errors off reportError(), which would raise the dev overlay.
-    onCaughtError: (error, errorInfo) => {
-      console.error(error, errorInfo.componentStack);
-    },
-  }).render(
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>,
-  );
-});
+// www is hosted separately and Clerk's browser session cookie is host-scoped.
+// Use the Vercel apex for both the OAuth callback and subsequent navigation.
+if (window.location.hostname === 'www.goblasterr.com') {
+  const canonical = new URL(window.location.href);
+  canonical.hostname = 'goblasterr.com';
+  window.location.replace(canonical.href);
+} else {
+  void applyViewerLocale().then((locale) => {
+    installInterfaceLocalization(locale.language);
+    createRoot(document.getElementById('root')!, {
+      // Keeps caught errors off reportError(), which would raise the dev overlay.
+      onCaughtError: (error, errorInfo) => {
+        console.error(error, errorInfo.componentStack);
+      },
+    }).render(
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>,
+    );
+  });
+}

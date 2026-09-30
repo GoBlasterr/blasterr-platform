@@ -1,4 +1,7 @@
 {
+  "proxy": {
+    "entrypoint": "proxy.ts"
+  },
   "rewrites": [
     {
       "source": "/api/:path*",

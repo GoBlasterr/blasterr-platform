@@ -9,6 +9,7 @@ import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
   getClerkProxyHost,
+  validatePublicHostHeader,
 } from "./middlewares/clerkProxyMiddleware";
 import { adminSettings, ensureAdminState } from "./lib/admin-state";
 import { isSuspended } from "./lib/admin-auth";
@@ -38,6 +39,7 @@ app.use(
     },
   }),
 );
+app.use("/api", validatePublicHostHeader());
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 app.use(cors({ credentials: true, origin: true }));
 app.post(

@@ -22,14 +22,21 @@
 import type { IncomingHttpHeaders } from 'http';
 import type { RequestHandler } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import {
+  PUBLIC_HOST_HEADER,
+  PUBLIC_HOST_SIGNATURE_HEADER,
+  PUBLIC_HOST_TIMESTAMP_HEADER,
+  clerkPublicHost,
+  restoreTrustedPublicHost,
+  verifiedPublicHost,
+} from '../lib/trusted-public-host.js';
 
 const CLERK_FAPI = 'https://frontend-api.clerk.dev';
 export const CLERK_PROXY_PATH = '/api/__clerk';
 
 /**
- * Returns the first effective public hostname for the given request,
- * preferring x-forwarded-host over the Host header so callers behind a
- * proxy see the original client-facing host.
+ * Returns the verified Vercel public host when available, otherwise the
+ * effective forwarded host for direct Replit requests.
  *
  * x-forwarded-host can take three shapes:
  *   - undefined (no proxy involved)
@@ -46,10 +53,17 @@ export const CLERK_PROXY_PATH = '/api/__clerk';
 export function getClerkProxyHost(req: {
   headers: IncomingHttpHeaders;
 }): string | undefined {
-  const forwarded = req.headers['x-forwarded-host'];
-  const raw = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-  const firstHop = raw?.split(',')[0]?.trim();
-  return firstHop || req.headers.host?.trim() || undefined;
+  return clerkPublicHost(req.headers);
+}
+
+export function validatePublicHostHeader(): RequestHandler {
+  return (req, res, next) => {
+    if (!restoreTrustedPublicHost(req.headers)) {
+      res.status(400).json({ error: 'Invalid public-host proxy signature.' });
+      return;
+    }
+    next();
+  };
 }
 
 export function clerkProxyMiddleware(): RequestHandler {
@@ -73,10 +87,16 @@ export function clerkProxyMiddleware(): RequestHandler {
       path.replace(new RegExp(`^${CLERK_PROXY_PATH}`), ''),
     on: {
       proxyReq: (proxyReq, req) => {
-        const protocol = req.headers['x-forwarded-proto'] || 'https';
+        const protocol = verifiedPublicHost(req.headers)
+          ? 'https'
+          : req.headers['x-forwarded-proto'] || 'https';
         const host = getClerkProxyHost(req) || '';
         const proxyUrl = `${protocol}://${host}${CLERK_PROXY_PATH}`;
 
+        // These are private between Vercel and this API; never forward them to Clerk.
+        proxyReq.removeHeader(PUBLIC_HOST_HEADER);
+        proxyReq.removeHeader(PUBLIC_HOST_TIMESTAMP_HEADER);
+        proxyReq.removeHeader(PUBLIC_HOST_SIGNATURE_HEADER);
         proxyReq.setHeader('Clerk-Proxy-Url', proxyUrl);
         proxyReq.setHeader('Clerk-Secret-Key', secretKey);
 
