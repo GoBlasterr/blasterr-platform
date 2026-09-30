@@ -87,6 +87,10 @@ export function clerkProxyMiddleware(): RequestHandler {
       path.replace(new RegExp(`^${CLERK_PROXY_PATH}`), ''),
     on: {
       proxyReq: (proxyReq, req) => {
+        // Override changeOrigin only for signed Vercel requests. Direct Replit
+        // requests keep the existing upstream Host behavior.
+        const publicHost = verifiedPublicHost(req.headers);
+        if (publicHost) proxyReq.setHeader('Host', publicHost);
         const protocol = verifiedPublicHost(req.headers)
           ? 'https'
           : req.headers['x-forwarded-proto'] || 'https';
